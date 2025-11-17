@@ -32,6 +32,20 @@ const RangeSlider = ({ label, value, min, max, step, onChange, formatValue }) =>
   </div>
 );
 
+// Function to save filters to the URL
+const saveFiltersToURL = (filters) => {
+  const encodedFilters = encodeURIComponent(JSON.stringify(filters));
+  const newURL = `${window.location.origin}${window.location.pathname}?filters=${encodedFilters}`;
+  window.history.replaceState(null, '', newURL); // Update the URL without reloading
+};
+
+// Function to load filters from the URL
+const loadFiltersFromURL = () => {
+  const params = new URLSearchParams(window.location.search);
+  const filters = params.get('filters');
+  return filters ? JSON.parse(decodeURIComponent(filters)) : null;
+};
+
 const App = () => {
   // Core adjustable parameters
   const [mortgageRate, setMortgageRate] = useState(6);
@@ -402,6 +416,19 @@ const App = () => {
     if (abs >= 1000000) return `£${(value / 1000000).toFixed(2)}M`;
     if (abs >= 1000) return `£${(value / 1000).toFixed(0)}k`;
     return `£${value.toFixed(0)}`;
+  };
+
+  // Load filters on app initialization
+  useEffect(() => {
+    const savedFilters = loadFiltersFromURL();
+    if (savedFilters) {
+      setFilters(savedFilters); // Replace `setFilters` with your state setter for filters
+    }
+  }, []);
+
+  // Call saveFiltersToURL whenever filters are saved
+  const handleSaveFilters = () => {
+    saveFiltersToURL(currentFilters); // Replace `currentFilters` with your filters object
   };
 
   // Main simulation
