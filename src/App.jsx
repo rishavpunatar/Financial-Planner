@@ -1270,143 +1270,147 @@ const App = () => {
         </div>
 
         <div className="chart-main">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={financialData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="year" />
-              <YAxis
-                tickFormatter={formatCurrency}
-                domain={zoomOut ? ['auto', 'auto'] : [0, 600000]}
-                scale="sqrt"
-              />
-              <Tooltip formatter={value => formatCurrency(value)} />
-              <Legend />
-
-              {/* Milestones */}
-              <ReferenceLine x={2028} stroke="#facc15" strokeDasharray="3 3" label="🚗" />
-              <ReferenceLine x={child1BirthYear} stroke="#f9a8d4" strokeDasharray="3 3" label="👶1" />
-              <ReferenceLine x={child2BirthYear} stroke="#f9a8d4" strokeDasharray="3 3" label="👶2" />
-              <ReferenceLine x={secondHouseYear} stroke="#4ade80" strokeDasharray="3 3" label="🏠" />
-              <ReferenceLine x={kid1GiftYear} stroke="#60a5fa" strokeDasharray="3 3" label="🎁1" />
-              <ReferenceLine x={kid2GiftYear} stroke="#60a5fa" strokeDasharray="3 3" label="🎁2" />
-              <ReferenceLine
-                x={recessionYear}
-                stroke="#94a3b8"
-                strokeDasharray="4 4"
-                label="📉"
-              />
-              <ReferenceLine
-                x={secondRecessionYear}
-                stroke="#94a3b8"
-                strokeDasharray="4 4"
-                label="📉2"
-              />
-              {mortgageRepayYear && (
-                <ReferenceLine
-                  x={mortgageRepayYear}
-                  stroke="#22c55e"
-                  strokeDasharray="2 2"
-                  label="✅"
+          {financialData && financialData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={financialData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="year" />
+                <YAxis
+                  tickFormatter={formatCurrency}
+                  domain={zoomOut ? ['auto', 'auto'] : [0, 600000]}
+                  scale="sqrt"
                 />
-              )}
+                <Tooltip formatter={value => formatCurrency(value)} />
+                <Legend />
 
-              {/* Combined income (pre-tax) */}
-              {showIncomeLine && (
-                <Line
-                  type="monotone"
-                  dataKey="combinedIncomeGross"
-                  name="Combined Income (pre-tax)"
-                  stroke="#14b8a6"
-                  strokeWidth={2}
-                  dot={false}
-                >
-                  <LabelList content={renderInlineNameLabel('Combined income', '#14b8a6')} />
-                  <LabelList content={renderEndLabel('#14b8a6')} />
-                </Line>
-              )}
-
-              {/* Surplus pot */}
-              {showSurplusLine && (
-                <Line
-                  type="monotone"
-                  dataKey="surplusPot"
-                  name="Surplus Pot (after CGT)"
-                  stroke="#0ea5e9"
-                  strokeWidth={2}
-                  dot={false}
-                >
-                  <LabelList
-                    content={renderInlineNameLabel('Surplus', '#0ea5e9')}
-                  />
-                  <LabelList content={renderEndLabel('#0ea5e9')} />
-                </Line>
-              )}
-
-              {/* ISA */}
-              {showIsaLine && (
-                <Line
-                  type="monotone"
-                  dataKey="isaTotal"
-                  name="ISA Total"
-                  stroke="#8b5cf6"
-                  strokeWidth={3}
-                  dot={(props) => {
-                    const { cx, cy, payload } = props;
-                    const below = payload.isaBelowThreshold;
-                    return (
-                      <circle
-                        cx={cx}
-                        cy={cy}
-                        r={below ? 4 : 3}
-                        fill={below ? '#dc2626' : '#8b5cf6'}
-                        stroke="none"
-                      />
-                    );
-                  }}
-                >
-                  <LabelList content={renderInlineNameLabel('ISA', '#8b5cf6')} />
-                  <LabelList content={renderEndLabel('#8b5cf6')} />
-                </Line>
-              )}
-
-              {/* Cumulative mortgage metrics (stop after payoff via *Display* keys) */}
-              {showMortgagePaidLine && (
-                <Line
-                  type="monotone"
-                  dataKey="totalMortgagePaymentsDisplay"
-                  name="Total Mortgage Payments (cumulative)"
-                  stroke="#f97316"
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  dot={false}
-                  connectNulls={false}
-                >
-                  <LabelList
-                    content={renderInlineNameLabel('Mortgage paid', '#f97316')}
-                  />
-                  <LabelList content={renderEndLabel('#f97316')} />
-                </Line>
-              )}
-
-              {showInterestLine && (
-                <Line
-                  type="monotone"
-                  dataKey="totalInterestPaidDisplay"
-                  name="Total Interest Paid (cumulative)"
-                  stroke="#b91c1c"
-                  strokeWidth={2}
+                {/* Milestones */}
+                <ReferenceLine x={2028} stroke="#facc15" strokeDasharray="3 3" label="🚗" />
+                <ReferenceLine x={child1BirthYear} stroke="#f9a8d4" strokeDasharray="3 3" label="👶1" />
+                <ReferenceLine x={child2BirthYear} stroke="#f9a8d4" strokeDasharray="3 3" label="👶2" />
+                <ReferenceLine x={secondHouseYear} stroke="#4ade80" strokeDasharray="3 3" label="🏠" />
+                <ReferenceLine x={kid1GiftYear} stroke="#60a5fa" strokeDasharray="3 3" label="🎁1" />
+                <ReferenceLine x={kid2GiftYear} stroke="#60a5fa" strokeDasharray="3 3" label="🎁2" />
+                <ReferenceLine
+                  x={recessionYear}
+                  stroke="#94a3b8"
                   strokeDasharray="4 4"
-                  dot={false}
-                  connectNulls={false}
-                >
-                  <LabelList
-                    content={renderInlineNameLabel('Interest', '#b91c1c')}
+                  label="📉"
+                />
+                <ReferenceLine
+                  x={secondRecessionYear}
+                  stroke="#94a3b8"
+                  strokeDasharray="4 4"
+                  label="📉2"
+                />
+                {mortgageRepayYear && (
+                  <ReferenceLine
+                    x={mortgageRepayYear}
+                    stroke="#22c55e"
+                    strokeDasharray="2 2"
+                    label="✅"
                   />
-                  <LabelList content={renderEndLabel('#b91c1c')} />
-                </Line>
-              )}
-            </LineChart>
-          </ResponsiveContainer>
+                )}
+
+                {/* Combined income (pre-tax) */}
+                {showIncomeLine && (
+                  <Line
+                    type="monotone"
+                    dataKey="combinedIncomeGross"
+                    name="Combined Income (pre-tax)"
+                    stroke="#14b8a6"
+                    strokeWidth={2}
+                    dot={false}
+                  >
+                    <LabelList content={renderInlineNameLabel('Combined income', '#14b8a6')} />
+                    <LabelList content={renderEndLabel('#14b8a6')} />
+                  </Line>
+                )}
+
+                {/* Surplus pot */}
+                {showSurplusLine && (
+                  <Line
+                    type="monotone"
+                    dataKey="surplusPot"
+                    name="Surplus Pot (after CGT)"
+                    stroke="#0ea5e9"
+                    strokeWidth={2}
+                    dot={false}
+                  >
+                    <LabelList
+                      content={renderInlineNameLabel('Surplus', '#0ea5e9')}
+                    />
+                    <LabelList content={renderEndLabel('#0ea5e9')} />
+                  </Line>
+                )}
+
+                {/* ISA */}
+                {showIsaLine && (
+                  <Line
+                    type="monotone"
+                    dataKey="isaTotal"
+                    name="ISA Total"
+                    stroke="#8b5cf6"
+                    strokeWidth={3}
+                    dot={(props) => {
+                      const { cx, cy, payload } = props;
+                      const below = payload.isaBelowThreshold;
+                      return (
+                        <circle
+                          cx={cx}
+                          cy={cy}
+                          r={below ? 4 : 3}
+                          fill={below ? '#dc2626' : '#8b5cf6'}
+                          stroke="none"
+                        />
+                      );
+                    }}
+                  >
+                    <LabelList content={renderInlineNameLabel('ISA', '#8b5cf6')} />
+                    <LabelList content={renderEndLabel('#8b5cf6')} />
+                  </Line>
+                )}
+
+                {/* Cumulative mortgage metrics (stop after payoff via *Display* keys) */}
+                {showMortgagePaidLine && (
+                  <Line
+                    type="monotone"
+                    dataKey="totalMortgagePaymentsDisplay"
+                    name="Total Mortgage Payments (cumulative)"
+                    stroke="#f97316"
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    dot={false}
+                    connectNulls={false}
+                  >
+                    <LabelList
+                      content={renderInlineNameLabel('Mortgage paid', '#f97316')}
+                    />
+                    <LabelList content={renderEndLabel('#f97316')} />
+                  </Line>
+                )}
+
+                {showInterestLine && (
+                  <Line
+                    type="monotone"
+                    dataKey="totalInterestPaidDisplay"
+                    name="Total Interest Paid (cumulative)"
+                    stroke="#b91c1c"
+                    strokeWidth={2}
+                    strokeDasharray="4 4"
+                    dot={false}
+                    connectNulls={false}
+                  >
+                    <LabelList
+                      content={renderInlineNameLabel('Interest', '#b91c1c')}
+                    />
+                    <LabelList content={renderEndLabel('#b91c1c')} />
+                  </Line>
+                )}
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ padding: '20px', color: '#666' }}>Loading chart...</div>
+          )}
         </div>
 
         <div className="milestones">
