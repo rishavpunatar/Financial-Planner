@@ -1,0 +1,488 @@
+/* -------- Base reset -------- */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* -------- Root container -------- */
+
+.app-root,
+.App,
+.app {
+  min-height: 100vh;
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* -------- Titles -------- */
+
+.app-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0 0 2px;
+}
+
+.app-subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* -------- Summary cards (top) -------- */
+
+.summary-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 900px;
+}
+
+.summary-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  border: 1px solid #e5e7eb;
+}
+
+.summary-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  margin-bottom: 3px;
+}
+
+.summary-value {
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #111827;
+}
+
+.summary-sub {
+  font-size: 0.73rem;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+/* Slight accent borders to keep visual separation */
+
+.summary-accent-cyan {
+  border-left: 3px solid #06b6d4;
+}
+
+.summary-accent-blue {
+  border-left: 3px solid #3b82f6;
+}
+
+.summary-accent-green {
+  border-left: 3px solid #22c55e;
+}
+
+/* -------- Main chart card -------- */
+
+.chart-card {
+  margin-top: 10px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 12px 14px 14px;
+  box-shadow: 0 16px 35px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+/* -------- Preset row -------- */
+
+.preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.preset-name-input,
+.preset-select {
+  min-width: 160px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #111827;
+}
+
+.preset-name-input:focus,
+.preset-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+}
+
+.preset-button {
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  border-radius: 999px;
+  border: 1px solid #3b82f6;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.preset-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* -------- Advanced block -------- */
+
+.advanced-box {
+  margin-top: 6px;
+  padding: 6px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.advanced-toggle {
+  font-size: 0.78rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+  cursor: pointer;
+}
+
+.advanced-grid {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px 12px;
+}
+
+/* -------- Top row: inline summary + sliders -------- */
+
+.chart-top-row {
+  margin-top: 8px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+/* Inline summary tiles next to sliders */
+
+.chart-summary-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+  max-width: 220px;
+}
+
+.chart-summary-tile {
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 6px 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.chart-summary-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+.chart-summary-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------- Sliders area -------- */
+
+.chart-sliders-inline {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* House lock + private school toggles */
+
+.house-lock-row {
+  margin-top: 2px;
+  margin-bottom: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Section headers row, 3 headers over 6 columns */
+
+.slider-header-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  column-gap: 12px;
+  margin-bottom: 4px;
+}
+
+.slider-header {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+  color: #374151;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.slider-header:nth-child(1) {
+  grid-column: 1 / span 2;
+}
+
+.slider-header:nth-child(2) {
+  grid-column: 3 / span 2;
+}
+
+.slider-header:nth-child(3) {
+  grid-column: 5 / span 2;
+}
+
+/* Slider columns grid: 6 columns */
+
+.slider-columns-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  column-gap: 12px;
+  row-gap: 4px;
+}
+
+.slider-column {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* -------- Individual slider styling -------- */
+
+.slider-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.slider-label {
+  font-size: 0.78rem;
+  color: #111827;
+  display: flex;
+  justify-content: space-between;
+}
+
+.slider-label span.value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Native range input */
+
+.slider-input {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  outline: none;
+  cursor: pointer;
+}
+
+/* Track background when disabled etc is still same, so fine */
+
+.slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #9ca3af;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+}
+
+.slider-input::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #9ca3af;
+}
+
+/* -------- Derived numbers line -------- */
+
+.derived-line {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.derived-line-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.derived-highlight {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* -------- Line toggles (Income / ISA / etc) -------- */
+
+.line-toggle-row {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.line-toggle {
+  font-size: 0.78rem;
+  color: #111827;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* -------- Chart main area -------- */
+
+.chart-main {
+  margin-top: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  height: 340px; /* keep short so graph and sliders fit */
+}
+
+/* Slightly taller on tall displays */
+
+@media (min-height: 900px) {
+  .chart-main {
+    height: 380px;
+  }
+}
+
+/* Make the Recharts responsive container fill remaining width */
+
+.chart-main > .recharts-responsive-container {
+  flex: 1 1 auto;
+}
+
+/* -------- Milestones strip -------- */
+
+.milestones {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #4b5563;
+}
+
+.milestones span {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+}
+
+/* -------- Helper text (if used) -------- */
+
+.helper-text {
+  font-size: 0.72rem;
+  color: #9ca3af;
+}
+
+/* -------- Responsive tweaks -------- */
+
+@media (max-width: 1200px) {
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .chart-top-row {
+    flex-direction: column;
+  }
+
+  .chart-summary-inline {
+    flex-direction: row;
+    max-width: none;
+  }
+
+  .slider-header-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .slider-header:nth-child(1),
+  .slider-header:nth-child(2),
+  .slider-header:nth-child(3) {
+    grid-column: auto;
+  }
+
+  .slider-columns-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .chart-main {
+    flex-direction: column-reverse;
+    height: 360px;
+  }
+}
+
+@media (max-width: 800px) {
+  .summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .advanced-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .slider-columns-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .slider-header-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .chart-main {
+    height: 320px;
+  }
+}
