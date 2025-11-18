@@ -244,6 +244,15 @@ body {
   align-items: center;
 }
 
+.toggle-row {
+  margin-top: 6px;
+  margin-bottom: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
 /* Section headers row, 3 headers over 6 columns */
 
 .slider-header-row {
@@ -429,6 +438,62 @@ body {
   color: #9ca3af;
 }
 
+/* -------- NEW: Stamp Duty Box -------- */
+
+.stamp-duty-box {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+}
+
+.stamp-duty-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #0369a1;
+}
+
+.stamp-duty-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.stamp-duty-item {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 8px 10px;
+  border: 1px solid #e0f2fe;
+}
+
+.stamp-duty-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0369a1;
+  margin-bottom: 4px;
+}
+
+.stamp-duty-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #075985;
+}
+
+.stamp-duty-total {
+  color: #0c4a6e;
+  font-size: 1.2rem;
+}
+
+.stamp-duty-details {
+  font-size: 0.65rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
 /* -------- Responsive tweaks -------- */
 
 @media (max-width: 1200px) {
@@ -463,6 +528,10 @@ body {
     flex-direction: column-reverse;
     height: 360px;
   }
+
+  .stamp-duty-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 800px) {
@@ -484,5 +553,9 @@ body {
 
   .chart-main {
     height: 320px;
+  }
+
+  .stamp-duty-row {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

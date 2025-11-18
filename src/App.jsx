@@ -32,11 +32,48 @@ const RangeSlider = ({ label, value, min, max, step, onChange, formatValue }) =>
   </div>
 );
 
+// NEW: Stamp Duty Calculator for England
+const calculateStampDuty = (propertyValue, isAdditionalProperty = false) => {
+  // Stamp Duty Land Tax rates for England (2024)
+  // Main residence thresholds
+  const standardThresholds = [
+    { limit: 250000, rate: 0 },
+    { limit: 925000, rate: 5 },
+    { limit: 1500000, rate: 10 },
+    { limit: Infinity, rate: 12 }
+  ];
+  
+  // Additional property surcharge (3% on top)
+  const additionalPropertySurcharge = 3;
+  
+  let stampDuty = 0;
+  let remaining = propertyValue;
+  let previousLimit = 0;
+  
+  for (const bracket of standardThresholds) {
+    const bracketSize = Math.min(remaining, bracket.limit - previousLimit);
+    if (bracketSize <= 0) break;
+    
+    let rate = bracket.rate;
+    if (isAdditionalProperty && bracket.limit > 0) {
+      rate += additionalPropertySurcharge;
+    }
+    
+    stampDuty += (bracketSize * rate) / 100;
+    remaining -= bracketSize;
+    previousLimit = bracket.limit;
+    
+    if (remaining <= 0) break;
+  }
+  
+  return Math.round(stampDuty);
+};
+
 // Function to save filters to the URL
 const saveFiltersToURL = (filters) => {
   const encodedFilters = encodeURIComponent(JSON.stringify(filters));
   const newURL = `${window.location.origin}${window.location.pathname}?filters=${encodedFilters}`;
-  window.history.replaceState(null, '', newURL); // Update the URL without reloading
+  window.history.replaceState(null, '', newURL);
 };
 
 // Function to load filters from the URL
@@ -115,6 +152,8 @@ const App = () => {
   const [showIsaLine, setShowIsaLine] = useState(true);
   const [showMortgagePaidLine, setShowMortgagePaidLine] = useState(true);
   const [showInterestLine, setShowInterestLine] = useState(true);
+  const [showMortgageBalanceLine, setShowMortgageBalanceLine] = useState(false);
+  const [showStampDuty, setShowStampDuty] = useState(true);
 
   // Presets
   const [presetName, setPresetName] = useState('');
@@ -138,6 +177,17 @@ const App = () => {
 
   const kid1GiftYear = child1BirthYear + 27;
   const kid2GiftYear = child2BirthYear + 27;
+
+  // NEW: Calculate stamp duty for both properties
+  const firstHouseStampDuty = useMemo(
+    () => calculateStampDuty(initialPropertyValue, false),
+    [initialPropertyValue]
+  );
+
+  const secondHouseStampDuty = useMemo(
+    () => calculateStampDuty(moveIncrementValue, true), // Additional property
+    [moveIncrementValue]
+  );
 
   // Keep initialCash = initialDeposit + isaSeed
 
@@ -290,6 +340,8 @@ const App = () => {
       showIsaLine,
       showMortgagePaidLine,
       showInterestLine,
+      showMortgageBalanceLine,
+      showStampDuty,
     };
 
     setSavedPresets(prev => {
@@ -358,6 +410,8 @@ const App = () => {
     setShowIsaLine(p.showIsaLine ?? true);
     setShowMortgagePaidLine(p.showMortgagePaidLine ?? true);
     setShowInterestLine(p.showInterestLine ?? true);
+    setShowMortgageBalanceLine(p.showMortgageBalanceLine ?? false);
+    setShowStampDuty(p.showStampDuty ?? true);
   };
 
   const handleLoadPreset = () => {
@@ -382,7 +436,7 @@ const App = () => {
     if (storedPresets) {
       setSavedPresets(JSON.parse(storedPresets));
     } else {
-      setSavedPresets([]); // Ensure dropdown renders even if no presets exist
+      setSavedPresets([]);
     }
   }, []);
 
@@ -403,12 +457,47 @@ const App = () => {
     }
   };
 
-  // Simplified UK post-tax calculator
+  // ENHANCED: UK post-tax calculator with proper tax bands verification
   const calculatePostTax = (income) => {
+    // UK Tax Bands 2024/25
+    // Personal Allowance: £12,570 (tapers off above £100,000)
+    // Basic Rate: £12,571 to £50,270 (20%)
+    // Higher Rate: £50,271 to £125,140 (40%)
+    // Additional Rate: Over £125,140 (45%)
+    
     if (income <= 12570) return income;
-    if (income <= 50270) return 12570 + (income - 12570) * 0.8;
-    if (income <= 125140) return 12570 + 37700 * 0.8 + (income - 50270) * 0.6;
-    return 12570 + 37700 * 0.8 + 74870 * 0.6 + (income - 125140) * 0.55;
+    
+    // Personal allowance tapering
+    let personalAllowance = 12570;
+    if (income > 100000) {
+      const excessOver100k = income - 100000;
+      const taperAmount = Math.floor(excessOver100k / 2);
+      personalAllowance = Math.max(0, personalAllowance - taperAmount);
+    }
+    
+    let tax = 0;
+    let remainingIncome = income - personalAllowance;
+    
+    // Basic rate: 20% on income up to £37,700 (£50,270 - £12,570)
+    if (remainingIncome > 0) {
+      const basicRateBand = Math.min(remainingIncome, 37700);
+      tax += basicRateBand * 0.20;
+      remainingIncome -= basicRateBand;
+    }
+    
+    // Higher rate: 40% on income from £37,701 to £112,570 (£125,140 - £12,570)
+    if (remainingIncome > 0) {
+      const higherRateBand = Math.min(remainingIncome, 74870);
+      tax += higherRateBand * 0.40;
+      remainingIncome -= higherRateBand;
+    }
+    
+    // Additional rate: 45% on income over £125,140
+    if (remainingIncome > 0) {
+      tax += remainingIncome * 0.45;
+    }
+    
+    return income - tax;
   };
 
   const formatCurrency = (value) => {
@@ -422,14 +511,9 @@ const App = () => {
   useEffect(() => {
     const savedFilters = loadFiltersFromURL();
     if (savedFilters) {
-      setFilters(savedFilters); // Replace `setFilters` with your state setter for filters
+      // Apply saved filters if needed
     }
   }, []);
-
-  // Call saveFiltersToURL whenever filters are saved
-  const handleSaveFilters = () => {
-    saveFiltersToURL(currentFilters); // Replace `currentFilters` with your filters object
-  };
 
   // Main simulation
   const {
@@ -442,7 +526,8 @@ const App = () => {
     const startAge = 29;
     const maxYear = 2069;
 
-    let mortgageBalance = initialMortgage;
+    let firstMortgageBalance = initialMortgage;
+    let secondMortgageBalance = 0;
     let propertyValue = initialPropertyValue;
     let isaTotal = isaSeed;
     let cumulativeMortgageInterest = 0;
@@ -454,6 +539,7 @@ const App = () => {
 
     let mortgageRepayYearLocal = null;
     let secondHouseValueAtMoveLocal = null;
+    let firstMortgagePaidOffYear = null;
 
     for (let year = startYear; year <= maxYear; year++) {
       const yearsFromStart = year - startYear;
@@ -494,7 +580,7 @@ const App = () => {
       if (year === secondHouseYear) {
         const withdrawn = Math.min(secondHouseDeposit, isaTotal);
         isaTotal -= withdrawn;
-        mortgageBalance += secondMortgage;
+        secondMortgageBalance = secondMortgage;
         propertyValue = propertyValue + moveIncrementValue;
         secondHouseValueAtMoveLocal = propertyValue;
       }
@@ -509,28 +595,45 @@ const App = () => {
 
       // Mortgage interest and repayments
       const yearlyRate = mortgageRate / 100;
-      const mortgageInterest = mortgageBalance * yearlyRate;
+      const totalMortgageBalance = firstMortgageBalance + secondMortgageBalance;
+      const mortgageInterest = totalMortgageBalance * yearlyRate;
 
       let mortgageRepayment = 0;
-      if (mortgageBalance > 0) {
+      if (totalMortgageBalance > 0) {
         const salaryPercent =
           year <= secondHouseYear ? salaryMortgageEarly / 100 : salaryMortgageLater / 100;
 
         // Repayment sized from gross income
         mortgageRepayment = grossIncome * salaryPercent;
 
-        const maxPossible = mortgageBalance + mortgageInterest;
+        const maxPossible = totalMortgageBalance + mortgageInterest;
         if (mortgageRepayment > maxPossible) {
           mortgageRepayment = maxPossible;
         }
 
-        const principalPayment = mortgageRepayment - mortgageInterest;
-        mortgageBalance = Math.max(0, mortgageBalance - principalPayment);
+        let principalPayment = mortgageRepayment - mortgageInterest;
+        
+        // Pay off first mortgage first
+        if (firstMortgageBalance > 0) {
+          const firstMortgagePayment = Math.min(principalPayment, firstMortgageBalance);
+          firstMortgageBalance -= firstMortgagePayment;
+          principalPayment -= firstMortgagePayment;
+          
+          if (firstMortgageBalance <= 0.01 && firstMortgagePaidOffYear === null) {
+            firstMortgagePaidOffYear = year;
+          }
+        }
+        
+        // Then pay off second mortgage
+        if (principalPayment > 0 && secondMortgageBalance > 0) {
+          const secondMortgagePayment = Math.min(principalPayment, secondMortgageBalance);
+          secondMortgageBalance -= secondMortgagePayment;
+        }
 
         cumulativeMortgageInterest += mortgageInterest;
         cumulativeMortgageRepayment += mortgageRepayment;
 
-        if (mortgageBalance <= 0.01 && mortgageRepayYearLocal === null) {
+        if (totalMortgageBalance <= 0.01 && mortgageRepayYearLocal === null) {
           mortgageRepayYearLocal = year;
         }
       }
@@ -635,7 +738,9 @@ const App = () => {
         propertyValue,
         isaTotal,
         isaBelowThreshold,
-        mortgageBalance,
+        mortgageBalance: totalMortgageBalance,
+        firstMortgageBalance: firstMortgageBalance,
+        secondMortgageBalance: secondMortgageBalance,
         totalMortgagePayments: cumulativeMortgageRepayment,
         totalInterestPaid: cumulativeMortgageInterest,
         totalMortgagePaymentsDisplay: displayMortgagePayments,
@@ -713,17 +818,17 @@ const App = () => {
     ? Math.floor(financialData.length * 0.6)
     : 0;
 
-    const renderEndLabel = (color) => (props) => {
-      const { x, y, index, value } = props;
-      if (!financialData.length || index !== financialData.length - 1) return null;
-      if (value == null || Number.isNaN(value)) return null;
-    
-      return (
-        <text x={x + 4} y={y} fill={color} fontSize={10}>
-          {formatCurrency(value)}
-        </text>
-      );
-    };
+  const renderEndLabel = (color) => (props) => {
+    const { x, y, index, value } = props;
+    if (!financialData.length || index !== financialData.length - 1) return null;
+    if (value == null || Number.isNaN(value)) return null;
+
+    return (
+      <text x={x + 4} y={y} fill={color} fontSize={10}>
+        {formatCurrency(value)}
+      </text>
+    );
+  };
 
   const renderInlineNameLabel = (text, color) => (props) => {
     const { x, y, index } = props;
@@ -1232,6 +1337,43 @@ const App = () => {
           </div>
         </div>
 
+        {/* NEW: Stamp Duty Display */}
+        {showStampDuty && (
+          <div className="stamp-duty-box">
+            <h3 className="stamp-duty-title">Stamp Duty Land Tax (England)</h3>
+            <div className="stamp-duty-row">
+              <div className="stamp-duty-item">
+                <div className="stamp-duty-label">First House</div>
+                <div className="stamp-duty-value">{formatCurrency(firstHouseStampDuty)}</div>
+                <div className="stamp-duty-details">
+                  Property value: {formatCurrency(initialPropertyValue)}
+                </div>
+              </div>
+              <div className="stamp-duty-item">
+                <div className="stamp-duty-label">Second House (Additional 3%)</div>
+                <div className="stamp-duty-value">{formatCurrency(secondHouseStampDuty)}</div>
+                <div className="stamp-duty-details">
+                  Property value: {formatCurrency(moveIncrementValue)}
+                </div>
+              </div>
+              <div className="stamp-duty-item">
+                <div className="stamp-duty-label">Total Stamp Duty</div>
+                <div className="stamp-duty-value stamp-duty-total">
+                  {formatCurrency(firstHouseStampDuty + secondHouseStampDuty)}
+                </div>
+                <label className="line-toggle" style={{ marginTop: '4px', fontSize: '0.75rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={showStampDuty}
+                    onChange={e => setShowStampDuty(e.target.checked)}
+                  />
+                  Show stamp duty
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="derived-line derived-line-inline">
           Initial Property Value:{' '}
           <span className="derived-highlight">
@@ -1285,6 +1427,14 @@ const App = () => {
               onChange={e => setShowInterestLine(e.target.checked)}
             />
             Interest paid
+          </label>
+          <label className="line-toggle">
+            <input
+              type="checkbox"
+              checked={showMortgageBalanceLine}
+              onChange={e => setShowMortgageBalanceLine(e.target.checked)}
+            />
+            Mortgage balance
           </label>
           <label className="line-toggle">
             <input
@@ -1394,6 +1544,25 @@ const App = () => {
                   >
                     <LabelList content={renderInlineNameLabel('ISA', '#8b5cf6')} />
                     <LabelList content={renderEndLabel('#8b5cf6')} />
+                  </Line>
+                )}
+
+                {/* NEW: Mortgage Balance Line */}
+                {showMortgageBalanceLine && (
+                  <Line
+                    type="monotone"
+                    dataKey="mortgageBalance"
+                    name="Total Mortgage Balance"
+                    stroke="#dc2626"
+                    strokeWidth={2}
+                    strokeDasharray="3 3"
+                    dot={false}
+                    connectNulls={false}
+                  >
+                    <LabelList
+                      content={renderInlineNameLabel('Mortgage balance', '#dc2626')}
+                    />
+                    <LabelList content={renderEndLabel('#dc2626')} />
                   </Line>
                 )}
 
