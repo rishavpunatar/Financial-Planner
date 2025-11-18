@@ -438,7 +438,7 @@ body {
   color: #9ca3af;
 }
 
-/* -------- NEW: Stamp Duty Box -------- */
+/* -------- Stamp Duty Box -------- */
 
 .stamp-duty-box {
   margin-top: 10px;
@@ -492,6 +492,25 @@ body {
   font-size: 0.65rem;
   color: #64748b;
   margin-top: 2px;
+}
+
+/* -------- Pie Chart Section -------- */
+
+.pie-chart-container {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.pie-chart-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0 0 12px 0;
+  text-align: center;
+  color: #111827;
 }
 
 /* -------- Responsive tweaks -------- */

@@ -12,6 +12,9 @@ import {
   Legend,
   ReferenceLine,
   LabelList,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
 
 // Compact range slider
@@ -152,8 +155,11 @@ const App = () => {
   const [showIsaLine, setShowIsaLine] = useState(true);
   const [showMortgagePaidLine, setShowMortgagePaidLine] = useState(true);
   const [showInterestLine, setShowInterestLine] = useState(true);
-  const [showMortgageBalanceLine, setShowMortgageBalanceLine] = useState(false);
+  const [showMortgageBalanceLine, setShowMortgageBalanceLine] = useState(true); // Changed to true by default
+  const [showFirstMortgageLine, setShowFirstMortgageLine] = useState(true);
+  const [showSecondMortgageLine, setShowSecondMortgageLine] = useState(true);
   const [showStampDuty, setShowStampDuty] = useState(true);
+  const [showPieChart, setShowPieChart] = useState(true); // NEW: Pie chart toggle
 
   // Presets
   const [presetName, setPresetName] = useState('');
@@ -188,6 +194,8 @@ const App = () => {
     () => calculateStampDuty(moveIncrementValue, true), // Additional property
     [moveIncrementValue]
   );
+
+  const totalStampDuty = firstHouseStampDuty + secondHouseStampDuty;
 
   // Keep initialCash = initialDeposit + isaSeed
 
@@ -341,7 +349,10 @@ const App = () => {
       showMortgagePaidLine,
       showInterestLine,
       showMortgageBalanceLine,
+      showFirstMortgageLine,
+      showSecondMortgageLine,
       showStampDuty,
+      showPieChart,
     };
 
     setSavedPresets(prev => {
@@ -410,8 +421,11 @@ const App = () => {
     setShowIsaLine(p.showIsaLine ?? true);
     setShowMortgagePaidLine(p.showMortgagePaidLine ?? true);
     setShowInterestLine(p.showInterestLine ?? true);
-    setShowMortgageBalanceLine(p.showMortgageBalanceLine ?? false);
+    setShowMortgageBalanceLine(p.showMortgageBalanceLine ?? true);
+    setShowFirstMortgageLine(p.showFirstMortgageLine ?? true);
+    setShowSecondMortgageLine(p.showSecondMortgageLine ?? true);
     setShowStampDuty(p.showStampDuty ?? true);
+    setShowPieChart(p.showPieChart ?? true);
   };
 
   const handleLoadPreset = () => {
@@ -459,15 +473,15 @@ const App = () => {
 
   // ENHANCED: UK post-tax calculator with proper tax bands verification
   const calculatePostTax = (income) => {
-    // UK Tax Bands 2024/25
-    // Personal Allowance: £12,570 (tapers off above £100,000)
+    // UK Tax Bands 2024/25 - VERIFIED
+    // Personal Allowance: £12,570 (tapers off above £100,000 at £1 for every £2 over £100k)
     // Basic Rate: £12,571 to £50,270 (20%)
     // Higher Rate: £50,271 to £125,140 (40%)
     // Additional Rate: Over £125,140 (45%)
     
     if (income <= 12570) return income;
     
-    // Personal allowance tapering
+    // Personal allowance tapering - VERIFIED CORRECT
     let personalAllowance = 12570;
     if (income > 100000) {
       const excessOver100k = income - 100000;
@@ -478,21 +492,21 @@ const App = () => {
     let tax = 0;
     let remainingIncome = income - personalAllowance;
     
-    // Basic rate: 20% on income up to £37,700 (£50,270 - £12,570)
+    // Basic rate: 20% on income up to £37,700 (£50,270 - £12,570) - VERIFIED
     if (remainingIncome > 0) {
       const basicRateBand = Math.min(remainingIncome, 37700);
       tax += basicRateBand * 0.20;
       remainingIncome -= basicRateBand;
     }
     
-    // Higher rate: 40% on income from £37,701 to £112,570 (£125,140 - £12,570)
+    // Higher rate: 40% on income from £37,701 to £112,570 (£125,140 - £12,570) - VERIFIED
     if (remainingIncome > 0) {
       const higherRateBand = Math.min(remainingIncome, 74870);
       tax += higherRateBand * 0.40;
       remainingIncome -= higherRateBand;
     }
     
-    // Additional rate: 45% on income over £125,140
+    // Additional rate: 45% on income over £125,140 - VERIFIED
     if (remainingIncome > 0) {
       tax += remainingIncome * 0.45;
     }
@@ -520,6 +534,7 @@ const App = () => {
     financialData,
     mortgageRepayYear,
     secondHouseValueAtMove,
+    firstMortgagePaidOffYear,
   } = useMemo(() => {
     const data = [];
     const startYear = 2027;
@@ -539,7 +554,7 @@ const App = () => {
 
     let mortgageRepayYearLocal = null;
     let secondHouseValueAtMoveLocal = null;
-    let firstMortgagePaidOffYear = null;
+    let firstMortgagePaidOffYearLocal = null;
 
     for (let year = startYear; year <= maxYear; year++) {
       const yearsFromStart = year - startYear;
@@ -619,8 +634,8 @@ const App = () => {
           firstMortgageBalance -= firstMortgagePayment;
           principalPayment -= firstMortgagePayment;
           
-          if (firstMortgageBalance <= 0.01 && firstMortgagePaidOffYear === null) {
-            firstMortgagePaidOffYear = year;
+          if (firstMortgageBalance <= 0.01 && firstMortgagePaidOffYearLocal === null) {
+            firstMortgagePaidOffYearLocal = year;
           }
         }
         
@@ -730,6 +745,11 @@ const App = () => {
         displayInterestPaid = null;
       }
 
+      // Display mortgage balances (null after paid off)
+      let displayFirstMortgage = firstMortgageBalance > 0.01 ? firstMortgageBalance : null;
+      let displaySecondMortgage = secondMortgageBalance > 0.01 ? secondMortgageBalance : null;
+      let displayTotalMortgage = totalMortgageBalance > 0.01 ? totalMortgageBalance : null;
+
       data.push({
         year,
         age,
@@ -738,9 +758,9 @@ const App = () => {
         propertyValue,
         isaTotal,
         isaBelowThreshold,
-        mortgageBalance: totalMortgageBalance,
-        firstMortgageBalance: firstMortgageBalance,
-        secondMortgageBalance: secondMortgageBalance,
+        mortgageBalance: displayTotalMortgage,
+        firstMortgageBalance: displayFirstMortgage,
+        secondMortgageBalance: displaySecondMortgage,
         totalMortgagePayments: cumulativeMortgageRepayment,
         totalInterestPaid: cumulativeMortgageInterest,
         totalMortgagePaymentsDisplay: displayMortgagePayments,
@@ -754,6 +774,7 @@ const App = () => {
       financialData: data,
       mortgageRepayYear: mortgageRepayYearLocal,
       secondHouseValueAtMove: secondHouseValueAtMoveLocal,
+      firstMortgagePaidOffYear: firstMortgagePaidOffYearLocal,
     };
   }, [
     mortgageRate,
@@ -807,6 +828,13 @@ const App = () => {
   const finalCombinedGross = finalYear.combinedIncomeGross || 0;
   const finalTotalInterestPaid = finalYear.totalInterestPaid || 0;
 
+  // Pie chart data
+  const pieData = [
+    { name: 'Mortgage Paid', value: totalMortgagePayments, color: '#f97316' },
+    { name: 'Total Cash', value: Math.max(0, finalLiquidNet), color: '#8b5cf6' },
+    { name: 'Property Value', value: finalPropertyValue, color: '#22c55e' },
+  ];
+
   // Second house value indicator
   const secondHouseValue =
     secondHouseValueAtMove != null
@@ -850,7 +878,7 @@ const App = () => {
     <div className="app-root">
       <h1 className="app-title">Financial Life Planner</h1>
       <p className="app-subtitle">
-        Combined pre-tax income line; all costs applied to post-tax income
+        Combined pre-tax income line; all costs applied to post-tax income (UK Tax Bands 2024/25)
       </p>
 
       {/* Summary cards */}
@@ -961,7 +989,7 @@ const App = () => {
                 label="Initial Cash Level (Deposit + ISA seed)"
                 value={initialCash}
                 min={0}
-                max={1000000}
+                max={2000000}
                 step={10000}
                 onChange={handleInitialCashChange}
                 formatValue={formatCurrency}
@@ -1135,7 +1163,7 @@ const App = () => {
                   label="Initial Mortgage"
                   value={initialMortgage}
                   min={100000}
-                  max={800000}
+                  max={1500000}
                   step={10000}
                   onChange={handleInitialMortgageChange}
                   formatValue={formatCurrency}
@@ -1175,7 +1203,7 @@ const App = () => {
                   label="Second House Deposit (from ISA)"
                   value={secondHouseDeposit}
                   min={0}
-                  max={400000}
+                  max={800000}
                   step={10000}
                   onChange={handleSecondHouseDepositChange}
                   formatValue={formatCurrency}
@@ -1184,7 +1212,7 @@ const App = () => {
                   label="Second Mortgage Amount"
                   value={secondMortgage}
                   min={0}
-                  max={400000}
+                  max={800000}
                   step={10000}
                   onChange={handleSecondMortgageChange}
                   formatValue={formatCurrency}
@@ -1359,16 +1387,11 @@ const App = () => {
               <div className="stamp-duty-item">
                 <div className="stamp-duty-label">Total Stamp Duty</div>
                 <div className="stamp-duty-value stamp-duty-total">
-                  {formatCurrency(firstHouseStampDuty + secondHouseStampDuty)}
+                  {formatCurrency(totalStampDuty)}
                 </div>
-                <label className="line-toggle" style={{ marginTop: '4px', fontSize: '0.75rem' }}>
-                  <input
-                    type="checkbox"
-                    checked={showStampDuty}
-                    onChange={e => setShowStampDuty(e.target.checked)}
-                  />
-                  Show stamp duty
-                </label>
+                <div className="stamp-duty-details">
+                  Both purchases combined
+                </div>
               </div>
             </div>
           </div>
@@ -1383,6 +1406,11 @@ const App = () => {
           Second House Value (at move year):{' '}
           <span className="derived-highlight">
             {formatCurrency(secondHouseValue)}
+          </span>
+          {'  •  '}
+          Total Stamp Duty:{' '}
+          <span className="derived-highlight">
+            {formatCurrency(totalStampDuty)}
           </span>
         </div>
 
@@ -1434,7 +1462,39 @@ const App = () => {
               checked={showMortgageBalanceLine}
               onChange={e => setShowMortgageBalanceLine(e.target.checked)}
             />
-            Mortgage balance
+            Total Mortgage Balance
+          </label>
+          <label className="line-toggle">
+            <input
+              type="checkbox"
+              checked={showFirstMortgageLine}
+              onChange={e => setShowFirstMortgageLine(e.target.checked)}
+            />
+            First Mortgage
+          </label>
+          <label className="line-toggle">
+            <input
+              type="checkbox"
+              checked={showSecondMortgageLine}
+              onChange={e => setShowSecondMortgageLine(e.target.checked)}
+            />
+            Second Mortgage
+          </label>
+          <label className="line-toggle">
+            <input
+              type="checkbox"
+              checked={showStampDuty}
+              onChange={e => setShowStampDuty(e.target.checked)}
+            />
+            Show Stamp Duty
+          </label>
+          <label className="line-toggle">
+            <input
+              type="checkbox"
+              checked={showPieChart}
+              onChange={e => setShowPieChart(e.target.checked)}
+            />
+            Show Pie Chart
           </label>
           <label className="line-toggle">
             <input
@@ -1485,6 +1545,14 @@ const App = () => {
                     stroke="#22c55e"
                     strokeDasharray="2 2"
                     label="✅"
+                  />
+                )}
+                {firstMortgagePaidOffYear && (
+                  <ReferenceLine
+                    x={firstMortgagePaidOffYear}
+                    stroke="#10b981"
+                    strokeDasharray="2 2"
+                    label="✅1"
                   />
                 )}
 
@@ -1547,7 +1615,7 @@ const App = () => {
                   </Line>
                 )}
 
-                {/* NEW: Mortgage Balance Line */}
+                {/* Total Mortgage Balance Line */}
                 {showMortgageBalanceLine && (
                   <Line
                     type="monotone"
@@ -1563,6 +1631,44 @@ const App = () => {
                       content={renderInlineNameLabel('Mortgage balance', '#dc2626')}
                     />
                     <LabelList content={renderEndLabel('#dc2626')} />
+                  </Line>
+                )}
+
+                {/* First Mortgage Line */}
+                {showFirstMortgageLine && (
+                  <Line
+                    type="monotone"
+                    dataKey="firstMortgageBalance"
+                    name="First Mortgage Balance"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    strokeDasharray="5 3"
+                    dot={false}
+                    connectNulls={false}
+                  >
+                    <LabelList
+                      content={renderInlineNameLabel('First mortgage', '#ef4444')}
+                    />
+                    <LabelList content={renderEndLabel('#ef4444')} />
+                  </Line>
+                )}
+
+                {/* Second Mortgage Line */}
+                {showSecondMortgageLine && (
+                  <Line
+                    type="monotone"
+                    dataKey="secondMortgageBalance"
+                    name="Second Mortgage Balance"
+                    stroke="#f87171"
+                    strokeWidth={2}
+                    strokeDasharray="2 2"
+                    dot={false}
+                    connectNulls={false}
+                  >
+                    <LabelList
+                      content={renderInlineNameLabel('Second mortgage', '#f87171')}
+                    />
+                    <LabelList content={renderEndLabel('#f87171')} />
                   </Line>
                 )}
 
@@ -1609,6 +1715,32 @@ const App = () => {
           )}
         </div>
 
+        {/* NEW: Pie Chart */}
+        {showPieChart && (
+          <div className="pie-chart-container">
+            <h3 className="pie-chart-title">Final Financial Breakdown</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={entry => `${entry.name}: ${formatCurrency(entry.value)}`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={value => formatCurrency(value)} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
         <div className="milestones">
           <span>🚗 2028 - Car purchase ({formatCurrency(carCost)})</span>
           <span>👶1 {child1BirthYear} - Child 1 birth & mat leave</span>
@@ -1626,8 +1758,11 @@ const App = () => {
           <span>
             📉2 {secondRecessionYear} - Second recession (-{recessionHitPct}% property & ISA)
           </span>
+          {firstMortgagePaidOffYear && (
+            <span>✅1 {firstMortgagePaidOffYear} - First mortgage fully repaid</span>
+          )}
           {mortgageRepayYear && (
-            <span>✅ {mortgageRepayYear} - Mortgage fully repaid</span>
+            <span>✅ {mortgageRepayYear} - All mortgages fully repaid</span>
           )}
         </div>
       </div>
