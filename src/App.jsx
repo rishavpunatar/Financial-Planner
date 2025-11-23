@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import './App.css';
 import {
   ResponsiveContainer,
@@ -17,9 +17,17 @@ import {
   Cell,
 } from 'recharts';
 
-// Compact range slider
-const RangeSlider = ({ label, value, min, max, step, onChange, formatValue }) => (
-  <div className="slider-block">
+const RangeSlider = ({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  formatValue,
+  disabled = false,
+}) => (
+  <div className={`slider-block${disabled ? ' slider-block-disabled' : ''}`}>
     <label className="slider-label">
       {label}: {formatValue ? formatValue(value) : value}
     </label>
@@ -31,63 +39,393 @@ const RangeSlider = ({ label, value, min, max, step, onChange, formatValue }) =>
       value={value}
       onChange={e => onChange(Number(e.target.value))}
       className="slider-input"
+      disabled={disabled}
     />
   </div>
 );
 
-// NEW: Stamp Duty Calculator for England
 const calculateStampDuty = (propertyValue, isAdditionalProperty = false) => {
-  // Stamp Duty Land Tax rates for England (2024)
-  // Main residence thresholds
   const standardThresholds = [
     { limit: 250000, rate: 0 },
     { limit: 925000, rate: 5 },
     { limit: 1500000, rate: 10 },
-    { limit: Infinity, rate: 12 }
+    { limit: Infinity, rate: 12 },
   ];
-  
-  // Additional property surcharge (3% on top)
+
   const additionalPropertySurcharge = 3;
-  
   let stampDuty = 0;
   let remaining = propertyValue;
   let previousLimit = 0;
-  
+
   for (const bracket of standardThresholds) {
     const bracketSize = Math.min(remaining, bracket.limit - previousLimit);
     if (bracketSize <= 0) break;
-    
+
     let rate = bracket.rate;
     if (isAdditionalProperty && bracket.limit > 0) {
       rate += additionalPropertySurcharge;
     }
-    
+
     stampDuty += (bracketSize * rate) / 100;
     remaining -= bracketSize;
     previousLimit = bracket.limit;
-    
+
     if (remaining <= 0) break;
   }
-  
+
   return Math.round(stampDuty);
 };
 
-// Function to save filters to the URL
 const saveFiltersToURL = (filters) => {
   const encodedFilters = encodeURIComponent(JSON.stringify(filters));
   const newURL = `${window.location.origin}${window.location.pathname}?filters=${encodedFilters}`;
   window.history.replaceState(null, '', newURL);
 };
 
-// Function to load filters from the URL
 const loadFiltersFromURL = () => {
   const params = new URLSearchParams(window.location.search);
   const filters = params.get('filters');
   return filters ? JSON.parse(decodeURIComponent(filters)) : null;
 };
 
+const BASE_BIRTH_YEAR = 1998;
+
+const calculatePostTax = (income) => {
+  if (income <= 12570) return income;
+
+  let personalAllowance = 12570;
+  if (income > 100000) {
+    const excessOver100k = income - 100000;
+    const taperAmount = Math.floor(excessOver100k / 2);
+    personalAllowance = Math.max(0, personalAllowance - taperAmount);
+  }
+
+  let tax = 0;
+  let remainingIncome = income - personalAllowance;
+
+  if (remainingIncome > 0) {
+    const basicRateBand = Math.min(remainingIncome, 37700);
+    tax += basicRateBand * 0.2;
+    remainingIncome -= basicRateBand;
+  }
+
+  if (remainingIncome > 0) {
+    const higherRateBand = Math.min(remainingIncome, 74870);
+    tax += higherRateBand * 0.4;
+    remainingIncome -= higherRateBand;
+  }
+
+  if (remainingIncome > 0) {
+    tax += remainingIncome * 0.45;
+  }
+
+  return income - tax;
+};
+
+const simulateFinancialPlan = (params) => {
+  const {
+    startYear,
+    firstHousePurchaseYear,
+    startAge,
+    maxYear = 2069,
+    mortgageRate,
+    salaryMortgageEarly,
+    salaryMortgageLater,
+    realGrowthCosts,
+    realGrowthProperty,
+    isaGrowth,
+    initialMortgage,
+    secondMortgage,
+    initialDeposit,
+    secondHouseDeposit,
+    isaSeed,
+    income1Start,
+    income2Start,
+    incomeGrowth,
+    secondHouseYear,
+    child1BirthYear,
+    child2BirthYear,
+    kid1GiftYear,
+    kid2GiftYear,
+    recessionYear,
+    secondRecessionYear,
+    thirdRecessionYear,
+    pensionRate,
+    baseLivingCost,
+    child1AnnualCost,
+    child2AnnualCost,
+    emergencyFundAnnual,
+    visaCostPreSecondHouse,
+    visaCostAtSecondHouse,
+    carCost,
+    kid1GiftAmount,
+    kid2GiftAmount,
+    isaContributionCap,
+    recessionHitPct,
+    cgtRatePct,
+    usePrivateSchool,
+    enableSecondHouse,
+    calculatePostTaxFn = calculatePostTax,
+    returnFullData = true,
+  } = params;
+
+  const initialPropertyValue = initialMortgage + initialDeposit;
+  const moveIncrementValue = enableSecondHouse ? secondMortgage + secondHouseDeposit : 0;
+
+  const data = returnFullData ? [] : null;
+
+  let firstMortgageBalance = 0;
+  let secondMortgageBalance = 0;
+  let propertyValue = 0;
+  let hasFirstHouse = false;
+
+  let isaTotal = isaSeed;
+  let cumulativeMortgageInterest = 0;
+  let cumulativeMortgageRepayment = 0;
+  let surplusPot = 0;
+  let cumulativeShortfall = 0;
+
+  const cgtRate = cgtRatePct / 100;
+  const recessionFactor = 1 - recessionHitPct / 100;
+
+  let mortgageRepayYearLocal = null;
+  let firstMortgagePaidOffYearLocal = null;
+  let secondHouseValueAtMoveLocal = null;
+  let secondHousePurchasePriceLocal = null;
+  let minIsaBalance = isaSeed || 0;
+  let finalSnapshot = null;
+
+  for (let year = startYear; year <= maxYear; year++) {
+    if (!hasFirstHouse && year === firstHousePurchaseYear) {
+      hasFirstHouse = true;
+      propertyValue = initialPropertyValue;
+      firstMortgageBalance = initialMortgage;
+    }
+
+    if (hasFirstHouse) {
+      propertyValue *= 1 + realGrowthProperty / 100;
+    }
+
+    const yearsFromStart = year - startYear;
+    const age = startAge + yearsFromStart;
+
+    let income1 = income1Start * Math.pow(1 + incomeGrowth / 100, yearsFromStart);
+    let income2 = income2Start * Math.pow(1 + incomeGrowth / 100, yearsFromStart);
+
+    if (year === child1BirthYear || year === child2BirthYear) {
+      income2 *= 0.5;
+    }
+
+    const grossIncome = income1 + income2;
+    const postTax1 = calculatePostTaxFn(income1);
+    const postTax2 = calculatePostTaxFn(income2);
+    const netBeforePension = postTax1 + postTax2;
+    const pension = grossIncome * (pensionRate / 100);
+    const netIncome = netBeforePension - pension;
+    const totalPostTax = netIncome;
+
+    const isRecessionYearFlag = [recessionYear, secondRecessionYear, thirdRecessionYear]
+      .filter(Boolean)
+      .includes(year);
+
+    if (isRecessionYearFlag) {
+      if (hasFirstHouse) {
+        propertyValue *= recessionFactor;
+      }
+      isaTotal *= recessionFactor;
+    }
+
+    if (enableSecondHouse && year === secondHouseYear) {
+      const withdrawn = Math.min(secondHouseDeposit, isaTotal);
+      isaTotal -= withdrawn;
+      secondMortgageBalance = secondMortgage;
+      propertyValue = propertyValue + moveIncrementValue;
+      secondHouseValueAtMoveLocal = propertyValue;
+      secondHousePurchasePriceLocal = propertyValue;
+    }
+
+    let visaCost = 0;
+    if (year <= 2036) {
+      visaCost = visaCostPreSecondHouse;
+    } else if (enableSecondHouse && year === secondHouseYear) {
+      visaCost = visaCostAtSecondHouse;
+    }
+
+    const yearlyRate = mortgageRate / 100;
+    const totalMortgageBalance = firstMortgageBalance + secondMortgageBalance;
+    const mortgageInterest = totalMortgageBalance * yearlyRate;
+
+    let mortgageRepayment = 0;
+    if (totalMortgageBalance > 0) {
+      const isLatePhase = enableSecondHouse ? year > secondHouseYear : false;
+      const salaryPercent = isLatePhase
+        ? salaryMortgageLater / 100
+        : salaryMortgageEarly / 100;
+
+      mortgageRepayment = grossIncome * salaryPercent;
+
+      const maxPossible = totalMortgageBalance + mortgageInterest;
+      if (mortgageRepayment > maxPossible) {
+        mortgageRepayment = maxPossible;
+      }
+
+      let principalPayment = mortgageRepayment - mortgageInterest;
+
+      if (firstMortgageBalance > 0) {
+        const firstMortgagePayment = Math.min(principalPayment, firstMortgageBalance);
+        firstMortgageBalance -= firstMortgagePayment;
+        principalPayment -= firstMortgagePayment;
+
+        if (firstMortgageBalance <= 0.01 && firstMortgagePaidOffYearLocal === null) {
+          firstMortgagePaidOffYearLocal = year;
+        }
+      }
+
+      if (principalPayment > 0 && secondMortgageBalance > 0) {
+        const secondMortgagePayment = Math.min(principalPayment, secondMortgageBalance);
+        secondMortgageBalance -= secondMortgagePayment;
+      }
+
+      cumulativeMortgageInterest += mortgageInterest;
+      cumulativeMortgageRepayment += mortgageRepayment;
+
+      if (totalMortgageBalance <= 0.01 && mortgageRepayYearLocal === null) {
+        mortgageRepayYearLocal = year;
+      }
+    }
+
+    const baseLivingCosts =
+      baseLivingCost * Math.pow(1 + realGrowthCosts / 100, yearsFromStart);
+
+    let childCosts = 0;
+    if (year >= child1BirthYear + 1 && year <= child1BirthYear + 21) {
+      childCosts += child1AnnualCost;
+    }
+    if (year >= child2BirthYear + 1 && year <= child2BirthYear + 21) {
+      childCosts += child2AnnualCost;
+    }
+
+    let privateSchoolCost = 0;
+    if (usePrivateSchool) {
+      const kid1Age = year - child1BirthYear;
+      const kid2Age = year - child2BirthYear;
+      const feeBase = 30000;
+      const feeFactor = Math.pow(1 + realGrowthCosts / 100, yearsFromStart);
+
+      if (kid1Age >= 11 && kid1Age <= 18) {
+        privateSchoolCost += feeBase * feeFactor;
+      }
+      if (kid2Age >= 11 && kid2Age <= 18) {
+        privateSchoolCost += feeBase * feeFactor;
+      }
+    }
+
+    const emergencyFund = emergencyFundAnnual;
+
+    let lumpSum = 0;
+    if (year === 2028) {
+      lumpSum += carCost;
+    }
+    if (year === kid1GiftYear) {
+      lumpSum += kid1GiftAmount;
+    }
+    if (year === kid2GiftYear) {
+      lumpSum += kid2GiftAmount;
+    }
+
+    const totalLeft =
+      totalPostTax -
+      visaCost -
+      mortgageRepayment -
+      baseLivingCosts -
+      childCosts -
+      privateSchoolCost -
+      emergencyFund -
+      lumpSum;
+
+    if (totalLeft < 0) {
+      const shortfall = -totalLeft;
+      const surplusDeduction = Math.min(shortfall, surplusPot);
+      surplusPot -= surplusDeduction;
+
+      const remainingShortfall = shortfall - surplusDeduction;
+      const isaDeduction = Math.min(remainingShortfall, isaTotal);
+      isaTotal -= isaDeduction;
+
+      cumulativeShortfall += remainingShortfall - isaDeduction;
+    }
+
+    const isaContribution = Math.min(Math.max(0, totalLeft), isaContributionCap);
+    isaTotal = isaTotal * (1 + isaGrowth / 100) + isaContribution;
+
+    const surplusContribution = Math.max(0, totalLeft - isaContribution);
+    const growthRate = isaGrowth / 100;
+    const grossGrowth = surplusPot * growthRate;
+    const afterTaxGrowth = grossGrowth * (1 - cgtRate);
+    surplusPot = surplusPot + afterTaxGrowth + surplusContribution;
+
+    const isaBelowThreshold = isaTotal < 60000;
+    minIsaBalance = Math.min(minIsaBalance, isaTotal);
+
+    let displayMortgagePayments = cumulativeMortgageRepayment;
+    let displayInterestPaid = cumulativeMortgageInterest;
+    if (mortgageRepayYearLocal && year > mortgageRepayYearLocal) {
+      displayMortgagePayments = null;
+      displayInterestPaid = null;
+    }
+
+    const displayTotalMortgage =
+      totalMortgageBalance > 0.01 ? totalMortgageBalance : null;
+
+    if (returnFullData && data) {
+      data.push({
+        year,
+        age,
+        combinedIncomeGross: grossIncome,
+        combinedIncomeNet: netIncome,
+        propertyValue,
+        isaTotal,
+        isaBelowThreshold,
+        mortgageBalance: displayTotalMortgage,
+        totalMortgagePayments: cumulativeMortgageRepayment,
+        totalInterestPaid: cumulativeMortgageInterest,
+        totalMortgagePaymentsDisplay: displayMortgagePayments,
+        totalInterestPaidDisplay: displayInterestPaid,
+        surplusPot,
+        cumulativeShortfall,
+      });
+    }
+
+    finalSnapshot = {
+      propertyValue,
+      isaTotal,
+      surplusPot,
+      mortgageBalance: displayTotalMortgage || 0,
+      cumulativeShortfall,
+      totalMortgagePayments: cumulativeMortgageRepayment,
+      totalInterestPaid: cumulativeMortgageInterest,
+    };
+  }
+
+  const finalLiquidNet = finalSnapshot
+    ? finalSnapshot.isaTotal +
+      finalSnapshot.surplusPot -
+      finalSnapshot.mortgageBalance -
+      finalSnapshot.cumulativeShortfall
+    : 0;
+
+  return {
+    financialData: returnFullData && data ? data : [],
+    mortgageRepayYear: mortgageRepayYearLocal,
+    secondHouseValueAtMove: secondHouseValueAtMoveLocal,
+    secondHousePurchasePrice: secondHousePurchasePriceLocal,
+    firstMortgagePaidOffYear: firstMortgagePaidOffYearLocal,
+    minIsaBalance,
+    finalLiquidNet,
+  };
+};
+
 const App = () => {
-  // Core adjustable parameters
   const [mortgageRate, setMortgageRate] = useState(6);
   const [salaryMortgageEarly, setSalaryMortgageEarly] = useState(18);
   const [salaryMortgageLater, setSalaryMortgageLater] = useState(10);
@@ -105,20 +443,17 @@ const App = () => {
   const [income2Start, setIncome2Start] = useState(90000);
   const [incomeGrowth, setIncomeGrowth] = useState(0);
 
-  // Second house - timing and deposit (from ISA)
   const [secondHouseYear, setSecondHouseYear] = useState(2037);
   const [secondHouseDeposit, setSecondHouseDeposit] = useState(200000);
 
-  // Child birth years
   const [child1BirthYear, setChild1BirthYear] = useState(2032);
   const [child2BirthYear, setChild2BirthYear] = useState(2034);
 
-  // Recession years
   const [recessionYear, setRecessionYear] = useState(2035);
   const [secondRecessionYear, setSecondRecessionYear] = useState(2042);
+  const [thirdRecessionYear, setThirdRecessionYear] = useState(2050);
 
-  // Advanced / hidden parameters
-  const [pensionRate, setPensionRate] = useState(5); // % of gross
+  const [pensionRate, setPensionRate] = useState(5);
   const [baseLivingCost, setBaseLivingCost] = useState(40000);
   const [child1AnnualCost, setChild1AnnualCost] = useState(30000);
   const [child2AnnualCost, setChild2AnnualCost] = useState(20000);
@@ -136,68 +471,61 @@ const App = () => {
   const [recessionHitPct, setRecessionHitPct] = useState(20);
   const [cgtRatePct, setCgtRatePct] = useState(20);
 
-  // Initial cash pool: must equal initialDeposit + isaSeed
   const [initialCash, setInitialCash] = useState(300000);
 
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // Lock between initial and second house (keep sums constant)
   const [lockHouseLink, setLockHouseLink] = useState(false);
   const [depositPool, setDepositPool] = useState(300000 + 200000);
   const [mortgagePool, setMortgagePool] = useState(300000 + 100000);
 
-  // Private school toggle
   const [usePrivateSchool, setUsePrivateSchool] = useState(false);
 
-  // Chart line visibility toggles
   const [showIncomeLine, setShowIncomeLine] = useState(true);
   const [showSurplusLine, setShowSurplusLine] = useState(true);
   const [showIsaLine, setShowIsaLine] = useState(true);
   const [showMortgagePaidLine, setShowMortgagePaidLine] = useState(true);
   const [showInterestLine, setShowInterestLine] = useState(true);
-  const [showMortgageBalanceLine, setShowMortgageBalanceLine] = useState(true); // Changed to true by default
-  const [showFirstMortgageLine, setShowFirstMortgageLine] = useState(true);
-  const [showSecondMortgageLine, setShowSecondMortgageLine] = useState(true);
+  const [showMortgageBalanceLine, setShowMortgageBalanceLine] = useState(true);
   const [showStampDuty, setShowStampDuty] = useState(true);
-  const [showPieChart, setShowPieChart] = useState(true); // NEW: Pie chart toggle
+  const [showPieChart, setShowPieChart] = useState(true);
 
-  // Presets
   const [presetName, setPresetName] = useState('');
   const [savedPresets, setSavedPresets] = useState([]);
   const [selectedPreset, setSelectedPreset] = useState('');
 
-  // Added zoom out toggle to allow uncapped chart view
   const [zoomOut, setZoomOut] = useState(false);
 
-  // Derived values
+  const [startYear, setStartYear] = useState(2027);
+  const [firstHousePurchaseYear, setFirstHousePurchaseYear] = useState(2027);
+  const [enableSecondHouse, setEnableSecondHouse] = useState(true);
+
+  const [targetFinalCash, setTargetFinalCash] = useState(0);
+  const [goalSeekStatus, setGoalSeekStatus] = useState('');
+  const [goalSeekLoading, setGoalSeekLoading] = useState(false);
+  const [goalSeekTouched, setGoalSeekTouched] = useState(false);
+
   const initialPropertyValue = useMemo(
     () => initialMortgage + initialDeposit,
     [initialMortgage, initialDeposit],
   );
 
-  // Incremental move value (added to grown property at move year)
   const moveIncrementValue = useMemo(
-    () => secondMortgage + secondHouseDeposit,
-    [secondMortgage, secondHouseDeposit],
+    () => (enableSecondHouse ? secondMortgage + secondHouseDeposit : 0),
+    [enableSecondHouse, secondMortgage, secondHouseDeposit],
   );
 
   const kid1GiftYear = child1BirthYear + 27;
   const kid2GiftYear = child2BirthYear + 27;
 
-  // NEW: Calculate stamp duty for both properties
+  const startAge = useMemo(() => startYear - BASE_BIRTH_YEAR, [startYear]);
+
   const firstHouseStampDuty = useMemo(
     () => calculateStampDuty(initialPropertyValue, false),
-    [initialPropertyValue]
+    [initialPropertyValue],
   );
 
-  const secondHouseStampDuty = useMemo(
-    () => calculateStampDuty(moveIncrementValue, true), // Additional property
-    [moveIncrementValue]
-  );
-
-  const totalStampDuty = firstHouseStampDuty + secondHouseStampDuty;
-
-  // Keep initialCash = initialDeposit + isaSeed
+  const [secondHouseStampDuty, setSecondHouseStampDuty] = useState(0);
 
   const handleInitialCashChange = (value) => {
     const newCash = Math.max(0, value);
@@ -300,8 +628,6 @@ const App = () => {
     });
   };
 
-  // Preset save/load
-
   const handleSavePreset = () => {
     const name = presetName.trim();
     if (!name) return;
@@ -327,6 +653,7 @@ const App = () => {
       child2BirthYear,
       recessionYear,
       secondRecessionYear,
+      thirdRecessionYear,
       pensionRate,
       baseLivingCost,
       child1AnnualCost,
@@ -349,10 +676,12 @@ const App = () => {
       showMortgagePaidLine,
       showInterestLine,
       showMortgageBalanceLine,
-      showFirstMortgageLine,
-      showSecondMortgageLine,
       showStampDuty,
       showPieChart,
+      startYear,
+      firstHousePurchaseYear,
+      enableSecondHouse,
+      targetFinalCash,
     };
 
     setSavedPresets(prev => {
@@ -375,7 +704,7 @@ const App = () => {
     setInitialDeposit(p.initialDeposit);
     setIsaSeed(p.isaSeed);
     const initialCashVal =
-      p.initialCash != null ? p.initialCash : (p.initialDeposit + p.isaSeed);
+      p.initialCash != null ? p.initialCash : p.initialDeposit + p.isaSeed;
     setInitialCash(initialCashVal);
 
     setSecondHouseYear(p.secondHouseYear);
@@ -390,6 +719,7 @@ const App = () => {
 
     setRecessionYear(p.recessionYear);
     setSecondRecessionYear(p.secondRecessionYear);
+    setThirdRecessionYear(p.thirdRecessionYear ?? thirdRecessionYear);
 
     setPensionRate(p.pensionRate);
     setBaseLivingCost(p.baseLivingCost);
@@ -422,10 +752,13 @@ const App = () => {
     setShowMortgagePaidLine(p.showMortgagePaidLine ?? true);
     setShowInterestLine(p.showInterestLine ?? true);
     setShowMortgageBalanceLine(p.showMortgageBalanceLine ?? true);
-    setShowFirstMortgageLine(p.showFirstMortgageLine ?? true);
-    setShowSecondMortgageLine(p.showSecondMortgageLine ?? true);
     setShowStampDuty(p.showStampDuty ?? true);
     setShowPieChart(p.showPieChart ?? true);
+
+    setStartYear(p.startYear ?? startYear);
+    setFirstHousePurchaseYear(p.firstHousePurchaseYear ?? p.startYear ?? firstHousePurchaseYear);
+    setEnableSecondHouse(p.enableSecondHouse ?? true);
+    setTargetFinalCash(p.targetFinalCash ?? targetFinalCash);
   };
 
   const handleLoadPreset = () => {
@@ -435,16 +768,14 @@ const App = () => {
     applyPreset(preset);
   };
 
-  // Added ability to edit and delete presets
-  const handleEditPreset = (presetName) => {
-    const preset = savedPresets.find(p => p.name === presetName);
+  const handleEditPreset = (presetNameParam) => {
+    const preset = savedPresets.find(p => p.name === presetNameParam);
     if (preset) {
       applyPreset(preset);
       setPresetName(preset.name);
     }
   };
 
-  // Load presets from localStorage on app initialization
   useEffect(() => {
     const storedPresets = localStorage.getItem('savedPresets');
     if (storedPresets) {
@@ -454,367 +785,159 @@ const App = () => {
     }
   }, []);
 
-  // Save presets to localStorage whenever they are updated
   useEffect(() => {
     localStorage.setItem('savedPresets', JSON.stringify(savedPresets));
   }, [savedPresets]);
 
-  // Updated handleDeletePreset to remove from localStorage
-  const handleDeletePreset = (presetName) => {
+  const handleDeletePreset = (presetNameParam) => {
     setSavedPresets(prev => {
-      const updatedPresets = prev.filter(p => p.name !== presetName);
+      const updatedPresets = prev.filter(p => p.name !== presetNameParam);
       localStorage.setItem('savedPresets', JSON.stringify(updatedPresets));
       return updatedPresets;
     });
-    if (selectedPreset === presetName) {
+    if (selectedPreset === presetNameParam) {
       setSelectedPreset('');
     }
   };
 
-  // ENHANCED: UK post-tax calculator with proper tax bands verification
-  const calculatePostTax = (income) => {
-    // UK Tax Bands 2024/25 - VERIFIED
-    // Personal Allowance: £12,570 (tapers off above £100,000 at £1 for every £2 over £100k)
-    // Basic Rate: £12,571 to £50,270 (20%)
-    // Higher Rate: £50,271 to £125,140 (40%)
-    // Additional Rate: Over £125,140 (45%)
-    
-    if (income <= 12570) return income;
-    
-    // Personal allowance tapering - VERIFIED CORRECT
-    let personalAllowance = 12570;
-    if (income > 100000) {
-      const excessOver100k = income - 100000;
-      const taperAmount = Math.floor(excessOver100k / 2);
-      personalAllowance = Math.max(0, personalAllowance - taperAmount);
-    }
-    
-    let tax = 0;
-    let remainingIncome = income - personalAllowance;
-    
-    // Basic rate: 20% on income up to £37,700 (£50,270 - £12,570) - VERIFIED
-    if (remainingIncome > 0) {
-      const basicRateBand = Math.min(remainingIncome, 37700);
-      tax += basicRateBand * 0.20;
-      remainingIncome -= basicRateBand;
-    }
-    
-    // Higher rate: 40% on income from £37,701 to £112,570 (£125,140 - £12,570) - VERIFIED
-    if (remainingIncome > 0) {
-      const higherRateBand = Math.min(remainingIncome, 74870);
-      tax += higherRateBand * 0.40;
-      remainingIncome -= higherRateBand;
-    }
-    
-    // Additional rate: 45% on income over £125,140 - VERIFIED
-    if (remainingIncome > 0) {
-      tax += remainingIncome * 0.45;
-    }
-    
-    return income - tax;
-  };
-
-  const formatCurrency = (value) => {
-    const abs = Math.abs(value);
-    if (abs >= 1000000) return `£${(value / 1000000).toFixed(2)}M`;
-    if (abs >= 1000) return `£${(value / 1000).toFixed(0)}k`;
-    return `£${value.toFixed(0)}`;
-  };
-
-  // Load filters on app initialization
   useEffect(() => {
     const savedFilters = loadFiltersFromURL();
     if (savedFilters) {
-      // Apply saved filters if needed
+      // placeholder for future filter restores
     }
   }, []);
 
-  // Main simulation
+  useEffect(() => {
+    if (firstHousePurchaseYear < startYear) {
+      setFirstHousePurchaseYear(startYear);
+    }
+  }, [startYear, firstHousePurchaseYear]);
+
+  useEffect(() => {
+    if (secondHouseYear <= firstHousePurchaseYear) {
+      setSecondHouseYear(firstHousePurchaseYear + 1);
+    }
+  }, [firstHousePurchaseYear, secondHouseYear]);
+
+  const handleSecondHouseYearChange = (value) => {
+    const adjusted = Math.max(value, firstHousePurchaseYear + 1);
+    setSecondHouseYear(adjusted);
+  };
+
+  const handleFirstHouseYearChange = (value) => {
+    setFirstHousePurchaseYear(Math.max(startYear, value));
+  };
+
+  const buildSimulationParams = useCallback(
+    (overrides = {}) => ({
+      startYear,
+      firstHousePurchaseYear,
+      startAge,
+      mortgageRate,
+      salaryMortgageEarly,
+      salaryMortgageLater,
+      realGrowthCosts,
+      realGrowthProperty,
+      isaGrowth,
+      initialMortgage,
+      secondMortgage,
+      initialDeposit,
+      secondHouseDeposit,
+      isaSeed,
+      income1Start,
+      income2Start,
+      incomeGrowth,
+      secondHouseYear,
+      child1BirthYear,
+      child2BirthYear,
+      kid1GiftYear,
+      kid2GiftYear,
+      recessionYear,
+      secondRecessionYear,
+      thirdRecessionYear,
+      pensionRate,
+      baseLivingCost,
+      child1AnnualCost,
+      child2AnnualCost,
+      emergencyFundAnnual,
+      visaCostPreSecondHouse,
+      visaCostAtSecondHouse,
+      carCost,
+      kid1GiftAmount,
+      kid2GiftAmount,
+      isaContributionCap,
+      recessionHitPct,
+      cgtRatePct,
+      usePrivateSchool,
+      enableSecondHouse,
+      calculatePostTaxFn: calculatePostTax,
+      ...overrides,
+    }),
+    [
+      startYear,
+      firstHousePurchaseYear,
+      startAge,
+      mortgageRate,
+      salaryMortgageEarly,
+      salaryMortgageLater,
+      realGrowthCosts,
+      realGrowthProperty,
+      isaGrowth,
+      initialMortgage,
+      secondMortgage,
+      initialDeposit,
+      secondHouseDeposit,
+      isaSeed,
+      income1Start,
+      income2Start,
+      incomeGrowth,
+      secondHouseYear,
+      child1BirthYear,
+      child2BirthYear,
+      kid1GiftYear,
+      kid2GiftYear,
+      recessionYear,
+      secondRecessionYear,
+      thirdRecessionYear,
+      pensionRate,
+      baseLivingCost,
+      child1AnnualCost,
+      child2AnnualCost,
+      emergencyFundAnnual,
+      visaCostPreSecondHouse,
+      visaCostAtSecondHouse,
+      carCost,
+      kid1GiftAmount,
+      kid2GiftAmount,
+      isaContributionCap,
+      recessionHitPct,
+      cgtRatePct,
+      usePrivateSchool,
+      enableSecondHouse,
+    ],
+  );
+
   const {
     financialData,
     mortgageRepayYear,
     secondHouseValueAtMove,
+    secondHousePurchasePrice,
     firstMortgagePaidOffYear,
-  } = useMemo(() => {
-    const data = [];
-    const startYear = 2027;
-    const startAge = 29;
-    const maxYear = 2069;
+    minIsaBalance,
+    finalLiquidNet: simulatedFinalLiquidNet,
+  } = useMemo(
+    () => simulateFinancialPlan(buildSimulationParams()),
+    [buildSimulationParams],
+  );
 
-    let firstMortgageBalance = initialMortgage;
-    let secondMortgageBalance = 0;
-    let propertyValue = initialPropertyValue;
-    let isaTotal = isaSeed;
-    let cumulativeMortgageInterest = 0;
-    let cumulativeMortgageRepayment = 0;
-    let surplusPot = 0;
-    let cumulativeShortfall = 0;
-    const cgtRate = cgtRatePct / 100;
-    const recessionFactor = 1 - recessionHitPct / 100;
-
-    let mortgageRepayYearLocal = null;
-    let secondHouseValueAtMoveLocal = null;
-    let firstMortgagePaidOffYearLocal = null;
-
-    for (let year = startYear; year <= maxYear; year++) {
-      const yearsFromStart = year - startYear;
-      const age = startAge + yearsFromStart;
-
-      // Gross incomes with shared real growth
-      let income1 = income1Start * Math.pow(1 + incomeGrowth / 100, yearsFromStart);
-      let income2 = income2Start * Math.pow(1 + incomeGrowth / 100, yearsFromStart);
-
-      // Mat leave on second income in birth years
-      if (year === child1BirthYear || year === child2BirthYear) {
-        income2 = income2 * 0.5;
-      }
-
-      const grossIncome = income1 + income2;
-
-      // Post-tax combined income, then pension
-      const postTax1 = calculatePostTax(income1);
-      const postTax2 = calculatePostTax(income2);
-      const netBeforePension = postTax1 + postTax2;
-      const pension = grossIncome * (pensionRate / 100);
-      const netIncome = netBeforePension - pension;
-
-      const totalPostTax = netIncome;
-
-      // Property real growth
-      propertyValue *= 1 + realGrowthProperty / 100;
-
-      // Recessions
-      const isRecessionYearFlag =
-        year === recessionYear || year === secondRecessionYear;
-      if (isRecessionYearFlag) {
-        propertyValue *= recessionFactor;
-        isaTotal *= recessionFactor;
-      }
-
-      // Second house event
-      if (year === secondHouseYear) {
-        const withdrawn = Math.min(secondHouseDeposit, isaTotal);
-        isaTotal -= withdrawn;
-        secondMortgageBalance = secondMortgage;
-        propertyValue = propertyValue + moveIncrementValue;
-        secondHouseValueAtMoveLocal = propertyValue;
-      }
-
-      // Visa/travel costs
-      let visaCost = 0;
-      if (year <= 2036) {
-        visaCost = visaCostPreSecondHouse;
-      } else if (year === secondHouseYear) {
-        visaCost = visaCostAtSecondHouse;
-      }
-
-      // Mortgage interest and repayments
-      const yearlyRate = mortgageRate / 100;
-      const totalMortgageBalance = firstMortgageBalance + secondMortgageBalance;
-      const mortgageInterest = totalMortgageBalance * yearlyRate;
-
-      let mortgageRepayment = 0;
-      if (totalMortgageBalance > 0) {
-        const salaryPercent =
-          year <= secondHouseYear ? salaryMortgageEarly / 100 : salaryMortgageLater / 100;
-
-        // Repayment sized from gross income
-        mortgageRepayment = grossIncome * salaryPercent;
-
-        const maxPossible = totalMortgageBalance + mortgageInterest;
-        if (mortgageRepayment > maxPossible) {
-          mortgageRepayment = maxPossible;
-        }
-
-        let principalPayment = mortgageRepayment - mortgageInterest;
-        
-        // Pay off first mortgage first
-        if (firstMortgageBalance > 0) {
-          const firstMortgagePayment = Math.min(principalPayment, firstMortgageBalance);
-          firstMortgageBalance -= firstMortgagePayment;
-          principalPayment -= firstMortgagePayment;
-          
-          if (firstMortgageBalance <= 0.01 && firstMortgagePaidOffYearLocal === null) {
-            firstMortgagePaidOffYearLocal = year;
-          }
-        }
-        
-        // Then pay off second mortgage
-        if (principalPayment > 0 && secondMortgageBalance > 0) {
-          const secondMortgagePayment = Math.min(principalPayment, secondMortgageBalance);
-          secondMortgageBalance -= secondMortgagePayment;
-        }
-
-        cumulativeMortgageInterest += mortgageInterest;
-        cumulativeMortgageRepayment += mortgageRepayment;
-
-        if (totalMortgageBalance <= 0.01 && mortgageRepayYearLocal === null) {
-          mortgageRepayYearLocal = year;
-        }
-      }
-
-      // Living costs
-      const baseLivingCosts =
-        baseLivingCost * Math.pow(1 + realGrowthCosts / 100, yearsFromStart);
-
-      // Child costs
-      let childCosts = 0;
-      if (year >= child1BirthYear + 1 && year <= child1BirthYear + 21) {
-        childCosts += child1AnnualCost;
-      }
-      if (year >= child2BirthYear + 1 && year <= child2BirthYear + 21) {
-        childCosts += child2AnnualCost;
-      }
-
-      // Private school costs (age 11-18)
-      let privateSchoolCost = 0;
-      if (usePrivateSchool) {
-        const kid1Age = year - child1BirthYear;
-        const kid2Age = year - child2BirthYear;
-        const feeBase = 30000;
-        const feeFactor = Math.pow(1 + realGrowthCosts / 100, yearsFromStart);
-
-        if (kid1Age >= 11 && kid1Age <= 18) {
-          privateSchoolCost += feeBase * feeFactor;
-        }
-        if (kid2Age >= 11 && kid2Age <= 18) {
-          privateSchoolCost += feeBase * feeFactor;
-        }
-      }
-
-      const emergencyFund = emergencyFundAnnual;
-
-      // Lump sums - car and gifts
-      let lumpSum = 0;
-      if (year === 2028) {
-        lumpSum += carCost;
-      }
-      if (year === kid1GiftYear) {
-        lumpSum += kid1GiftAmount;
-      }
-      if (year === kid2GiftYear) {
-        lumpSum += kid2GiftAmount;
-      }
-
-      // Net cash left after all costs
-      const totalLeft =
-        totalPostTax -
-        visaCost -
-        mortgageRepayment -
-        baseLivingCosts -
-        childCosts -
-        privateSchoolCost -
-        emergencyFund -
-        lumpSum;
-
-      // Adjust totalLeft logic to deduct from surplus and ISA when negative
-      if (totalLeft < 0) {
-        const shortfall = -totalLeft;
-
-        // Deduct from surplus pot first
-        const surplusDeduction = Math.min(shortfall, surplusPot);
-        surplusPot -= surplusDeduction;
-
-        // Deduct remaining shortfall from ISA
-        const remainingShortfall = shortfall - surplusDeduction;
-        const isaDeduction = Math.min(remainingShortfall, isaTotal);
-        isaTotal -= isaDeduction;
-
-        // Track cumulative shortfall for any remaining amount
-        cumulativeShortfall += remainingShortfall - isaDeduction;
-      }
-
-      // ISA contribution (capped)
-      const isaContribution = Math.min(Math.max(0, totalLeft), isaContributionCap);
-      isaTotal = isaTotal * (1 + isaGrowth / 100) + isaContribution;
-
-      // Surplus pot (assumes same growth as ISA, with CGT)
-      const surplusContribution = Math.max(0, totalLeft - isaContribution);
-      const growthRate = isaGrowth / 100;
-      const grossGrowth = surplusPot * growthRate;
-      const afterTaxGrowth = grossGrowth * (1 - cgtRate);
-      surplusPot = surplusPot + afterTaxGrowth + surplusContribution;
-
-      const isaBelowThreshold = isaTotal < 60000;
-
-      // Display values for mortgage lines (stop after payoff)
-      let displayMortgagePayments = cumulativeMortgageRepayment;
-      let displayInterestPaid = cumulativeMortgageInterest;
-      if (mortgageRepayYearLocal && year > mortgageRepayYearLocal) {
-        displayMortgagePayments = null;
-        displayInterestPaid = null;
-      }
-
-      // Display mortgage balances (null after paid off)
-      let displayFirstMortgage = firstMortgageBalance > 0.01 ? firstMortgageBalance : null;
-      let displaySecondMortgage = secondMortgageBalance > 0.01 ? secondMortgageBalance : null;
-      let displayTotalMortgage = totalMortgageBalance > 0.01 ? totalMortgageBalance : null;
-
-      data.push({
-        year,
-        age,
-        combinedIncomeGross: grossIncome,
-        combinedIncomeNet: netIncome,
-        propertyValue,
-        isaTotal,
-        isaBelowThreshold,
-        mortgageBalance: displayTotalMortgage,
-        firstMortgageBalance: displayFirstMortgage,
-        secondMortgageBalance: displaySecondMortgage,
-        totalMortgagePayments: cumulativeMortgageRepayment,
-        totalInterestPaid: cumulativeMortgageInterest,
-        totalMortgagePaymentsDisplay: displayMortgagePayments,
-        totalInterestPaidDisplay: displayInterestPaid,
-        surplusPot,
-        cumulativeShortfall,
-      });
+  useEffect(() => {
+    if (!enableSecondHouse) {
+      setSecondHouseStampDuty(0);
+      return;
     }
-
-    return {
-      financialData: data,
-      mortgageRepayYear: mortgageRepayYearLocal,
-      secondHouseValueAtMove: secondHouseValueAtMoveLocal,
-      firstMortgagePaidOffYear: firstMortgagePaidOffYearLocal,
-    };
-  }, [
-    mortgageRate,
-    salaryMortgageEarly,
-    salaryMortgageLater,
-    realGrowthCosts,
-    realGrowthProperty,
-    isaGrowth,
-    initialMortgage,
-    initialDeposit,
-    secondMortgage,
-    isaSeed,
-    income1Start,
-    income2Start,
-    incomeGrowth,
-    initialPropertyValue,
-    secondHouseYear,
-    secondHouseDeposit,
-    moveIncrementValue,
-    child1BirthYear,
-    child2BirthYear,
-    kid1GiftYear,
-    kid2GiftYear,
-    recessionYear,
-    secondRecessionYear,
-    pensionRate,
-    baseLivingCost,
-    child1AnnualCost,
-    child2AnnualCost,
-    emergencyFundAnnual,
-    visaCostPreSecondHouse,
-    visaCostAtSecondHouse,
-    carCost,
-    kid1GiftAmount,
-    kid2GiftAmount,
-    isaContributionCap,
-    recessionHitPct,
-    cgtRatePct,
-    usePrivateSchool,
-  ]);
+    const purchasePrice = secondHousePurchasePrice || (initialPropertyValue + moveIncrementValue);
+    setSecondHouseStampDuty(calculateStampDuty(purchasePrice, false));
+  }, [enableSecondHouse, secondHousePurchasePrice, initialPropertyValue, moveIncrementValue]);
 
   const finalYear = financialData[financialData.length - 1] || {};
   const totalMortgagePayments = finalYear.totalMortgagePayments || 0;
@@ -823,28 +946,106 @@ const App = () => {
   const finalSurplusPot = finalYear.surplusPot || 0;
   const finalMortgageBalance = finalYear.mortgageBalance || 0;
   const finalShortfall = finalYear.cumulativeShortfall || 0;
-  const finalLiquidNet = finalIsaTotal + finalSurplusPot - finalMortgageBalance - finalShortfall;
+  const finalLiquidNet = financialData.length
+    ? finalIsaTotal + finalSurplusPot - finalMortgageBalance - finalShortfall
+    : simulatedFinalLiquidNet;
 
   const finalCombinedGross = finalYear.combinedIncomeGross || 0;
   const finalTotalInterestPaid = finalYear.totalInterestPaid || 0;
 
-  // Pie chart data
   const pieData = [
     { name: 'Mortgage Paid', value: totalMortgagePayments, color: '#f97316' },
     { name: 'Total Cash', value: Math.max(0, finalLiquidNet), color: '#8b5cf6' },
-    { name: 'Property Value', value: finalPropertyValue, color: '#22c55e' },
+    { name: 'Property Value', value: Math.max(0, finalPropertyValue), color: '#22c55e' },
   ];
 
-  // Second house value indicator
-  const secondHouseValue =
-    secondHouseValueAtMove != null
-      ? secondHouseValueAtMove
-      : initialPropertyValue + moveIncrementValue;
+  const secondHouseValue = enableSecondHouse
+    ? secondHouseValueAtMove || (initialPropertyValue + moveIncrementValue)
+    : null;
 
-  // Label positions
-  const labelIndex = financialData.length
-    ? Math.floor(financialData.length * 0.6)
-    : 0;
+  const minIsaSafe = minIsaBalance >= 60000;
+
+  useEffect(() => {
+    if (!goalSeekTouched && finalLiquidNet > 0) {
+      setTargetFinalCash(Math.round(finalLiquidNet / 10000) * 10000);
+    }
+  }, [finalLiquidNet, goalSeekTouched]);
+
+  const formatCurrency = (value) => {
+    const abs = Math.abs(value);
+    if (abs >= 1000000) return `£${(value / 1000000).toFixed(2)}M`;
+    if (abs >= 1000) return `£${(value / 1000).toFixed(0)}k`;
+    return `£${value.toFixed(0)}`;
+  };
+
+  const handleGoalTargetChange = (value) => {
+    setGoalSeekTouched(true);
+    setTargetFinalCash(value);
+  };
+
+  const handleGoalSeek = () => {
+    if (!targetFinalCash || goalSeekLoading) return;
+    setGoalSeekLoading(true);
+    setGoalSeekStatus('Searching for a plan that keeps the ISA above £60k...');
+
+    const earlyOptions = [];
+    for (let v = Math.max(5, Math.round(salaryMortgageEarly) - 4); v <= Math.min(30, Math.round(salaryMortgageEarly) + 4); v += 1) {
+      earlyOptions.push(v);
+    }
+
+    const laterOptions = [];
+    for (let v = Math.max(5, Math.round(salaryMortgageLater) - 5); v <= Math.min(50, Math.round(salaryMortgageLater) + 5); v += 1) {
+      laterOptions.push(v);
+    }
+
+    const isaCaps = new Set([isaContributionCap]);
+    for (let cap = 20000; cap <= 80000; cap += 5000) {
+      isaCaps.add(cap);
+    }
+
+    let bestMatch = null;
+    let fallbackMatch = null;
+
+    for (const early of earlyOptions) {
+      for (const later of laterOptions) {
+        for (const cap of isaCaps) {
+          const sim = simulateFinancialPlan(
+            buildSimulationParams({
+              salaryMortgageEarly: early,
+              salaryMortgageLater: later,
+              isaContributionCap: cap,
+              returnFullData: false,
+            }),
+          );
+
+          if (sim.minIsaBalance < 60000) continue;
+          const diff = sim.finalLiquidNet - targetFinalCash;
+
+          if (diff >= 0) {
+            if (!bestMatch || diff < bestMatch.diff) {
+              bestMatch = { diff, early, later, cap, finalCash: sim.finalLiquidNet };
+            }
+          } else if (!fallbackMatch || sim.finalLiquidNet > fallbackMatch.finalCash) {
+            fallbackMatch = { diff, early, later, cap, finalCash: sim.finalLiquidNet };
+          }
+        }
+      }
+    }
+
+    setGoalSeekLoading(false);
+
+    const chosen = bestMatch || fallbackMatch;
+    if (chosen) {
+      setSalaryMortgageEarly(chosen.early);
+      setSalaryMortgageLater(chosen.later);
+      setIsaContributionCap(chosen.cap);
+      setGoalSeekStatus(
+        `Updated mortgage share & ISA cap → projected final cash ${formatCurrency(chosen.finalCash)} (ISA floor safe).`,
+      );
+    } else {
+      setGoalSeekStatus('No viable combination met the ISA floor requirement. Try tweaking assumptions manually.');
+    }
+  };
 
   const renderEndLabel = (color) => (props) => {
     const { x, y, index, value } = props;
@@ -857,6 +1058,10 @@ const App = () => {
       </text>
     );
   };
+
+  const labelIndex = financialData.length
+    ? Math.floor(financialData.length * 0.6)
+    : 0;
 
   const renderInlineNameLabel = (text, color) => (props) => {
     const { x, y, index } = props;
@@ -874,6 +1079,14 @@ const App = () => {
     );
   };
 
+  const derivedSecondHouseText = enableSecondHouse && secondHouseValue
+    ? formatCurrency(secondHouseValue)
+    : 'Second house disabled';
+
+  const totalStampDuty = enableSecondHouse
+    ? firstHouseStampDuty + secondHouseStampDuty
+    : firstHouseStampDuty;
+
   return (
     <div className="app-root">
       <h1 className="app-title">Financial Life Planner</h1>
@@ -881,7 +1094,6 @@ const App = () => {
         Combined pre-tax income line; all costs applied to post-tax income (UK Tax Bands 2024/25)
       </p>
 
-      {/* Summary cards */}
       <div className="summary-grid">
         <div className="summary-card summary-accent-cyan">
           <div className="summary-label">Final Total Cash</div>
@@ -914,11 +1126,9 @@ const App = () => {
         </div>
       </div>
 
-      {/* Chart + sliders */}
       <div className="chart-card">
         <h2 className="panel-title">Complete Financial Overview</h2>
 
-        {/* Preset controls */}
         <div className="preset-row">
           <input
             className="preset-name-input"
@@ -972,7 +1182,6 @@ const App = () => {
           </button>
         </div>
 
-        {/* Advanced / hidden parameters */}
         <div className="advanced-box">
           <button
             type="button"
@@ -984,7 +1193,6 @@ const App = () => {
 
           {showAdvanced && (
             <div className="advanced-grid">
-              {/* Initial cash pool */}
               <RangeSlider
                 label="Initial Cash Level (Deposit + ISA seed)"
                 value={initialCash}
@@ -995,7 +1203,16 @@ const App = () => {
                 formatValue={formatCurrency}
               />
 
-              {/* Income / pension */}
+              <RangeSlider
+                label="Timeline Start Year"
+                value={startYear}
+                min={2023}
+                max={2035}
+                step={1}
+                onChange={setStartYear}
+                formatValue={v => v}
+              />
+
               <RangeSlider
                 label="Pension Rate (% of gross)"
                 value={pensionRate}
@@ -1006,7 +1223,6 @@ const App = () => {
                 formatValue={v => `${v}%`}
               />
 
-              {/* Base living & kids */}
               <RangeSlider
                 label="Base Living Costs (start)"
                 value={baseLivingCost}
@@ -1044,7 +1260,25 @@ const App = () => {
                 formatValue={formatCurrency}
               />
 
-              {/* Visa costs */}
+              <RangeSlider
+                label="Living Costs Real Growth"
+                value={realGrowthCosts}
+                min={0}
+                max={5}
+                step={0.1}
+                onChange={setRealGrowthCosts}
+                formatValue={v => `${v}%`}
+              />
+              <RangeSlider
+                label="ISA Real Growth"
+                value={isaGrowth}
+                min={0}
+                max={10}
+                step={0.1}
+                onChange={setIsaGrowth}
+                formatValue={v => `${v}%`}
+              />
+
               <RangeSlider
                 label="Visa Cost (years ≤ 2036)"
                 value={visaCostPreSecondHouse}
@@ -1064,7 +1298,6 @@ const App = () => {
                 formatValue={formatCurrency}
               />
 
-              {/* Lump sums */}
               <RangeSlider
                 label="Car Cost (2028)"
                 value={carCost}
@@ -1084,7 +1317,6 @@ const App = () => {
                 formatValue={formatCurrency}
               />
 
-              {/* ISA & tax environment */}
               <RangeSlider
                 label="ISA Contribution Cap per Year"
                 value={isaContributionCap}
@@ -1116,8 +1348,30 @@ const App = () => {
           )}
         </div>
 
+        <div className="goal-seek-row">
+          <div className="goal-seek-input-group">
+            <label>Target final cash level</label>
+            <input
+              type="number"
+              className="goal-seek-input"
+              value={targetFinalCash}
+              onChange={e => handleGoalTargetChange(Number(e.target.value))}
+            />
+          </div>
+          <button
+            type="button"
+            className="preset-button"
+            onClick={handleGoalSeek}
+            disabled={!targetFinalCash || goalSeekLoading}
+          >
+            {goalSeekLoading ? 'Optimising…' : 'Auto adjust plan'}
+          </button>
+          {goalSeekStatus && (
+            <div className="goal-seek-status">{goalSeekStatus}</div>
+          )}
+        </div>
+
         <div className="chart-top-row">
-          {/* Inline summary tiles */}
           <div className="chart-summary-inline">
             <div className="chart-summary-tile">
               <div className="chart-summary-label">Total Cash</div>
@@ -1139,7 +1393,6 @@ const App = () => {
             </div>
           </div>
 
-          {/* Sliders with headings aligned over columns */}
           <div className="chart-sliders-inline">
             <div className="slider-header-row">
               <div className="slider-header">House & mortgages</div>
@@ -1148,7 +1401,6 @@ const App = () => {
             </div>
 
             <div className="slider-columns-row">
-              {/* Column 1 - House & mortgages */}
               <div className="slider-column">
                 <RangeSlider
                   label="Initial Deposit"
@@ -1195,9 +1447,17 @@ const App = () => {
                   onChange={setSalaryMortgageEarly}
                   formatValue={v => `${v}%`}
                 />
+                <RangeSlider
+                  label="First House Purchase Year"
+                  value={firstHousePurchaseYear}
+                  min={startYear}
+                  max={enableSecondHouse ? secondHouseYear - 1 : 2065}
+                  step={1}
+                  onChange={handleFirstHouseYearChange}
+                  formatValue={v => v}
+                />
               </div>
 
-              {/* Column 2 - House & mortgages */}
               <div className="slider-column">
                 <RangeSlider
                   label="Second House Deposit (from ISA)"
@@ -1207,6 +1467,7 @@ const App = () => {
                   step={10000}
                   onChange={handleSecondHouseDepositChange}
                   formatValue={formatCurrency}
+                  disabled={!enableSecondHouse}
                 />
                 <RangeSlider
                   label="Second Mortgage Amount"
@@ -1216,6 +1477,7 @@ const App = () => {
                   step={10000}
                   onChange={handleSecondMortgageChange}
                   formatValue={formatCurrency}
+                  disabled={!enableSecondHouse}
                 />
                 <RangeSlider
                   label="Salary % on Mortgage (after second house)"
@@ -1229,15 +1491,15 @@ const App = () => {
                 <RangeSlider
                   label="Second House Purchase Year"
                   value={secondHouseYear}
-                  min={2027}
+                  min={firstHousePurchaseYear + 1}
                   max={2069}
                   step={1}
-                  onChange={setSecondHouseYear}
+                  onChange={handleSecondHouseYearChange}
                   formatValue={v => v}
+                  disabled={!enableSecondHouse}
                 />
               </div>
 
-              {/* Column 3 - Income & growth */}
               <div className="slider-column">
                 <RangeSlider
                   label="Starting Income 1"
@@ -1266,28 +1528,6 @@ const App = () => {
                   onChange={setIncomeGrowth}
                   formatValue={v => `${v}%`}
                 />
-              </div>
-
-              {/* Column 4 - Income & growth */}
-              <div className="slider-column">
-                <RangeSlider
-                  label="Living Costs Real Growth"
-                  value={realGrowthCosts}
-                  min={0}
-                  max={5}
-                  step={0.1}
-                  onChange={setRealGrowthCosts}
-                  formatValue={v => `${v}%`}
-                />
-                <RangeSlider
-                  label="ISA Real Growth"
-                  value={isaGrowth}
-                  min={0}
-                  max={10}
-                  step={0.1}
-                  onChange={setIsaGrowth}
-                  formatValue={v => `${v}%`}
-                />
                 <RangeSlider
                   label="ISA Seed (starting balance)"
                   value={isaSeed}
@@ -1299,7 +1539,6 @@ const App = () => {
                 />
               </div>
 
-              {/* Column 5 - Kids & shocks */}
               <div className="slider-column">
                 <RangeSlider
                   label="Child 1 Birth Year"
@@ -1321,7 +1560,6 @@ const App = () => {
                 />
               </div>
 
-              {/* Column 6 - Kids & shocks */}
               <div className="slider-column">
                 <RangeSlider
                   label="Recession Year 1"
@@ -1341,16 +1579,26 @@ const App = () => {
                   onChange={setSecondRecessionYear}
                   formatValue={v => v}
                 />
+                <RangeSlider
+                  label="Recession Year 3"
+                  value={thirdRecessionYear}
+                  min={2027}
+                  max={2069}
+                  step={1}
+                  onChange={setThirdRecessionYear}
+                  formatValue={v => v}
+                />
               </div>
             </div>
           </div>
 
           <div className="toggle-row">
-            <label className="line-toggle">
+            <label className={`line-toggle${!enableSecondHouse ? ' toggle-disabled' : ''}`}>
               <input
                 type="checkbox"
                 checked={lockHouseLink}
                 onChange={toggleHouseLock}
+                disabled={!enableSecondHouse}
               />
               Lock initial vs second house (same total)
             </label>
@@ -1362,10 +1610,17 @@ const App = () => {
               />
               Private school age 11–18
             </label>
+            <label className="line-toggle">
+              <input
+                type="checkbox"
+                checked={enableSecondHouse}
+                onChange={e => setEnableSecondHouse(e.target.checked)}
+              />
+              Enable second house purchase
+            </label>
           </div>
         </div>
 
-        {/* NEW: Stamp Duty Display */}
         {showStampDuty && (
           <div className="stamp-duty-box">
             <h3 className="stamp-duty-title">Stamp Duty Land Tax (England)</h3>
@@ -1377,20 +1632,28 @@ const App = () => {
                   Property value: {formatCurrency(initialPropertyValue)}
                 </div>
               </div>
-              <div className="stamp-duty-item">
-                <div className="stamp-duty-label">Second House (Additional 3%)</div>
-                <div className="stamp-duty-value">{formatCurrency(secondHouseStampDuty)}</div>
-                <div className="stamp-duty-details">
-                  Property value: {formatCurrency(moveIncrementValue)}
+              {enableSecondHouse ? (
+                <div className="stamp-duty-item">
+                  <div className="stamp-duty-label">Second House (assumes first sold)</div>
+                  <div className="stamp-duty-value">{formatCurrency(secondHouseStampDuty)}</div>
+                  <div className="stamp-duty-details">
+                    Property value: {formatCurrency(secondHousePurchasePrice || (initialPropertyValue + moveIncrementValue))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="stamp-duty-item">
+                  <div className="stamp-duty-label">Second House</div>
+                  <div className="stamp-duty-value">—</div>
+                  <div className="stamp-duty-details">Second purchase disabled</div>
+                </div>
+              )}
               <div className="stamp-duty-item">
                 <div className="stamp-duty-label">Total Stamp Duty</div>
                 <div className="stamp-duty-value stamp-duty-total">
                   {formatCurrency(totalStampDuty)}
                 </div>
                 <div className="stamp-duty-details">
-                  Both purchases combined
+                  All purchases combined
                 </div>
               </div>
             </div>
@@ -1403,9 +1666,14 @@ const App = () => {
             {formatCurrency(initialPropertyValue)}
           </span>
           {'  •  '}
-          Second House Value (at move year):{' '}
-          <span className="derived-highlight">
-            {formatCurrency(secondHouseValue)}
+          Second House Value:{' '}
+          <span className={`derived-highlight${enableSecondHouse ? '' : ' derived-muted'}`}>
+            {derivedSecondHouseText}
+          </span>
+          {'  •  '}
+          Min ISA balance:{' '}
+          <span className={`derived-highlight${minIsaSafe ? '' : ' derived-warning'}`}>
+            {formatCurrency(minIsaBalance)} {minIsaSafe ? '' : '⚠️'}
           </span>
           {'  •  '}
           Total Stamp Duty:{' '}
@@ -1414,7 +1682,6 @@ const App = () => {
           </span>
         </div>
 
-        {/* Line toggles */}
         <div className="line-toggle-row">
           <label className="line-toggle">
             <input
@@ -1467,22 +1734,6 @@ const App = () => {
           <label className="line-toggle">
             <input
               type="checkbox"
-              checked={showFirstMortgageLine}
-              onChange={e => setShowFirstMortgageLine(e.target.checked)}
-            />
-            First Mortgage
-          </label>
-          <label className="line-toggle">
-            <input
-              type="checkbox"
-              checked={showSecondMortgageLine}
-              onChange={e => setShowSecondMortgageLine(e.target.checked)}
-            />
-            Second Mortgage
-          </label>
-          <label className="line-toggle">
-            <input
-              type="checkbox"
               checked={showStampDuty}
               onChange={e => setShowStampDuty(e.target.checked)}
             />
@@ -1506,246 +1757,200 @@ const App = () => {
           </label>
         </div>
 
-        <div className="chart-main">
-          {financialData && financialData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={financialData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="year" />
-                <YAxis
-                  tickFormatter={formatCurrency}
-                  domain={zoomOut ? ['auto', 'auto'] : [0, 600000]}
-                  scale="sqrt"
-                />
-                <Tooltip formatter={value => formatCurrency(value)} />
-                <Legend />
-
-                {/* Milestones */}
-                <ReferenceLine x={2028} stroke="#facc15" strokeDasharray="3 3" label="🚗" />
-                <ReferenceLine x={child1BirthYear} stroke="#f9a8d4" strokeDasharray="3 3" label="👶1" />
-                <ReferenceLine x={child2BirthYear} stroke="#f9a8d4" strokeDasharray="3 3" label="👶2" />
-                <ReferenceLine x={secondHouseYear} stroke="#4ade80" strokeDasharray="3 3" label="🏠" />
-                <ReferenceLine x={kid1GiftYear} stroke="#60a5fa" strokeDasharray="3 3" label="🎁1" />
-                <ReferenceLine x={kid2GiftYear} stroke="#60a5fa" strokeDasharray="3 3" label="🎁2" />
-                <ReferenceLine
-                  x={recessionYear}
-                  stroke="#94a3b8"
-                  strokeDasharray="4 4"
-                  label="📉"
-                />
-                <ReferenceLine
-                  x={secondRecessionYear}
-                  stroke="#94a3b8"
-                  strokeDasharray="4 4"
-                  label="📉2"
-                />
-                {mortgageRepayYear && (
-                  <ReferenceLine
-                    x={mortgageRepayYear}
-                    stroke="#22c55e"
-                    strokeDasharray="2 2"
-                    label="✅"
+        <div className="chart-visual-row">
+          <div className="chart-main">
+            {financialData && financialData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={financialData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis
+                    tickFormatter={formatCurrency}
+                    domain={zoomOut ? ['auto', 'auto'] : [0, 600000]}
+                    scale="sqrt"
                   />
-                )}
-                {firstMortgagePaidOffYear && (
-                  <ReferenceLine
-                    x={firstMortgagePaidOffYear}
-                    stroke="#10b981"
-                    strokeDasharray="2 2"
-                    label="✅1"
-                  />
-                )}
+                  <Tooltip formatter={value => formatCurrency(value)} />
+                  <Legend />
 
-                {/* Combined income (pre-tax) */}
-                {showIncomeLine && (
-                  <Line
-                    type="monotone"
-                    dataKey="combinedIncomeGross"
-                    name="Combined Income (pre-tax)"
-                    stroke="#14b8a6"
-                    strokeWidth={2}
-                    dot={false}
-                  >
-                    <LabelList content={renderInlineNameLabel('Combined income', '#14b8a6')} />
-                    <LabelList content={renderEndLabel('#14b8a6')} />
-                  </Line>
-                )}
-
-                {/* Surplus pot */}
-                {showSurplusLine && (
-                  <Line
-                    type="monotone"
-                    dataKey="surplusPot"
-                    name="Surplus Pot (after CGT)"
-                    stroke="#0ea5e9"
-                    strokeWidth={2}
-                    dot={false}
-                  >
-                    <LabelList
-                      content={renderInlineNameLabel('Surplus', '#0ea5e9')}
+                  <ReferenceLine x={firstHousePurchaseYear} stroke="#6366f1" strokeDasharray="2 3" label="🏡" />
+                  <ReferenceLine x={2028} stroke="#facc15" strokeDasharray="3 3" label="🚗" />
+                  <ReferenceLine x={child1BirthYear} stroke="#f9a8d4" strokeDasharray="3 3" label="👶1" />
+                  <ReferenceLine x={child2BirthYear} stroke="#f9a8d4" strokeDasharray="3 3" label="👶2" />
+                  {enableSecondHouse && (
+                    <ReferenceLine x={secondHouseYear} stroke="#4ade80" strokeDasharray="3 3" label="🏠" />
+                  )}
+                  <ReferenceLine x={kid1GiftYear} stroke="#60a5fa" strokeDasharray="3 3" label="🎁1" />
+                  <ReferenceLine x={kid2GiftYear} stroke="#60a5fa" strokeDasharray="3 3" label="🎁2" />
+                  <ReferenceLine x={recessionYear} stroke="#94a3b8" strokeDasharray="4 4" label="📉" />
+                  <ReferenceLine x={secondRecessionYear} stroke="#94a3b8" strokeDasharray="4 4" label="📉2" />
+                  <ReferenceLine x={thirdRecessionYear} stroke="#94a3b8" strokeDasharray="4 4" label="📉3" />
+                  {mortgageRepayYear && (
+                    <ReferenceLine
+                      x={mortgageRepayYear}
+                      stroke="#22c55e"
+                      strokeDasharray="2 2"
+                      label="✅"
                     />
-                    <LabelList content={renderEndLabel('#0ea5e9')} />
-                  </Line>
-                )}
-
-                {/* ISA */}
-                {showIsaLine && (
-                  <Line
-                    type="monotone"
-                    dataKey="isaTotal"
-                    name="ISA Total"
-                    stroke="#8b5cf6"
-                    strokeWidth={3}
-                    dot={(props) => {
-                      const { cx, cy, payload } = props;
-                      const below = payload.isaBelowThreshold;
-                      return (
-                        <circle
-                          cx={cx}
-                          cy={cy}
-                          r={below ? 4 : 3}
-                          fill={below ? '#dc2626' : '#8b5cf6'}
-                          stroke="none"
-                        />
-                      );
-                    }}
-                  >
-                    <LabelList content={renderInlineNameLabel('ISA', '#8b5cf6')} />
-                    <LabelList content={renderEndLabel('#8b5cf6')} />
-                  </Line>
-                )}
-
-                {/* Total Mortgage Balance Line */}
-                {showMortgageBalanceLine && (
-                  <Line
-                    type="monotone"
-                    dataKey="mortgageBalance"
-                    name="Total Mortgage Balance"
-                    stroke="#dc2626"
-                    strokeWidth={2}
-                    strokeDasharray="3 3"
-                    dot={false}
-                    connectNulls={false}
-                  >
-                    <LabelList
-                      content={renderInlineNameLabel('Mortgage balance', '#dc2626')}
+                  )}
+                  {firstMortgagePaidOffYear && (
+                    <ReferenceLine
+                      x={firstMortgagePaidOffYear}
+                      stroke="#10b981"
+                      strokeDasharray="2 2"
+                      label="✅1"
                     />
-                    <LabelList content={renderEndLabel('#dc2626')} />
-                  </Line>
-                )}
+                  )}
 
-                {/* First Mortgage Line */}
-                {showFirstMortgageLine && (
-                  <Line
-                    type="monotone"
-                    dataKey="firstMortgageBalance"
-                    name="First Mortgage Balance"
-                    stroke="#ef4444"
-                    strokeWidth={2}
-                    strokeDasharray="5 3"
-                    dot={false}
-                    connectNulls={false}
-                  >
-                    <LabelList
-                      content={renderInlineNameLabel('First mortgage', '#ef4444')}
-                    />
-                    <LabelList content={renderEndLabel('#ef4444')} />
-                  </Line>
-                )}
+                  {showIncomeLine && (
+                    <Line
+                      type="monotone"
+                      dataKey="combinedIncomeGross"
+                      name="Combined Income (pre-tax)"
+                      stroke="#14b8a6"
+                      strokeWidth={2}
+                      dot={false}
+                    >
+                      <LabelList content={renderInlineNameLabel('Combined income', '#14b8a6')} />
+                      <LabelList content={renderEndLabel('#14b8a6')} />
+                    </Line>
+                  )}
 
-                {/* Second Mortgage Line */}
-                {showSecondMortgageLine && (
-                  <Line
-                    type="monotone"
-                    dataKey="secondMortgageBalance"
-                    name="Second Mortgage Balance"
-                    stroke="#f87171"
-                    strokeWidth={2}
-                    strokeDasharray="2 2"
-                    dot={false}
-                    connectNulls={false}
-                  >
-                    <LabelList
-                      content={renderInlineNameLabel('Second mortgage', '#f87171')}
-                    />
-                    <LabelList content={renderEndLabel('#f87171')} />
-                  </Line>
-                )}
+                  {showSurplusLine && (
+                    <Line
+                      type="monotone"
+                      dataKey="surplusPot"
+                      name="Surplus Pot (after CGT)"
+                      stroke="#0ea5e9"
+                      strokeWidth={2}
+                      dot={false}
+                    >
+                      <LabelList
+                        content={renderInlineNameLabel('Surplus', '#0ea5e9')}
+                      />
+                      <LabelList content={renderEndLabel('#0ea5e9')} />
+                    </Line>
+                  )}
 
-                {/* Cumulative mortgage metrics (stop after payoff via *Display* keys) */}
-                {showMortgagePaidLine && (
-                  <Line
-                    type="monotone"
-                    dataKey="totalMortgagePaymentsDisplay"
-                    name="Total Mortgage Payments (cumulative)"
-                    stroke="#f97316"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={false}
-                    connectNulls={false}
-                  >
-                    <LabelList
-                      content={renderInlineNameLabel('Mortgage paid', '#f97316')}
-                    />
-                    <LabelList content={renderEndLabel('#f97316')} />
-                  </Line>
-                )}
+                  {showIsaLine && (
+                    <Line
+                      type="monotone"
+                      dataKey="isaTotal"
+                      name="ISA Total"
+                      stroke="#8b5cf6"
+                      strokeWidth={3}
+                      dot={(props) => {
+                        const { cx, cy, payload } = props;
+                        const below = payload.isaBelowThreshold;
+                        return (
+                          <circle
+                            cx={cx}
+                            cy={cy}
+                            r={below ? 4 : 3}
+                            fill={below ? '#dc2626' : '#8b5cf6'}
+                            stroke="none"
+                          />
+                        );
+                      }}
+                    >
+                      <LabelList content={renderInlineNameLabel('ISA', '#8b5cf6')} />
+                      <LabelList content={renderEndLabel('#8b5cf6')} />
+                    </Line>
+                  )}
 
-                {showInterestLine && (
-                  <Line
-                    type="monotone"
-                    dataKey="totalInterestPaidDisplay"
-                    name="Total Interest Paid (cumulative)"
-                    stroke="#b91c1c"
-                    strokeWidth={2}
-                    strokeDasharray="4 4"
-                    dot={false}
-                    connectNulls={false}
+                  {showMortgageBalanceLine && (
+                    <Line
+                      type="monotone"
+                      dataKey="mortgageBalance"
+                      name="Total Mortgage Balance"
+                      stroke="#dc2626"
+                      strokeWidth={2}
+                      strokeDasharray="3 3"
+                      dot={false}
+                      connectNulls={false}
+                    >
+                      <LabelList
+                        content={renderInlineNameLabel('Mortgage balance', '#dc2626')}
+                      />
+                      <LabelList content={renderEndLabel('#dc2626')} />
+                    </Line>
+                  )}
+
+                  {showMortgagePaidLine && (
+                    <Line
+                      type="monotone"
+                      dataKey="totalMortgagePaymentsDisplay"
+                      name="Total Mortgage Payments (cumulative)"
+                      stroke="#f97316"
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
+                      dot={false}
+                      connectNulls={false}
+                    >
+                      <LabelList
+                        content={renderInlineNameLabel('Mortgage paid', '#f97316')}
+                      />
+                      <LabelList content={renderEndLabel('#f97316')} />
+                    </Line>
+                  )}
+
+                  {showInterestLine && (
+                    <Line
+                      type="monotone"
+                      dataKey="totalInterestPaidDisplay"
+                      name="Total Interest Paid (cumulative)"
+                      stroke="#b91c1c"
+                      strokeWidth={2}
+                      strokeDasharray="4 4"
+                      dot={false}
+                      connectNulls={false}
+                    >
+                      <LabelList
+                        content={renderInlineNameLabel('Interest', '#b91c1c')}
+                      />
+                      <LabelList content={renderEndLabel('#b91c1c')} />
+                    </Line>
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ padding: '20px', color: '#666' }}>Loading chart...</div>
+            )}
+          </div>
+
+          {showPieChart && (
+            <div className="pie-chart-container pie-chart-inline">
+              <h3 className="pie-chart-title">Final Financial Breakdown</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={entry => `${entry.name}: ${formatCurrency(entry.value)}`}
+                    outerRadius={90}
+                    fill="#8884d8"
+                    dataKey="value"
                   >
-                    <LabelList
-                      content={renderInlineNameLabel('Interest', '#b91c1c')}
-                    />
-                    <LabelList content={renderEndLabel('#b91c1c')} />
-                  </Line>
-                )}
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div style={{ padding: '20px', color: '#666' }}>Loading chart...</div>
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={value => formatCurrency(value)} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           )}
         </div>
 
-        {/* NEW: Pie Chart */}
-        {showPieChart && (
-          <div className="pie-chart-container">
-            <h3 className="pie-chart-title">Final Financial Breakdown</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={entry => `${entry.name}: ${formatCurrency(entry.value)}`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={value => formatCurrency(value)} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
         <div className="milestones">
+          <span>🏡 {firstHousePurchaseYear} - First house completion</span>
           <span>🚗 2028 - Car purchase ({formatCurrency(carCost)})</span>
           <span>👶1 {child1BirthYear} - Child 1 birth & mat leave</span>
           <span>👶2 {child2BirthYear} - Child 2 birth & mat leave</span>
-          <span>🏠 {secondHouseYear} - Second house & extra mortgage</span>
+          {enableSecondHouse && (
+            <span>🏠 {secondHouseYear} - Second house & extra mortgage</span>
+          )}
           <span>
             🎁1 {kid1GiftYear} - Gift to child 1 ({formatCurrency(kid1GiftAmount)})
           </span>
@@ -1756,7 +1961,10 @@ const App = () => {
             📉 {recessionYear} - Recession (-{recessionHitPct}% property & ISA)
           </span>
           <span>
-            📉2 {secondRecessionYear} - Second recession (-{recessionHitPct}% property & ISA)
+            📉2 {secondRecessionYear} - Second recession
+          </span>
+          <span>
+            📉3 {thirdRecessionYear} - Third recession
           </span>
           {firstMortgagePaidOffYear && (
             <span>✅1 {firstMortgagePaidOffYear} - First mortgage fully repaid</span>
