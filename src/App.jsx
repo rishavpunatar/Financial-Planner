@@ -135,67 +135,44 @@ const OPTIMIZER_INCOME_CASES = [
     description: 'Strong real progression without extreme jumps.',
   },
 ];
-const OPTIMIZER_ISA_CASES = [
+const OPTIMIZER_MARKET_CASES = [
   {
-    id: 'isa-low',
-    label: 'ISA low',
+    id: 'market-low',
+    label: 'Market low',
     shortLabel: 'Low',
-    growth: 2.5,
-    description: 'More conservative real investment outcome.',
+    isaGrowth: 2.5,
+    propertyGrowth: 0.5,
+    description: 'More conservative real ISA and property growth.',
   },
   {
-    id: 'isa-medium',
-    label: 'ISA medium',
+    id: 'market-medium',
+    label: 'Market medium',
     shortLabel: 'Medium',
-    growth: 4.0,
-    description: 'Reasonable long-run real return base case.',
+    isaGrowth: 4.0,
+    propertyGrowth: 1.5,
+    description: 'Reasonable long-run real ISA and property growth.',
   },
   {
-    id: 'isa-high',
-    label: 'ISA high',
+    id: 'market-high',
+    label: 'Market high',
     shortLabel: 'High',
-    growth: 5.5,
-    description: 'Stronger real investment outcome.',
-  },
-];
-const OPTIMIZER_PROPERTY_CASES = [
-  {
-    id: 'property-low',
-    label: 'Property low',
-    shortLabel: 'Low',
-    growth: 0.5,
-    description: 'Softer real house-price growth.',
-  },
-  {
-    id: 'property-medium',
-    label: 'Property medium',
-    shortLabel: 'Medium',
-    growth: 1.5,
-    description: 'Reasonable real house-price growth base case.',
-  },
-  {
-    id: 'property-high',
-    label: 'Property high',
-    shortLabel: 'High',
-    growth: 2.5,
-    description: 'Stronger real house-price growth.',
+    isaGrowth: 5.5,
+    propertyGrowth: 2.5,
+    description: 'Stronger real ISA and property growth.',
   },
 ];
 const OPTIMIZER_ASSUMPTION_CASES = OPTIMIZER_INCOME_CASES.flatMap((incomeCase, incomeIndex) =>
-  OPTIMIZER_ISA_CASES.flatMap((isaCase, isaIndex) =>
-    OPTIMIZER_PROPERTY_CASES.map((propertyCase, propertyIndex) => ({
-      id: `${incomeCase.id}__${isaCase.id}__${propertyCase.id}`,
+  OPTIMIZER_MARKET_CASES.map((marketCase, marketIndex) => ({
+      id: `${incomeCase.id}__${marketCase.id}`,
       incomeCase,
-      isaCase,
-      propertyCase,
-      sortOrder: incomeIndex * 100 + isaIndex * 10 + propertyIndex,
-      label: `${incomeCase.label} / ${isaCase.label} / ${propertyCase.label}`,
-      description: `${incomeCase.description} ${isaCase.description} ${propertyCase.description}`,
+      marketCase,
+      sortOrder: incomeIndex * 10 + marketIndex,
+      label: `${incomeCase.label} / ${marketCase.label}`,
+      description: `${incomeCase.description} ${marketCase.description}`,
       incomeGrowth: incomeCase.growth,
-      isaGrowth: isaCase.growth,
-      propertyGrowth: propertyCase.growth,
+      isaGrowth: marketCase.isaGrowth,
+      propertyGrowth: marketCase.propertyGrowth,
     })),
-  ),
 );
 const TAX_YEAR_LABEL = '2025/26';
 // Smoothed real-terms threshold tightening assumption for long-run UK fiscal drag.
@@ -1792,20 +1769,12 @@ const App = () => {
     optimizerLaterMortgagePctMax,
   ]);
 
-  const optimizerRecommendedResults = useMemo(() => {
-    const seenResults = new Set();
-
-    return optimizerResults
-      .flatMap(({ topResults }) => topResults)
+  const optimizerRecommendedResults = useMemo(() => (
+    optimizerResults
+      .map(({ bestResult }) => bestResult)
+      .filter(Boolean)
       .sort(compareOptimizerResults)
-      .filter((result) => {
-        const resultKey = getOptimizerResultKey(result);
-        if (seenResults.has(resultKey)) return false;
-        seenResults.add(resultKey);
-        return true;
-      })
-      .slice(0, 6);
-  }, [optimizerResults]);
+  ), [optimizerResults]);
 
   const optimizerResultsByIncome = useMemo(() => (
     OPTIMIZER_INCOME_CASES.map((incomeCase) => ({
@@ -1972,7 +1941,7 @@ const App = () => {
     `If the first house total is below ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the latest upgrade year is ${OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. If it is ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)} or above, the latest upgrade year is ${OPTIMIZER_LATE_UPGRADE_YEAR_MAX}.`,
     `Every feasible result must end with property value above ${formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)} in today's money after applying the chosen real property-growth case.`,
     'The optimizer ranks plans by final cash minus lifetime mortgage paid. Final property value is only used as a feasibility floor, not as part of the score.',
-    `The optimizer now tests the full 27-case matrix across income growth, ISA growth, and property growth separately. Other planner assumptions stay frozen, including mortgage real rate ${mortgageRate}% and living-cost growth ${realGrowthCosts}%.`,
+    `The optimizer now tests a 9-case matrix across income growth and correlated market growth. Each market case couples ISA and property growth together. Other planner assumptions stay frozen, including mortgage real rate ${mortgageRate}% and living-cost growth ${realGrowthCosts}%.`,
     `Base living costs, child costs, visa costs, car purchase, gifts, private school setting, recessions, redundancy years, tax drag, and pension contribution rate all stay exactly as set in the planner tab.`,
     `House purchase costs include stamp duty plus fixed legal fees of ${formatCurrency(FIRST_HOUSE_LEGAL_FEES)} on the first purchase and ${formatCurrency(SECOND_HOUSE_LEGAL_FEES)} on the move.`,
     `The optimizer still uses the same model rules shown in the planner assumptions, including stamp duty, legal fees, ISA deposit funding for the second move, and the age-${END_AGE} end point.`,
@@ -2841,7 +2810,7 @@ const App = () => {
             This tab keeps the planner assumptions fixed, resets starting income to £70k for person 1 and £90k for person 2, and searches housing choices against three real income-growth paths for corporate careers.
           </p>
           <p className="helper-text">
-            This optimizer now tests the full 27-case matrix: income growth 0.5% / 1.5% / 2.5%, ISA growth 2.5% / 4.0% / 5.5%, and property growth 0.5% / 1.5% / 2.5%, all in real terms.
+            This optimizer now tests a 9-case matrix: income growth 0.5% / 1.5% / 2.5%, crossed with correlated market growth cases where ISA/property move together at 2.5%/0.5%, 4.0%/1.5%, and 5.5%/2.5% in real terms.
           </p>
           <p className="helper-text">
             The first house is fixed to {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}. Housing inputs searched here are explicit deposit and mortgage ranges. House 1 value is deposit plus mortgage and must be at least {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}. The first-house mortgage cannot exceed {formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}. In the upgrade path, the extra deposit plus extra mortgage must be at least {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)}.
@@ -2860,6 +2829,9 @@ const App = () => {
             {!optimizerSearchMeta?.isExhaustive && optimizerSearchMeta
               ? ` The full stepped grid would require ${optimizerSearchMeta.exactScenarioCount.toLocaleString()} scenarios, so the optimizer is using a faster sampled search. Narrow the ranges if you want a true full-grid answer.`
               : ''}
+          </p>
+          <p className="helper-text">
+            "Tested" means the number of housing combinations the optimizer actually ran for that assumption case. "Feasible" means the subset that passed every hard rule: positive end cash, property floor above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, no funding gap, no cumulative shortfall, no capitalised interest, and mortgage balances within the caps.
           </p>
 
           <div className="optimizer-mode-row">
@@ -3098,7 +3070,7 @@ const App = () => {
                 <div>
                   <div className="optimizer-result-title">Best combinations found</div>
                   <div className="optimizer-result-sub">
-                    Toggle between the strongest scenarios the optimizer found in the active search ranges.
+                    One best combination for each income-growth and correlated market-growth case in the active search ranges.
                   </div>
                 </div>
                 <div className="optimizer-result-meta">
@@ -3116,7 +3088,7 @@ const App = () => {
                       className={`optimizer-choice-button${resultKey === getOptimizerResultKey(selectedOptimizerResult) ? ' optimizer-choice-active' : ''}`}
                       onClick={() => setSelectedOptimizerResultKey(resultKey)}
                     >
-                      #{index + 1} {result.assumptionCase.incomeCase.shortLabel} income / {result.assumptionCase.isaCase.shortLabel} ISA / {result.assumptionCase.propertyCase.shortLabel} property · {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'}
+                      #{index + 1} {result.assumptionCase.incomeCase.shortLabel} income / {result.assumptionCase.marketCase.shortLabel} market · {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'}
                     </button>
                   );
                 })}
@@ -3141,7 +3113,7 @@ const App = () => {
               </div>
 
               <div className="optimizer-detail-list">
-                <div>Assumption case: {selectedOptimizerResult.assumptionCase.incomeCase.label} {selectedOptimizerResult.assumptionCase.incomeGrowth}% | {selectedOptimizerResult.assumptionCase.isaCase.label} {selectedOptimizerResult.assumptionCase.isaGrowth}% | {selectedOptimizerResult.assumptionCase.propertyCase.label} {selectedOptimizerResult.assumptionCase.propertyGrowth}%</div>
+                <div>Assumption case: {selectedOptimizerResult.assumptionCase.incomeCase.label} {selectedOptimizerResult.assumptionCase.incomeGrowth}% | {selectedOptimizerResult.assumptionCase.marketCase.label} | ISA {selectedOptimizerResult.assumptionCase.isaGrowth}% | property {selectedOptimizerResult.assumptionCase.propertyGrowth}%</div>
                 <div>Starting cash split: deposit {formatCurrency(selectedOptimizerResult.initialDeposit)} | ISA seed {formatCurrency(selectedOptimizerResult.optimizerIsaSeed)}</div>
                 <div>First house: {selectedOptimizerResult.firstHousePurchaseYear} | value {formatCurrency(selectedOptimizerResult.firstHouseValue)} | deposit {formatCurrency(selectedOptimizerResult.initialDeposit)} | mortgage {formatCurrency(selectedOptimizerResult.initialMortgage)}</div>
                 <div>Mortgage budget: {selectedOptimizerResult.salaryMortgageEarly}% early{selectedOptimizerResult.enableSecondHouse ? `, ${selectedOptimizerResult.salaryMortgageLater}% after the move` : ''}</div>
@@ -3178,7 +3150,7 @@ const App = () => {
                     <div className="optimizer-result-header">
                       <div>
                         <div className="optimizer-result-title">
-                          {assumptionCase.isaCase.label} / {assumptionCase.propertyCase.label}
+                          {assumptionCase.marketCase.label}
                         </div>
                         <div className="optimizer-result-sub">
                           ISA {assumptionCase.isaGrowth}% | property {assumptionCase.propertyGrowth}% | {assumptionCase.description}
