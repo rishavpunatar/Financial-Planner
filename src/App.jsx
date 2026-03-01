@@ -859,6 +859,13 @@ const simulateFinancialPlan = (params) => {
       finalSnapshot.mortgageBalance -
       finalSnapshot.cumulativeShortfall
     : 0;
+  const cashEnd = finalSnapshot
+    ? finalSnapshot.isaTotal + finalSnapshot.surplusPot
+    : 0;
+  const equityEnd = finalSnapshot
+    ? finalSnapshot.propertyValue - finalSnapshot.mortgageBalance
+    : 0;
+  const netWorthEnd = cashEnd + equityEnd;
 
   return {
     financialData: returnFullData && data ? data : [],
@@ -869,8 +876,12 @@ const simulateFinancialPlan = (params) => {
     firstMortgagePaidOffYear: firstMortgagePaidOffYearLocal,
     minIsaBalance,
     finalLiquidNet,
+    cashEnd,
+    equityEnd,
+    netWorthEnd,
     finalPropertyValue: finalSnapshot?.propertyValue ?? 0,
     totalMortgagePayments: finalSnapshot?.totalMortgagePayments ?? 0,
+    lifetimeInterestPaid: finalSnapshot?.totalInterestPaid ?? 0,
     cumulativeShortfall: finalSnapshot?.cumulativeShortfall ?? 0,
     negativeAmortizationYears,
     capitalizedInterestTotal,
@@ -936,7 +947,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                 });
 
                 const feasible =
-                  simulation.finalLiquidNet > 0 &&
+                  simulation.cashEnd > 0 &&
                   simulation.finalPropertyValue >= OPTIMIZER_MIN_END_PROPERTY_VALUE &&
                   simulation.cumulativeShortfall <= 0.01 &&
                   simulation.secondHouseFundingGap <= 0.01 &&
@@ -1012,7 +1023,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                       });
 
                       const feasible =
-                        simulation.finalLiquidNet > 0 &&
+                        simulation.cashEnd > 0 &&
                         simulation.finalPropertyValue >= OPTIMIZER_MIN_END_PROPERTY_VALUE &&
                         simulation.cumulativeShortfall <= 0.01 &&
                         simulation.secondHouseFundingGap <= 0.01 &&
@@ -1087,22 +1098,26 @@ const getOptimizerResultKey = (result) => [
   result.salaryMortgageLater,
 ].join('|');
 
-const getOptimizerScore = (result) => result.finalLiquidNet - result.totalMortgagePayments;
+const getOptimizerNetWorth = (result) => result.netWorthEnd;
 
 const compareOptimizerResults = (left, right) => {
-  const leftScore = getOptimizerScore(left);
-  const rightScore = getOptimizerScore(right);
+  const leftNetWorth = getOptimizerNetWorth(left);
+  const rightNetWorth = getOptimizerNetWorth(right);
 
-  if (rightScore !== leftScore) {
-    return rightScore - leftScore;
+  if (rightNetWorth !== leftNetWorth) {
+    return rightNetWorth - leftNetWorth;
   }
 
-  if (right.finalLiquidNet !== left.finalLiquidNet) {
-    return right.finalLiquidNet - left.finalLiquidNet;
+  if (right.cashEnd !== left.cashEnd) {
+    return right.cashEnd - left.cashEnd;
   }
 
-  if (left.totalMortgagePayments !== right.totalMortgagePayments) {
-    return left.totalMortgagePayments - right.totalMortgagePayments;
+  if (right.equityEnd !== left.equityEnd) {
+    return right.equityEnd - left.equityEnd;
+  }
+
+  if (left.lifetimeInterestPaid !== right.lifetimeInterestPaid) {
+    return left.lifetimeInterestPaid - right.lifetimeInterestPaid;
   }
 
   return 0;
@@ -1940,7 +1955,7 @@ const App = () => {
     `The first-house mortgage cannot exceed ${formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}, and total mortgage outstanding can never exceed ${formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)} at any point in the path.`,
     `If the first house total is below ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the latest upgrade year is ${OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. If it is ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)} or above, the latest upgrade year is ${OPTIMIZER_LATE_UPGRADE_YEAR_MAX}.`,
     `Every feasible result must end with property value above ${formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)} in today's money after applying the chosen real property-growth case.`,
-    'The optimizer ranks plans by final cash minus lifetime mortgage paid. Final property value is only used as a feasibility floor, not as part of the score.',
+    'The optimizer ranks plans by end net worth, defined as liquid cash plus home equity. Final property value is still used as a feasibility floor, and lifetime interest is shown separately.',
     `The optimizer now tests a 9-case matrix across income growth and correlated market growth. Each market case couples ISA and property growth together. Other planner assumptions stay frozen, including mortgage real rate ${mortgageRate}% and living-cost growth ${realGrowthCosts}%.`,
     `Base living costs, child costs, visa costs, car purchase, gifts, private school setting, recessions, redundancy years, tax drag, and pension contribution rate all stay exactly as set in the planner tab.`,
     `House purchase costs include stamp duty plus fixed legal fees of ${formatCurrency(FIRST_HOUSE_LEGAL_FEES)} on the first purchase and ${formatCurrency(SECOND_HOUSE_LEGAL_FEES)} on the move.`,
@@ -2819,7 +2834,7 @@ const App = () => {
             If the first house total is below {formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the upgrade must happen by {OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. Otherwise the latest upgrade year is {OPTIMIZER_LATE_UPGRADE_YEAR_MAX}. House purchase costs include stamp duty plus fixed legal fees.
           </p>
           <p className="helper-text">
-            Results are only kept if final cash stays positive, end property value stays above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, there is no funding gap, cumulative shortfall, or capitalised interest, and total mortgage outstanding never goes above {formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)}. The optimizer then ranks by final cash minus lifetime mortgage paid.
+            Results are only kept if liquid cash at the end stays positive, end property value stays above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, there is no funding gap, cumulative shortfall, or capitalised interest, and total mortgage outstanding never goes above {formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)}. The optimizer then ranks by end net worth, defined as liquid cash plus home equity.
           </p>
           <p className="helper-text">
             Mode selected: {optimizerModeLabel}. {optimizerModeDescription}
@@ -2831,7 +2846,7 @@ const App = () => {
               : ''}
           </p>
           <p className="helper-text">
-            "Tested" means the number of housing combinations the optimizer actually ran for that assumption case. "Feasible" means the subset that passed every hard rule: positive end cash, property floor above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, no funding gap, no cumulative shortfall, no capitalised interest, and mortgage balances within the caps.
+            "Tested" means the number of housing combinations the optimizer actually ran for that assumption case. "Feasible" means the subset that passed every hard rule: positive liquid cash at the end, property floor above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, no funding gap, no cumulative shortfall, no capitalised interest, and mortgage balances within the caps.
           </p>
 
           <div className="optimizer-mode-row">
@@ -3096,23 +3111,23 @@ const App = () => {
 
               <div className="optimizer-metric-grid">
                 <div className="summary-card summary-accent-cyan">
-                  <div className="summary-label">Best Score</div>
-                  <div className="summary-value">{formatCurrency(getOptimizerScore(selectedOptimizerResult))}</div>
-                  <div className="summary-sub">Final cash minus mortgage paid</div>
+                  <div className="summary-label">End Net Worth</div>
+                  <div className="summary-value">{formatCurrency(getOptimizerNetWorth(selectedOptimizerResult))}</div>
+                  <div className="summary-sub">Liquid cash plus home equity</div>
                 </div>
                 <div className="summary-card summary-accent-cyan">
-                  <div className="summary-label">Final Cash</div>
-                  <div className="summary-value">{formatCurrency(selectedOptimizerResult.finalLiquidNet)}</div>
-                  <div className="summary-sub">End cash after remaining debt</div>
+                  <div className="summary-label">Cash End</div>
+                  <div className="summary-value">{formatCurrency(selectedOptimizerResult.cashEnd)}</div>
+                  <div className="summary-sub">ISA plus surplus savings</div>
                 </div>
                 <div className="summary-card summary-accent-green">
-                  <div className="summary-label">Final Property</div>
-                  <div className="summary-value">{formatCurrency(selectedOptimizerResult.finalPropertyValue)}</div>
-                  <div className="summary-sub">Must stay above £1.00M</div>
+                  <div className="summary-label">Equity End</div>
+                  <div className="summary-value">{formatCurrency(selectedOptimizerResult.equityEnd)}</div>
+                  <div className="summary-sub">Property value minus mortgage balance</div>
                 </div>
                 <div className="summary-card summary-accent-blue">
-                  <div className="summary-label">Mortgage Paid</div>
-                  <div className="summary-value">{formatCurrency(selectedOptimizerResult.totalMortgagePayments)}</div>
+                  <div className="summary-label">Lifetime Interest</div>
+                  <div className="summary-value">{formatCurrency(selectedOptimizerResult.lifetimeInterestPaid)}</div>
                   <div className="summary-sub">{selectedOptimizerResult.enableSecondHouse ? 'Upgrade path' : 'One-home path'}</div>
                 </div>
               </div>
@@ -3127,7 +3142,8 @@ const App = () => {
                 ) : (
                   <div>Housing path: one property only with no later move</div>
                 )}
-                <div>Lifetime mortgage paid: {formatCurrency(selectedOptimizerResult.totalMortgagePayments)}</div>
+                <div>End property value: {formatCurrency(selectedOptimizerResult.finalPropertyValue)} | end mortgage balance: {formatCurrency(selectedOptimizerResult.finalPropertyValue - selectedOptimizerResult.equityEnd)}</div>
+                <div>Lifetime interest paid: {formatCurrency(selectedOptimizerResult.lifetimeInterestPaid)}</div>
               </div>
 
               <button
@@ -3170,23 +3186,23 @@ const App = () => {
                       <>
                         <div className="optimizer-metric-grid">
                           <div className="summary-card summary-accent-cyan">
-                            <div className="summary-label">Best Score</div>
-                            <div className="summary-value">{formatCurrency(getOptimizerScore(bestResult))}</div>
-                            <div className="summary-sub">Final cash minus mortgage paid</div>
+                            <div className="summary-label">End Net Worth</div>
+                            <div className="summary-value">{formatCurrency(getOptimizerNetWorth(bestResult))}</div>
+                            <div className="summary-sub">Liquid cash plus home equity</div>
                           </div>
                           <div className="summary-card summary-accent-cyan">
-                            <div className="summary-label">Final Cash</div>
-                            <div className="summary-value">{formatCurrency(bestResult.finalLiquidNet)}</div>
-                            <div className="summary-sub">End cash after remaining debt</div>
+                            <div className="summary-label">Cash End</div>
+                            <div className="summary-value">{formatCurrency(bestResult.cashEnd)}</div>
+                            <div className="summary-sub">ISA plus surplus savings</div>
                           </div>
                           <div className="summary-card summary-accent-green">
-                            <div className="summary-label">Final Property</div>
-                            <div className="summary-value">{formatCurrency(bestResult.finalPropertyValue)}</div>
-                            <div className="summary-sub">Constraint only, not part of score</div>
+                            <div className="summary-label">Equity End</div>
+                            <div className="summary-value">{formatCurrency(bestResult.equityEnd)}</div>
+                            <div className="summary-sub">Property value minus mortgage balance</div>
                           </div>
                           <div className="summary-card summary-accent-blue">
-                            <div className="summary-label">Mortgage Paid</div>
-                            <div className="summary-value">{formatCurrency(bestResult.totalMortgagePayments)}</div>
+                            <div className="summary-label">Lifetime Interest</div>
+                            <div className="summary-value">{formatCurrency(bestResult.lifetimeInterestPaid)}</div>
                             <div className="summary-sub">{bestResult.enableSecondHouse ? 'Two-property path' : 'One-property path'}</div>
                           </div>
                         </div>
@@ -3203,7 +3219,7 @@ const App = () => {
                                 className={`optimizer-top-item${isSelected ? ' optimizer-choice-active' : ''}`}
                                 onClick={() => setSelectedOptimizerResultKey(resultKey)}
                               >
-                                Option {index + 1}: {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | score {formatCurrency(getOptimizerScore(result))} | cash {formatCurrency(result.finalLiquidNet)} | mortgage {formatCurrency(result.totalMortgagePayments)}
+                                Option {index + 1}: {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | net worth {formatCurrency(getOptimizerNetWorth(result))} | cash {formatCurrency(result.cashEnd)} | equity {formatCurrency(result.equityEnd)} | interest {formatCurrency(result.lifetimeInterestPaid)}
                               </button>
                             );
                           })}
