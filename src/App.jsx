@@ -3096,9 +3096,14 @@ const App = () => {
 
               <div className="optimizer-metric-grid">
                 <div className="summary-card summary-accent-cyan">
+                  <div className="summary-label">Best Score</div>
+                  <div className="summary-value">{formatCurrency(getOptimizerScore(selectedOptimizerResult))}</div>
+                  <div className="summary-sub">Final cash minus mortgage paid</div>
+                </div>
+                <div className="summary-card summary-accent-cyan">
                   <div className="summary-label">Final Cash</div>
                   <div className="summary-value">{formatCurrency(selectedOptimizerResult.finalLiquidNet)}</div>
-                  <div className="summary-sub">Primary objective</div>
+                  <div className="summary-sub">End cash after remaining debt</div>
                 </div>
                 <div className="summary-card summary-accent-green">
                   <div className="summary-label">Final Property</div>
