@@ -238,11 +238,14 @@ const sanitizeResult = (result) => ({
   secondHouseDeposit: result.secondHouseDeposit,
   secondMortgage: result.secondMortgage,
   secondUpgradeValue: result.secondUpgradeValue,
+  cashBeforeTerminalMortgagePayoff: result.cashBeforeTerminalMortgagePayoff,
+  terminalMortgagePaydown: result.terminalMortgagePaydown,
   cashEnd: result.cashEnd,
   equityEnd: result.equityEnd,
   netWorthEnd: result.netWorthEnd,
   lifetimeInterestPaid: result.lifetimeInterestPaid,
   finalPropertyValue: result.finalPropertyValue,
+  finalMortgageBalance: result.finalMortgageBalance,
   peakMortgageBalance: result.peakMortgageBalance,
 });
 
