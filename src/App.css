@@ -369,6 +369,14 @@ body {
   color: #64748b;
 }
 
+.optimizer-failure-list {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #475569;
+}
+
 /* -------- Top row: inline summary + sliders -------- */
 
 .chart-top-row {

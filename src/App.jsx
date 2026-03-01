@@ -103,13 +103,39 @@ const OPTIMIZER_SAMPLE_COUNT = 3;
 const OPTIMIZER_FULL_SEARCH_LIMIT = 60000;
 const OPTIMIZER_MIN_FIRST_PROPERTY_VALUE = 500000;
 const OPTIMIZER_MIN_UPGRADE_VALUE = 200000;
-const OPTIMIZER_MIN_END_PROPERTY_VALUE = 1000000;
+const OPTIMIZER_MIN_END_PROPERTY_VALUE = 1200000;
 const OPTIMIZER_FIXED_FIRST_HOUSE_YEAR = 2027;
 const OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD = 750000;
 const OPTIMIZER_FAST_UPGRADE_YEAR_MAX = 2036;
 const OPTIMIZER_LATE_UPGRADE_YEAR_MAX = 2045;
 const OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE = 700000;
 const OPTIMIZER_MAX_TOTAL_MORTGAGE = 700000;
+const OPTIMIZER_FAILURE_REASON_DEFINITIONS = [
+  {
+    key: 'cashEnd',
+    label: 'Liquid cash ends at or below zero.',
+  },
+  {
+    key: 'propertyFloor',
+    label: `End property value stays below ${`£${(OPTIMIZER_MIN_END_PROPERTY_VALUE / 1000000).toFixed(1)}m`}.`,
+  },
+  {
+    key: 'fundingGap',
+    label: 'Second-house deposit cannot be fully funded from ISA.',
+  },
+  {
+    key: 'shortfall',
+    label: 'Cash shortfall remains after using surplus savings and ISA.',
+  },
+  {
+    key: 'negativeAmortization',
+    label: 'Mortgage budget fails to cover interest in at least one year.',
+  },
+  {
+    key: 'mortgageCap',
+    label: 'Peak total mortgage exceeds the £700k cap.',
+  },
+];
 const FIRST_HOUSE_LEGAL_FEES = 3000;
 const SECOND_HOUSE_LEGAL_FEES = 3000;
 const OPTIMIZER_INCOME_CASES = [
@@ -218,6 +244,56 @@ const buildSteppedPoints = (min, max, step) => {
 
   return Array.from(new Set(points)).sort((a, b) => a - b);
 };
+
+const createOptimizerFailureCounts = () => Object.fromEntries(
+  OPTIMIZER_FAILURE_REASON_DEFINITIONS.map(({ key }) => [key, 0]),
+);
+
+const getOptimizerFailureKeys = (simulation) => {
+  const failedKeys = [];
+
+  if (simulation.cashEnd <= 0) {
+    failedKeys.push('cashEnd');
+  }
+  if (simulation.finalPropertyValue < OPTIMIZER_MIN_END_PROPERTY_VALUE) {
+    failedKeys.push('propertyFloor');
+  }
+  if (simulation.secondHouseFundingGap > 0.01) {
+    failedKeys.push('fundingGap');
+  }
+  if (simulation.cumulativeShortfall > 0.01) {
+    failedKeys.push('shortfall');
+  }
+  if (simulation.negativeAmortizationYears > 0) {
+    failedKeys.push('negativeAmortization');
+  }
+  if (simulation.peakMortgageBalance > OPTIMIZER_MAX_TOTAL_MORTGAGE) {
+    failedKeys.push('mortgageCap');
+  }
+
+  return failedKeys;
+};
+
+const recordOptimizerFailures = (failureCounts, simulation) => {
+  const failedKeys = getOptimizerFailureKeys(simulation);
+  failedKeys.forEach((key) => {
+    failureCounts[key] += 1;
+  });
+  return failedKeys.length === 0;
+};
+
+const summarizeOptimizerFailureCounts = (failureCounts, scenariosTested) => (
+  OPTIMIZER_FAILURE_REASON_DEFINITIONS
+    .map(({ key, label }) => ({
+      key,
+      label,
+      count: failureCounts[key] ?? 0,
+      share: scenariosTested > 0 ? ((failureCounts[key] ?? 0) / scenariosTested) * 100 : 0,
+    }))
+    .filter(item => item.count > 0)
+    .sort((left, right) => right.count - left.count)
+    .slice(0, 3)
+);
 
 const getOptimizerUpgradeYearMax = (firstHouseValue) =>
   firstHouseValue < OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD
@@ -908,6 +984,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
   const caseResults = OPTIMIZER_ASSUMPTION_CASES.map((assumptionCase) => {
     const results = [];
     let scenariosTested = 0;
+    const failureCounts = createOptimizerFailureCounts();
 
     for (const currentPropertyMode of propertyModes) {
       for (const initialDeposit of firstHouseDeposits) {
@@ -946,13 +1023,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                   realGrowthProperty: assumptionCase.propertyGrowth,
                 });
 
-                const feasible =
-                  simulation.cashEnd > 0 &&
-                  simulation.finalPropertyValue >= OPTIMIZER_MIN_END_PROPERTY_VALUE &&
-                  simulation.cumulativeShortfall <= 0.01 &&
-                  simulation.secondHouseFundingGap <= 0.01 &&
-                  simulation.negativeAmortizationYears === 0 &&
-                  simulation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE;
+                const feasible = recordOptimizerFailures(failureCounts, simulation);
 
                 if (!feasible) continue;
 
@@ -1022,13 +1093,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                         realGrowthProperty: assumptionCase.propertyGrowth,
                       });
 
-                      const feasible =
-                        simulation.cashEnd > 0 &&
-                        simulation.finalPropertyValue >= OPTIMIZER_MIN_END_PROPERTY_VALUE &&
-                        simulation.cumulativeShortfall <= 0.01 &&
-                        simulation.secondHouseFundingGap <= 0.01 &&
-                        simulation.negativeAmortizationYears === 0 &&
-                        simulation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE;
+                      const feasible = recordOptimizerFailures(failureCounts, simulation);
 
                       if (!feasible) continue;
 
@@ -1066,6 +1131,8 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
       feasibleCount: results.length,
       bestResult: sortedResults[0] ?? null,
       topResults: sortedResults,
+      failureCounts,
+      failureSummary: summarizeOptimizerFailureCounts(failureCounts, scenariosTested),
     };
   });
 
@@ -1869,6 +1936,16 @@ const App = () => {
         ),
     }))
   ), [optimizerResults]);
+  const precomputedResultsByIncome = useMemo(() => (
+    OPTIMIZER_INCOME_CASES.map((incomeCase) => ({
+      incomeCase,
+      caseResults: precomputedOptimizerResults
+        .filter(({ assumptionCase }) => assumptionCase.incomeCase.id === incomeCase.id)
+        .sort(
+          (left, right) => left.assumptionCase.sortOrder - right.assumptionCase.sortOrder,
+        ),
+    }))
+  ), [precomputedOptimizerResults]);
 
   const displayOptimizerResults = precomputedAllFeasibleResults.length
     ? precomputedAllFeasibleResults
@@ -1876,6 +1953,9 @@ const App = () => {
   const displayOptimizerRecommendedResults = precomputedAllFeasibleResults.length
     ? precomputedRecommendedResults
     : optimizerRecommendedResults;
+  const displayOptimizerResultsByIncome = precomputedAllFeasibleResults.length
+    ? precomputedResultsByIncome
+    : optimizerResultsByIncome;
 
   const selectedOptimizerResult = useMemo(() => {
     if (!displayOptimizerResults.length) return null;
@@ -3322,7 +3402,7 @@ const App = () => {
             </div>
           )}
 
-          {optimizerResultsByIncome.map(({ incomeCase, caseResults }) => (
+          {displayOptimizerResultsByIncome.map(({ incomeCase, caseResults }) => (
             <div key={incomeCase.id} className="optimizer-income-section">
               <div className="optimizer-income-header">
                 <div className="optimizer-result-title">{incomeCase.label}</div>
@@ -3332,7 +3412,14 @@ const App = () => {
               </div>
 
               <div className="optimizer-results-grid">
-                {caseResults.map(({ assumptionCase, scenariosTested, feasibleCount, bestResult, topResults }) => (
+                {caseResults.map(({
+                  assumptionCase,
+                  scenariosTested,
+                  feasibleCount,
+                  bestResult,
+                  topResults = [],
+                  failureSummary = [],
+                }) => (
                   <div key={assumptionCase.id} className="optimizer-result-card">
                     <div className="optimizer-result-header">
                       <div>
@@ -3405,7 +3492,16 @@ const App = () => {
                       </>
                     ) : (
                       <div className="optimizer-empty">
-                        No feasible plan found in the current search ranges.
+                        <div>No feasible plan found in the current search ranges.</div>
+                        {failureSummary.length > 0 && (
+                          <div className="optimizer-failure-list">
+                            {failureSummary.map((failure) => (
+                              <div key={failure.key}>
+                                {failure.label} {failure.count}/{scenariosTested} tested ({failure.share.toFixed(0)}%).
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

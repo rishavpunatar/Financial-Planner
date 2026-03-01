@@ -42,6 +42,9 @@ export {
   buildSteppedPoints,
   getOptimizerUpgradeYearMax,
   compareOptimizerResults,
+  createOptimizerFailureCounts,
+  recordOptimizerFailures,
+  summarizeOptimizerFailureCounts,
   roundToStep,
   clampValue,
   simulateFinancialPlan,
@@ -67,6 +70,9 @@ const {
   buildSteppedPoints,
   getOptimizerUpgradeYearMax,
   compareOptimizerResults,
+  createOptimizerFailureCounts,
+  recordOptimizerFailures,
+  summarizeOptimizerFailureCounts,
   roundToStep,
   clampValue,
   simulateFinancialPlan,
@@ -218,6 +224,7 @@ const sanitizeResult = (result) => ({
     propertyGrowth: result.assumptionCase.propertyGrowth,
     incomeCase: result.assumptionCase.incomeCase,
     marketCase: result.assumptionCase.marketCase,
+    sortOrder: result.assumptionCase.sortOrder,
   },
   enableSecondHouse: result.enableSecondHouse,
   firstHousePurchaseYear: result.firstHousePurchaseYear,
@@ -257,6 +264,7 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
   const caseResults = OPTIMIZER_ASSUMPTION_CASES.map((assumptionCase) => {
     const results = [];
     let scenariosTested = 0;
+    const failureCounts = createOptimizerFailureCounts();
 
     for (const currentPropertyMode of propertyModes) {
       for (const initialDeposit of firstHouseDeposits) {
@@ -295,13 +303,7 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
                   realGrowthProperty: assumptionCase.propertyGrowth,
                 });
 
-                const feasible =
-                  simulation.cashEnd > 0 &&
-                  simulation.finalPropertyValue >= optimizerCore.OPTIMIZER_MIN_END_PROPERTY_VALUE &&
-                  simulation.cumulativeShortfall <= 0.01 &&
-                  simulation.secondHouseFundingGap <= 0.01 &&
-                  simulation.negativeAmortizationYears === 0 &&
-                  simulation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE;
+                const feasible = recordOptimizerFailures(failureCounts, simulation);
 
                 if (!feasible) continue;
 
@@ -371,13 +373,7 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
                         realGrowthProperty: assumptionCase.propertyGrowth,
                       });
 
-                      const feasible =
-                        simulation.cashEnd > 0 &&
-                        simulation.finalPropertyValue >= optimizerCore.OPTIMIZER_MIN_END_PROPERTY_VALUE &&
-                        simulation.cumulativeShortfall <= 0.01 &&
-                        simulation.secondHouseFundingGap <= 0.01 &&
-                        simulation.negativeAmortizationYears === 0 &&
-                        simulation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE;
+                      const feasible = recordOptimizerFailures(failureCounts, simulation);
 
                       if (!feasible) continue;
 
@@ -418,11 +414,15 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
         propertyGrowth: assumptionCase.propertyGrowth,
         incomeCase: assumptionCase.incomeCase,
         marketCase: assumptionCase.marketCase,
+        sortOrder: assumptionCase.sortOrder,
       },
       scenariosTested,
       feasibleCount: feasibleResults.length,
       bestResult: feasibleResults[0] ?? null,
+      topResults: feasibleResults.slice(0, 3),
       feasibleResults,
+      failureCounts,
+      failureSummary: summarizeOptimizerFailureCounts(failureCounts, scenariosTested),
     };
   });
 
