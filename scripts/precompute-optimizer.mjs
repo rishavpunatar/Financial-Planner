@@ -17,6 +17,7 @@ const DEFAULT_FIRST_HOUSE_MORTGAGE_MAX = 600000;
 const OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE = 400000;
 const OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF = 2035;
 const OPTIMIZER_MAX_UPGRADE_VALUE = 600000;
+const PRECOMPUTED_TOP_RESULTS_PER_CASE = 20;
 
 const appSource = await readFile(appPath, 'utf8');
 const startToken = 'const calculateStampDuty';
@@ -435,6 +436,7 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
     }
 
     const feasibleResults = results.sort(compareOptimizerResults).map(sanitizeResult);
+    const topResults = feasibleResults.slice(0, PRECOMPUTED_TOP_RESULTS_PER_CASE);
 
     return {
       assumptionCase: {
@@ -450,9 +452,7 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
       scenariosTested,
       feasibleCount: feasibleResults.length,
       bestResult: feasibleResults[0] ?? null,
-      topResults: feasibleResults.slice(0, 3),
-      feasibleResults,
-      failureCounts,
+      topResults,
       failureSummary: summarizeOptimizerFailureCounts(failureCounts, scenariosTested),
     };
   });

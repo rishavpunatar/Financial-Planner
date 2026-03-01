@@ -2036,9 +2036,9 @@ const App = () => {
       .filter(Boolean)
       .sort(compareOptimizerResults)
   ), [precomputedOptimizerResults]);
-  const precomputedAllFeasibleResults = useMemo(() => (
+  const precomputedStoredResults = useMemo(() => (
     precomputedOptimizerResults
-      .flatMap(({ feasibleResults = [] }) => feasibleResults)
+      .flatMap(({ topResults = [] }) => topResults)
       .sort(compareOptimizerResults)
   ), [precomputedOptimizerResults]);
   const displayOptimizerSearchMeta = hasPrecomputedOptimizerResults
@@ -2047,12 +2047,12 @@ const App = () => {
   const allFeasiblePageSize = 50;
   const allFeasiblePageCount = Math.max(
     1,
-    Math.ceil(precomputedAllFeasibleResults.length / allFeasiblePageSize),
+    Math.ceil(precomputedStoredResults.length / allFeasiblePageSize),
   );
   const pagedFeasibleResults = useMemo(() => {
     const start = (allFeasiblePage - 1) * allFeasiblePageSize;
-    return precomputedAllFeasibleResults.slice(start, start + allFeasiblePageSize);
-  }, [allFeasiblePage, precomputedAllFeasibleResults]);
+    return precomputedStoredResults.slice(start, start + allFeasiblePageSize);
+  }, [allFeasiblePage, precomputedStoredResults]);
   useEffect(() => {
     if (allFeasiblePage > allFeasiblePageCount) {
       setAllFeasiblePage(allFeasiblePageCount);
@@ -2085,7 +2085,7 @@ const App = () => {
   ), [precomputedOptimizerResults]);
 
   const displayOptimizerResults = hasPrecomputedOptimizerResults
-    ? precomputedAllFeasibleResults
+    ? precomputedStoredResults
     : optimizerRecommendedResults;
   const displayOptimizerRecommendedResults = hasPrecomputedOptimizerResults
     ? precomputedRecommendedResults
@@ -3409,19 +3409,19 @@ const App = () => {
               <div className="optimizer-result-header">
                 <div>
                   <div className="optimizer-result-title">
-                    {precomputedAllFeasibleResults.length
+                    {precomputedStoredResults.length
                       ? 'Selected full-search combination'
                       : 'Selected preview combination'}
                   </div>
                   <div className="optimizer-result-sub">
-                    {precomputedAllFeasibleResults.length
+                    {precomputedStoredResults.length
                       ? 'The buttons below switch between the best combination from each income-growth and market-growth case using the terminal-side full search.'
                       : 'The buttons below switch between the best combinations from the browser-side preview for each income-growth and market-growth case.'}
                   </div>
                 </div>
                 <div className="optimizer-result-meta">
-                  {precomputedAllFeasibleResults.length
-                    ? `${precomputedAllFeasibleResults.length.toLocaleString()} feasible / ${precomputedOptimizerSearchMeta ? precomputedOptimizerSearchMeta.testedScenarioCount.toLocaleString() : '0'} tested`
+                  {precomputedStoredResults.length
+                    ? `${precomputedStoredResults.length.toLocaleString()} stored examples / ${precomputedOptimizerSearchMeta ? precomputedOptimizerSearchMeta.testedScenarioCount.toLocaleString() : '0'} tested`
                     : `${optimizerRecommendedResults.length.toLocaleString()} preview winners`}
                 </div>
               </div>
@@ -3494,17 +3494,17 @@ const App = () => {
             </div>
           )}
 
-          {precomputedAllFeasibleResults.length > 0 && (
+          {precomputedStoredResults.length > 0 && (
             <div className="optimizer-selected-card">
               <div className="optimizer-result-header">
                 <div>
-                  <div className="optimizer-result-title">All feasible combinations from terminal run</div>
+                  <div className="optimizer-result-title">Top combinations from terminal run</div>
                   <div className="optimizer-result-sub">
-                    Every scenario that passed the optimizer rules across the active ranges and all income/market cases in the last terminal-side full search. These results stay fixed until the terminal precompute is run again.
+                    A curated stored set from the last terminal-side full search. This keeps the page light while preserving the best and strongest scenarios across the tested cases.
                   </div>
                 </div>
                 <div className="optimizer-result-meta">
-                  {precomputedAllFeasibleResults.length.toLocaleString()} feasible total
+                  {precomputedStoredResults.length.toLocaleString()} stored / {precomputedOptimizerSearchMeta ? precomputedOptimizerSearchMeta.feasibleScenarioCount.toLocaleString() : '0'} feasible total
                 </div>
               </div>
 
@@ -3569,7 +3569,7 @@ const App = () => {
             </div>
           )}
 
-          {activeTab === 'optimizer' && !precomputedAllFeasibleResults.length && precomputedOptimizerError && (
+          {activeTab === 'optimizer' && !precomputedStoredResults.length && precomputedOptimizerError && (
             <div className="optimizer-empty">
               Full terminal results could not be loaded: {precomputedOptimizerError}
             </div>
