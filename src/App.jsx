@@ -1626,12 +1626,6 @@ const App = () => {
     };
   }, [activeTab, precomputedOptimizerPayload, precomputedOptimizerError]);
 
-  useEffect(() => {
-    if (allFeasiblePage > allFeasiblePageCount) {
-      setAllFeasiblePage(allFeasiblePageCount);
-    }
-  }, [allFeasiblePage, allFeasiblePageCount]);
-
   const handleSecondHouseYearChange = (value) => {
     const adjusted = Math.min(
       Math.max(value, firstHousePurchaseYear + 1),
@@ -1859,6 +1853,11 @@ const App = () => {
     const start = (allFeasiblePage - 1) * allFeasiblePageSize;
     return precomputedAllFeasibleResults.slice(start, start + allFeasiblePageSize);
   }, [allFeasiblePage, precomputedAllFeasibleResults]);
+  useEffect(() => {
+    if (allFeasiblePage > allFeasiblePageCount) {
+      setAllFeasiblePage(allFeasiblePageCount);
+    }
+  }, [allFeasiblePage, allFeasiblePageCount]);
 
   const optimizerResultsByIncome = useMemo(() => (
     OPTIMIZER_INCOME_CASES.map((incomeCase) => ({
