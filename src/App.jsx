@@ -108,6 +108,8 @@ const OPTIMIZER_FIXED_FIRST_HOUSE_YEAR = 2027;
 const OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD = 750000;
 const OPTIMIZER_FAST_UPGRADE_YEAR_MAX = 2036;
 const OPTIMIZER_LATE_UPGRADE_YEAR_MAX = 2045;
+const OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE = 700000;
+const OPTIMIZER_MAX_TOTAL_MORTGAGE = 700000;
 const FIRST_HOUSE_LEGAL_FEES = 3000;
 const SECOND_HOUSE_LEGAL_FEES = 3000;
 const OPTIMIZER_INCOME_CASES = [
@@ -246,14 +248,30 @@ const getOptimizerUpgradeYearMax = (firstHouseValue) =>
     : OPTIMIZER_LATE_UPGRADE_YEAR_MAX;
 
 const buildOptimizerSearchPlan = (searchConfig) => {
+  const firstHouseMortgageMin = Math.min(
+    searchConfig.firstHouseMortgageMin,
+    OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE,
+  );
+  const firstHouseMortgageMax = Math.min(
+    searchConfig.firstHouseMortgageMax,
+    OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE,
+  );
+  const secondHouseMortgageMin = Math.min(
+    searchConfig.secondHouseMortgageMin,
+    OPTIMIZER_MAX_TOTAL_MORTGAGE,
+  );
+  const secondHouseMortgageMax = Math.min(
+    searchConfig.secondHouseMortgageMax,
+    OPTIMIZER_MAX_TOTAL_MORTGAGE,
+  );
   const exactFirstHouseDeposits = buildSteppedPoints(
     searchConfig.firstHouseDepositMin,
     searchConfig.firstHouseDepositMax,
     50000,
   );
   const exactFirstHouseMortgages = buildSteppedPoints(
-    searchConfig.firstHouseMortgageMin,
-    searchConfig.firstHouseMortgageMax,
+    firstHouseMortgageMin,
+    firstHouseMortgageMax,
     50000,
   );
   const exactFirstHouseYears = buildSteppedPoints(
@@ -272,8 +290,8 @@ const buildOptimizerSearchPlan = (searchConfig) => {
     50000,
   );
   const exactSecondHouseMortgages = buildSteppedPoints(
-    searchConfig.secondHouseMortgageMin,
-    searchConfig.secondHouseMortgageMax,
+    secondHouseMortgageMin,
+    secondHouseMortgageMax,
     50000,
   );
   const exactSecondHouseYears = buildSteppedPoints(
@@ -347,7 +365,11 @@ const buildOptimizerSearchPlan = (searchConfig) => {
       : buildSamplePoints(searchConfig.firstHouseDepositMin, searchConfig.firstHouseDepositMax, 50000),
     firstHouseMortgages: isExhaustive
       ? exactFirstHouseMortgages
-      : buildSamplePoints(searchConfig.firstHouseMortgageMin, searchConfig.firstHouseMortgageMax, 50000),
+      : buildSamplePoints(
+        firstHouseMortgageMin,
+        firstHouseMortgageMax,
+        50000,
+      ),
     firstHouseYears: isExhaustive
       ? exactFirstHouseYears
       : buildSamplePoints(searchConfig.firstHouseYearMin, searchConfig.firstHouseYearMax, 1),
@@ -359,7 +381,11 @@ const buildOptimizerSearchPlan = (searchConfig) => {
       : buildSamplePoints(searchConfig.secondHouseDepositMin, searchConfig.secondHouseDepositMax, 50000),
     secondHouseMortgages: isExhaustive
       ? exactSecondHouseMortgages
-      : buildSamplePoints(searchConfig.secondHouseMortgageMin, searchConfig.secondHouseMortgageMax, 50000),
+      : buildSamplePoints(
+        secondHouseMortgageMin,
+        secondHouseMortgageMax,
+        50000,
+      ),
     secondHouseYears: isExhaustive
       ? exactSecondHouseYears
       : buildSamplePoints(
@@ -570,6 +596,7 @@ const simulateFinancialPlan = (params) => {
   let minIsaBalance = isaSeed || 0;
   let negativeAmortizationYears = 0;
   let capitalizedInterestTotal = 0;
+  let peakMortgageBalance = 0;
   let finalSnapshot = null;
 
   for (let year = startYear; year <= maxYear; year++) {
@@ -666,6 +693,7 @@ const simulateFinancialPlan = (params) => {
 
     const yearlyRate = mortgageRate / 100;
     const openingMortgageBalance = firstMortgageBalance + secondMortgageBalance;
+    peakMortgageBalance = Math.max(peakMortgageBalance, openingMortgageBalance);
     const mortgageInterest = openingMortgageBalance * yearlyRate;
 
     let mortgageRepayment = 0;
@@ -696,6 +724,11 @@ const simulateFinancialPlan = (params) => {
         firstMortgageBalance += unpaidInterest * firstShare;
         secondMortgageBalance += unpaidInterest * secondShare;
       }
+
+      peakMortgageBalance = Math.max(
+        peakMortgageBalance,
+        firstMortgageBalance + secondMortgageBalance,
+      );
 
       if (firstMortgageBalance > 0) {
         const firstMortgagePayment = Math.min(principalPayment, firstMortgageBalance);
@@ -806,6 +839,7 @@ const simulateFinancialPlan = (params) => {
 
     const closingMortgageBalance =
       firstMortgageBalance + secondMortgageBalance;
+    peakMortgageBalance = Math.max(peakMortgageBalance, closingMortgageBalance);
     const displayTotalMortgage =
       closingMortgageBalance > 0.01 ? closingMortgageBalance : null;
 
@@ -838,6 +872,7 @@ const simulateFinancialPlan = (params) => {
       totalInterestPaid: cumulativeMortgageInterest,
       negativeAmortizationYears,
       capitalizedInterestTotal,
+      peakMortgageBalance,
     };
   }
 
@@ -862,6 +897,7 @@ const simulateFinancialPlan = (params) => {
     cumulativeShortfall: finalSnapshot?.cumulativeShortfall ?? 0,
     negativeAmortizationYears,
     capitalizedInterestTotal,
+    peakMortgageBalance: finalSnapshot?.peakMortgageBalance ?? 0,
   };
 };
 
@@ -895,7 +931,8 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
 
               if (
                 initialDeposit > startingCashPool ||
-                firstHouseValue < OPTIMIZER_MIN_FIRST_PROPERTY_VALUE
+                firstHouseValue < OPTIMIZER_MIN_FIRST_PROPERTY_VALUE ||
+                initialMortgage > OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE
               ) {
                 continue;
               }
@@ -926,7 +963,8 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                   simulation.finalPropertyValue >= OPTIMIZER_MIN_END_PROPERTY_VALUE &&
                   simulation.cumulativeShortfall <= 0.01 &&
                   simulation.secondHouseFundingGap <= 0.01 &&
-                  simulation.negativeAmortizationYears === 0;
+                  simulation.negativeAmortizationYears === 0 &&
+                  simulation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE;
 
                 if (!feasible) continue;
 
@@ -1001,7 +1039,8 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                         simulation.finalPropertyValue >= OPTIMIZER_MIN_END_PROPERTY_VALUE &&
                         simulation.cumulativeShortfall <= 0.01 &&
                         simulation.secondHouseFundingGap <= 0.01 &&
-                        simulation.negativeAmortizationYears === 0;
+                        simulation.negativeAmortizationYears === 0 &&
+                        simulation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE;
 
                       if (!feasible) continue;
 
@@ -1206,15 +1245,23 @@ const App = () => {
       ),
   );
   const [optimizerFirstHouseMortgageMin, setOptimizerFirstHouseMortgageMin] = useState(
-    initialScenario?.optimizerFirstHouseMortgageMin
-      ?? Math.max(0, roundToStep(Math.max(initialMortgage, 100000) * 0.75, 50000)),
+    clampValue(
+      initialScenario?.optimizerFirstHouseMortgageMin
+        ?? Math.max(0, roundToStep(Math.max(initialMortgage, 100000) * 0.75, 50000)),
+      0,
+      OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE,
+    ),
   );
   const [optimizerFirstHouseMortgageMax, setOptimizerFirstHouseMortgageMax] = useState(
-    initialScenario?.optimizerFirstHouseMortgageMax
-      ?? Math.max(
-        Math.max(0, roundToStep(Math.max(initialMortgage, 100000) * 0.75, 50000)),
-        roundToStep(Math.max(initialMortgage, 100000) * 1.25, 50000),
-      ),
+    clampValue(
+      initialScenario?.optimizerFirstHouseMortgageMax
+        ?? Math.max(
+          Math.max(0, roundToStep(Math.max(initialMortgage, 100000) * 0.75, 50000)),
+          roundToStep(Math.max(initialMortgage, 100000) * 1.25, 50000),
+        ),
+      0,
+      OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE,
+    ),
   );
   const [optimizerSecondHouseDepositMin, setOptimizerSecondHouseDepositMin] = useState(
     initialScenario?.optimizerSecondHouseDepositMin
@@ -1228,15 +1275,23 @@ const App = () => {
       ),
   );
   const [optimizerSecondHouseMortgageMin, setOptimizerSecondHouseMortgageMin] = useState(
-    initialScenario?.optimizerSecondHouseMortgageMin
-      ?? Math.max(0, roundToStep(Math.max(secondMortgage, 100000) * 0.75, 50000)),
+    clampValue(
+      initialScenario?.optimizerSecondHouseMortgageMin
+        ?? Math.max(0, roundToStep(Math.max(secondMortgage, 100000) * 0.75, 50000)),
+      0,
+      OPTIMIZER_MAX_TOTAL_MORTGAGE,
+    ),
   );
   const [optimizerSecondHouseMortgageMax, setOptimizerSecondHouseMortgageMax] = useState(
-    initialScenario?.optimizerSecondHouseMortgageMax
-      ?? Math.max(
-        Math.max(0, roundToStep(Math.max(secondMortgage, 100000) * 0.75, 50000)),
-        roundToStep(Math.max(secondMortgage, 100000) * 1.25, 50000),
-      ),
+    clampValue(
+      initialScenario?.optimizerSecondHouseMortgageMax
+        ?? Math.max(
+          Math.max(0, roundToStep(Math.max(secondMortgage, 100000) * 0.75, 50000)),
+          roundToStep(Math.max(secondMortgage, 100000) * 1.25, 50000),
+        ),
+      0,
+      OPTIMIZER_MAX_TOTAL_MORTGAGE,
+    ),
   );
   const [optimizerSecondHouseYearMin, setOptimizerSecondHouseYearMin] = useState(
     initialScenario?.optimizerSecondHouseYearMin ?? Math.max(secondHouseYear - 3, startYear + 1),
@@ -1908,6 +1963,7 @@ const App = () => {
     `The first house purchase year is fixed at ${OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}.`,
     `The first-house deposit and starting ISA seed share one fixed starting cash pool of ${formatCurrency(optimizerSearchMeta?.startingCashPool ?? (initialDeposit + isaSeed))}.`,
     `The first property must be at least ${formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}, and any upgrade step must add at least ${formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} of extra property value from deposit plus mortgage.`,
+    `The first-house mortgage cannot exceed ${formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}, and total mortgage outstanding can never exceed ${formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)} at any point in the path.`,
     `If the first house total is below ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the latest upgrade year is ${OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. If it is ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)} or above, the latest upgrade year is ${OPTIMIZER_LATE_UPGRADE_YEAR_MAX}.`,
     `Every feasible result must end with property value above ${formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)} in today's money after applying the chosen real property-growth case.`,
     'The optimizer maximizes final cash first, then uses higher final property value and lower lifetime mortgage paid as tie-breakers.',
@@ -2783,13 +2839,13 @@ const App = () => {
             This optimizer now tests the full 27-case matrix: income growth 0.5% / 1.5% / 2.5%, ISA growth 2.5% / 4.0% / 5.5%, and property growth 0.5% / 1.5% / 2.5%, all in real terms.
           </p>
           <p className="helper-text">
-            The first house is fixed to {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}. Housing inputs searched here are explicit deposit and mortgage ranges. House 1 value is deposit plus mortgage and must be at least {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}. In the upgrade path, the extra deposit plus extra mortgage must be at least {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)}.
+            The first house is fixed to {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}. Housing inputs searched here are explicit deposit and mortgage ranges. House 1 value is deposit plus mortgage and must be at least {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}. The first-house mortgage cannot exceed {formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}. In the upgrade path, the extra deposit plus extra mortgage must be at least {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)}.
           </p>
           <p className="helper-text">
             If the first house total is below {formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the upgrade must happen by {OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. Otherwise the latest upgrade year is {OPTIMIZER_LATE_UPGRADE_YEAR_MAX}. House purchase costs include stamp duty plus fixed legal fees.
           </p>
           <p className="helper-text">
-            Results are only kept if final cash stays positive, end property value stays above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, and there is no funding gap, cumulative shortfall, or capitalised interest. The optimizer then ranks by final cash first.
+            Results are only kept if final cash stays positive, end property value stays above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, there is no funding gap, cumulative shortfall, or capitalised interest, and total mortgage outstanding never goes above {formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)}. The optimizer then ranks by final cash first.
           </p>
           <p className="helper-text">
             Mode selected: {optimizerModeLabel}. {optimizerModeDescription}
@@ -2860,6 +2916,15 @@ const App = () => {
                 Based on whether the first house total is below or above {formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}
               </div>
             </div>
+            <div className="summary-card summary-accent-green">
+              <div className="summary-label">Mortgage Caps</div>
+              <div className="summary-value">
+                {formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)} / {formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)}
+              </div>
+              <div className="summary-sub">
+                First-house mortgage max / peak total mortgage max at any point
+              </div>
+            </div>
             {showOptimizerSecondHouseControls && (
               <div className="summary-card summary-accent-green">
                 <div className="summary-label">Upgrade Total Range</div>
@@ -2912,7 +2977,7 @@ const App = () => {
               label="First Mortgage Min"
               value={optimizerFirstHouseMortgageMin}
               min={0}
-              max={1500000}
+              max={OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE}
               step={50000}
               onChange={setOptimizerFirstHouseMortgageMin}
               formatValue={formatCurrency}
@@ -2921,7 +2986,7 @@ const App = () => {
               label="First Mortgage Max"
               value={optimizerFirstHouseMortgageMax}
               min={0}
-              max={1500000}
+              max={OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE}
               step={50000}
               onChange={setOptimizerFirstHouseMortgageMax}
               formatValue={formatCurrency}
@@ -2968,7 +3033,7 @@ const App = () => {
                   label="Upgrade Mortgage Min"
                   value={optimizerSecondHouseMortgageMin}
                   min={0}
-                  max={1000000}
+                  max={OPTIMIZER_MAX_TOTAL_MORTGAGE}
                   step={50000}
                   onChange={setOptimizerSecondHouseMortgageMin}
                   formatValue={formatCurrency}
@@ -2977,7 +3042,7 @@ const App = () => {
                   label="Upgrade Mortgage Max"
                   value={optimizerSecondHouseMortgageMax}
                   min={0}
-                  max={1000000}
+                  max={OPTIMIZER_MAX_TOTAL_MORTGAGE}
                   step={50000}
                   onChange={setOptimizerSecondHouseMortgageMax}
                   formatValue={formatCurrency}
