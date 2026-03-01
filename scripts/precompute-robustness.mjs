@@ -17,7 +17,7 @@ const cdfChartPath = path.join(robustnessDir, 'cdf-top-robust-strategies.svg');
 const heatmapChartPath = path.join(robustnessDir, 'heatmap-deposit-vs-mortgage.svg');
 const sensitivityChartPath = path.join(robustnessDir, 'sensitivity-medium-weight-vs-private-school.svg');
 
-const SCENARIO_DRAWS_PER_BUCKET = 60;
+const SCENARIO_DRAWS_PER_BUCKET = 3000;
 const DEFAULT_MEDIUM_WEIGHT = 0.6;
 const DEFAULT_PRIVATE_SCHOOL_PROBABILITY = 0.3;
 const MEDIUM_WEIGHT_GRID = [0.4, 0.5, 0.6, 0.7, 0.8];
@@ -335,37 +335,6 @@ const buildScenarioSample = () => {
   return scenarios;
 };
 
-const weightedMean = (pairs) => {
-  const totalWeight = pairs.reduce((sum, pair) => sum + pair.weight, 0);
-  if (totalWeight <= 0) return 0;
-  return pairs.reduce((sum, pair) => sum + (pair.value * pair.weight), 0) / totalWeight;
-};
-
-const weightedTailMean = (pairs, alpha, direction) => {
-  const totalWeight = pairs.reduce((sum, pair) => sum + pair.weight, 0);
-  if (totalWeight <= 0 || alpha <= 0) return 0;
-
-  const targetWeight = totalWeight * alpha;
-  const sortedPairs = [...pairs].sort((left, right) => (
-    direction === 'upper'
-      ? right.value - left.value
-      : left.value - right.value
-  ));
-
-  let consumedWeight = 0;
-  let weightedValue = 0;
-
-  for (const pair of sortedPairs) {
-    if (consumedWeight >= targetWeight) break;
-    const remaining = targetWeight - consumedWeight;
-    const usedWeight = Math.min(pair.weight, remaining);
-    weightedValue += pair.value * usedWeight;
-    consumedWeight += usedWeight;
-  }
-
-  return consumedWeight > 0 ? (weightedValue / consumedWeight) : 0;
-};
-
 const normalizeMetric = (value, min, max) => {
   if (max <= min) return 1;
   return clamp((value - min) / (max - min), 0, 1);
@@ -380,139 +349,205 @@ const getOverallFeasible = (evaluation) => (
   && evaluation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE
 );
 
+const simulateStrategyScenario = (strategy, scenario) => {
+  const simulation = simulateFinancialPlan({
+    ...standardOptimizerVariant.baseParams,
+    startAge: baseStartAge,
+    maxYear,
+    returnFullData: false,
+    enableSecondHouse: strategy.enableSecondHouse,
+    firstHousePurchaseYear: strategy.buyYear1,
+    secondHouseYear: strategy.enableSecondHouse ? strategy.buyYear2 : null,
+    initialDeposit: strategy.deposit1,
+    initialMortgage: strategy.mortgage1,
+    secondHouseDeposit: strategy.enableSecondHouse ? strategy.deposit2 : 0,
+    secondMortgage: strategy.enableSecondHouse ? strategy.mortgage2 : 0,
+    isaSeed: strategy.optimizerIsaSeed,
+    salaryMortgageEarly: strategy.salaryMortgageEarly,
+    salaryMortgageLater: strategy.enableSecondHouse
+      ? strategy.salaryMortgageLater
+      : strategy.salaryMortgageEarly,
+    income1Start: OPTIMIZER_STARTING_INCOME_1,
+    income2Start: OPTIMIZER_STARTING_INCOME_2,
+    incomeGrowth: scenario.incomeCase.growth,
+    isaGrowth: scenario.marketCase.isaGrowth,
+    realGrowthProperty: scenario.marketCase.propertyGrowth,
+    mortgageRate: standardOptimizerVariant.baseParams.mortgageRate,
+    usePrivateSchool: scenario.privateSchool,
+    mortgageRatePath: scenario.mortgageRatePath,
+    isaGrowthPath: scenario.isaGrowthPath,
+    propertyGrowthPath: scenario.propertyGrowthPath,
+    income1Path: scenario.income1Path,
+    income2Path: scenario.income2Path,
+    calculateTakeHomePayFn: calculateRealTermsTakeHomePay,
+  });
+
+  const evaluation = {
+    enableSecondHouse: strategy.enableSecondHouse,
+    firstHouseValue: strategy.firstHouseValue,
+    secondHousePurchasePrice: simulation.secondHousePurchasePrice ?? 0,
+    cashBufferOk: simulation.cashBufferOk,
+    canBuyHouse2IfChosen: simulation.canBuyHouse2IfChosen,
+    privateSchoolAffordable: scenario.privateSchool
+      ? simulation.privateSchoolAffordable
+      : true,
+    negativeAmortizationYears: simulation.negativeAmortizationYears,
+    peakMortgageBalance: simulation.peakMortgageBalance,
+  };
+
+  return {
+    endNetWorth: simulation.netWorthEnd,
+    lifetimeInterestPaid: simulation.lifetimeInterestPaid,
+    cashBufferOk: simulation.cashBufferOk ? 1 : 0,
+    canBuyHouse2IfChosen: simulation.canBuyHouse2IfChosen ? 1 : 0,
+    privateSchoolAffordable: evaluation.privateSchoolAffordable ? 1 : 0,
+    overallFeasible: getOverallFeasible(evaluation) ? 1 : 0,
+  };
+};
+
 const evaluateStrategies = ({ strategies, scenarios }) => {
-  const scenarioBestNetWorth = Array.from({ length: scenarios.length }, () => Number.NEGATIVE_INFINITY);
-  const strategyEvaluations = strategies.map((strategy) => {
-    const evaluations = scenarios.map((scenario, scenarioIndex) => {
-      const simulation = simulateFinancialPlan({
-        ...standardOptimizerVariant.baseParams,
-        startAge: baseStartAge,
-        maxYear,
-        returnFullData: false,
-        enableSecondHouse: strategy.enableSecondHouse,
-        firstHousePurchaseYear: strategy.buyYear1,
-        secondHouseYear: strategy.enableSecondHouse ? strategy.buyYear2 : null,
-        initialDeposit: strategy.deposit1,
-        initialMortgage: strategy.mortgage1,
-        secondHouseDeposit: strategy.enableSecondHouse ? strategy.deposit2 : 0,
-        secondMortgage: strategy.enableSecondHouse ? strategy.mortgage2 : 0,
-        isaSeed: strategy.optimizerIsaSeed,
-        salaryMortgageEarly: strategy.salaryMortgageEarly,
-        salaryMortgageLater: strategy.enableSecondHouse
-          ? strategy.salaryMortgageLater
-          : strategy.salaryMortgageEarly,
-        income1Start: OPTIMIZER_STARTING_INCOME_1,
-        income2Start: OPTIMIZER_STARTING_INCOME_2,
-        incomeGrowth: scenario.incomeCase.growth,
-        isaGrowth: scenario.marketCase.isaGrowth,
-        realGrowthProperty: scenario.marketCase.propertyGrowth,
-        mortgageRate: standardOptimizerVariant.baseParams.mortgageRate,
-        usePrivateSchool: scenario.privateSchool,
-        mortgageRatePath: scenario.mortgageRatePath,
-        isaGrowthPath: scenario.isaGrowthPath,
-        propertyGrowthPath: scenario.propertyGrowthPath,
-        income1Path: scenario.income1Path,
-        income2Path: scenario.income2Path,
-        calculateTakeHomePayFn: calculateRealTermsTakeHomePay,
-      });
+  const scenarioBestNetWorth = Array.from(
+    { length: scenarios.length },
+    () => Number.NEGATIVE_INFINITY,
+  );
 
-      const evaluation = {
-        enableSecondHouse: strategy.enableSecondHouse,
-        firstHouseValue: strategy.firstHouseValue,
-        secondHousePurchasePrice: simulation.secondHousePurchasePrice ?? 0,
-        endNetWorth: simulation.netWorthEnd,
-        cashEnd: simulation.cashEnd,
-        propertyValueEnd: simulation.finalPropertyValue,
-        mortgageBalanceEnd: simulation.finalMortgageBalance,
-        equityEnd: simulation.equityEnd,
-        lifetimeInterestPaid: simulation.lifetimeInterestPaid,
-        cashBufferOk: simulation.cashBufferOk,
-        canBuyHouse2IfChosen: simulation.canBuyHouse2IfChosen,
-        privateSchoolAffordable: scenario.privateSchool
-          ? simulation.privateSchoolAffordable
-          : true,
-        negativeAmortizationYears: simulation.negativeAmortizationYears,
-        peakMortgageBalance: simulation.peakMortgageBalance,
-      };
+  const strategyOutcomes = strategies.map((strategy) => {
+    const endNetWorth = new Float64Array(scenarios.length);
+    const lifetimeInterestPaid = new Float64Array(scenarios.length);
+    const overallFeasible = new Uint8Array(scenarios.length);
+    const cashBufferOk = new Uint8Array(scenarios.length);
+    const canBuyHouse2IfChosen = new Uint8Array(scenarios.length);
+    const privateSchoolAffordable = new Uint8Array(scenarios.length);
 
-      if (evaluation.endNetWorth > scenarioBestNetWorth[scenarioIndex]) {
-        scenarioBestNetWorth[scenarioIndex] = evaluation.endNetWorth;
+    scenarios.forEach((scenario, scenarioIndex) => {
+      const outcome = simulateStrategyScenario(strategy, scenario);
+      endNetWorth[scenarioIndex] = outcome.endNetWorth;
+      lifetimeInterestPaid[scenarioIndex] = outcome.lifetimeInterestPaid;
+      overallFeasible[scenarioIndex] = outcome.overallFeasible;
+      cashBufferOk[scenarioIndex] = outcome.cashBufferOk;
+      canBuyHouse2IfChosen[scenarioIndex] = outcome.canBuyHouse2IfChosen;
+      privateSchoolAffordable[scenarioIndex] = outcome.privateSchoolAffordable;
+
+      if (outcome.endNetWorth > scenarioBestNetWorth[scenarioIndex]) {
+        scenarioBestNetWorth[scenarioIndex] = outcome.endNetWorth;
       }
-
-      return evaluation;
     });
 
     return {
       strategy,
-      evaluations,
+      endNetWorth,
+      lifetimeInterestPaid,
+      overallFeasible,
+      cashBufferOk,
+      canBuyHouse2IfChosen,
+      privateSchoolAffordable,
     };
   });
 
   return {
-    strategyEvaluations,
+    strategyOutcomes,
     scenarioBestNetWorth,
   };
 };
 
 const buildScenarioWeightVector = (scenarios, mediumWeight, privateSchoolProbability) => (
-  scenarios.map((scenario) => ({
-    scenarioId: scenario.scenarioId,
-    weight: getScenarioWeight(scenario, mediumWeight, privateSchoolProbability),
-  }))
+  scenarios.map((scenario) => getScenarioWeight(scenario, mediumWeight, privateSchoolProbability))
 );
 
+const weightedMeanFromValues = (values, weights) => {
+  let totalWeight = 0;
+  let totalValue = 0;
+
+  for (let index = 0; index < values.length; index += 1) {
+    totalWeight += weights[index];
+    totalValue += values[index] * weights[index];
+  }
+
+  return totalWeight > 0 ? (totalValue / totalWeight) : 0;
+};
+
+const weightedTailMeanFromValues = (values, weights, alpha, direction) => {
+  let totalWeight = 0;
+  for (let index = 0; index < weights.length; index += 1) {
+    totalWeight += weights[index];
+  }
+
+  if (totalWeight <= 0 || alpha <= 0) return 0;
+
+  const targetWeight = totalWeight * alpha;
+  const indices = Array.from({ length: values.length }, (_, index) => index).sort((left, right) => (
+    direction === 'upper'
+      ? values[right] - values[left]
+      : values[left] - values[right]
+  ));
+
+  let consumedWeight = 0;
+  let weightedValue = 0;
+
+  for (const index of indices) {
+    if (consumedWeight >= targetWeight) break;
+    const remainingWeight = targetWeight - consumedWeight;
+    const usedWeight = Math.min(weights[index], remainingWeight);
+    weightedValue += values[index] * usedWeight;
+    consumedWeight += usedWeight;
+  }
+
+  return consumedWeight > 0 ? (weightedValue / consumedWeight) : 0;
+};
+
 const computeStrategyMetrics = ({
-  strategy,
-  evaluations,
+  strategyOutcome,
   scenarios,
   scenarioWeights,
   scenarioBestNetWorth,
 }) => {
-  const netWorthPairs = [];
-  const interestPairs = [];
-  const regretPairs = [];
+  const {
+    strategy,
+    endNetWorth,
+    lifetimeInterestPaid,
+    overallFeasible,
+    cashBufferOk,
+    canBuyHouse2IfChosen,
+    privateSchoolAffordable,
+  } = strategyOutcome;
+  const regretValues = new Float64Array(endNetWorth.length);
   let overallFeasibleWeight = 0;
   let privateSchoolFeasibleWeight = 0;
   let privateSchoolWeight = 0;
   let cashBufferWeight = 0;
   let house2Weight = 0;
 
-  evaluations.forEach((evaluation, index) => {
-    const weight = scenarioWeights[index].weight;
+  for (let index = 0; index < endNetWorth.length; index += 1) {
+    const weight = scenarioWeights[index];
     const scenario = scenarios[index];
-    const overallFeasible = getOverallFeasible(evaluation);
-    const regret = Math.max(0, scenarioBestNetWorth[index] - evaluation.endNetWorth);
+    regretValues[index] = Math.max(0, scenarioBestNetWorth[index] - endNetWorth[index]);
 
-    netWorthPairs.push({ value: evaluation.endNetWorth, weight });
-    interestPairs.push({ value: evaluation.lifetimeInterestPaid, weight });
-    regretPairs.push({ value: regret, weight });
-
-    if (overallFeasible) {
+    if (overallFeasible[index]) {
       overallFeasibleWeight += weight;
     }
-    if (evaluation.cashBufferOk) {
+    if (cashBufferOk[index]) {
       cashBufferWeight += weight;
     }
-    if (evaluation.canBuyHouse2IfChosen) {
+    if (canBuyHouse2IfChosen[index]) {
       house2Weight += weight;
     }
 
     if (scenario.privateSchool) {
       privateSchoolWeight += weight;
-      if (evaluation.privateSchoolAffordable && overallFeasible) {
+      if (privateSchoolAffordable[index] && overallFeasible[index]) {
         privateSchoolFeasibleWeight += weight;
       }
     }
-  });
+  }
 
   return {
     strategyId: strategy.strategyId,
     strategy,
-    weightedMeanNetWorth: weightedMean(netWorthPairs),
-    weightedNetWorthCvar10: weightedTailMean(netWorthPairs, 0.1, 'lower'),
-    weightedMeanLifetimeInterestPaid: weightedMean(interestPairs),
-    weightedMeanRegret: weightedMean(regretPairs),
-    weightedRegretCvar10: weightedTailMean(regretPairs, 0.1, 'upper'),
+    weightedMeanNetWorth: weightedMeanFromValues(endNetWorth, scenarioWeights),
+    weightedNetWorthCvar10: weightedTailMeanFromValues(endNetWorth, scenarioWeights, 0.1, 'lower'),
+    weightedMeanLifetimeInterestPaid: weightedMeanFromValues(lifetimeInterestPaid, scenarioWeights),
+    weightedMeanRegret: weightedMeanFromValues(regretValues, scenarioWeights),
+    weightedRegretCvar10: weightedTailMeanFromValues(regretValues, scenarioWeights, 0.1, 'upper'),
     weightedFeasibilityProbability: overallFeasibleWeight,
     weightedCashBufferProbability: cashBufferWeight,
     weightedSecondHouseFundingProbability: house2Weight,
@@ -523,7 +558,7 @@ const computeStrategyMetrics = ({
 };
 
 const computeMetricSet = ({
-  strategyEvaluations,
+  strategyOutcomes,
   scenarios,
   scenarioBestNetWorth,
   mediumWeight,
@@ -535,10 +570,9 @@ const computeMetricSet = ({
     privateSchoolProbability,
   );
 
-  const metrics = strategyEvaluations.map(({ strategy, evaluations }) => (
+  const metrics = strategyOutcomes.map((strategyOutcome) => (
     computeStrategyMetrics({
-      strategy,
-      evaluations,
+      strategyOutcome,
       scenarios,
       scenarioWeights,
       scenarioBestNetWorth,
@@ -655,7 +689,7 @@ const summarizePlateauRegion = (cells, metricsById) => {
 };
 
 const buildSensitivityGrid = ({
-  strategyEvaluations,
+  strategyOutcomes,
   scenarios,
   scenarioBestNetWorth,
 }) => {
@@ -664,7 +698,7 @@ const buildSensitivityGrid = ({
   MEDIUM_WEIGHT_GRID.forEach((mediumWeight) => {
     PRIVATE_SCHOOL_PROBABILITY_GRID.forEach((privateSchoolProbability) => {
       const metrics = computeMetricSet({
-        strategyEvaluations,
+        strategyOutcomes,
         scenarios,
         scenarioBestNetWorth,
         mediumWeight,
@@ -756,17 +790,17 @@ const buildScatterSvg = ({ metrics, frontier, topStrategies }) => {
 </svg>`;
 };
 
-const buildCdfSvg = ({ topStrategies, evaluationsByStrategyId, scenarios, defaultWeights }) => {
+const buildCdfSvg = ({ topStrategies, outcomesByStrategyId, defaultWeights }) => {
   const width = 960;
   const height = 560;
   const padding = { top: 40, right: 40, bottom: 70, left: 90 };
   const plotWidth = width - padding.left - padding.right;
   const plotHeight = height - padding.top - padding.bottom;
   const distributions = topStrategies.map((metric, index) => {
-    const evaluations = evaluationsByStrategyId.get(metric.strategyId);
-    const pairs = evaluations.map((evaluation, scenarioIndex) => ({
-      value: evaluation.endNetWorth,
-      weight: defaultWeights[scenarioIndex].weight,
+    const outcomes = outcomesByStrategyId.get(metric.strategyId);
+    const pairs = Array.from({ length: outcomes.endNetWorth.length }, (_, scenarioIndex) => ({
+      value: outcomes.endNetWorth[scenarioIndex],
+      weight: defaultWeights[scenarioIndex],
     })).sort((left, right) => left.value - right.value);
 
     let cumulative = 0;
@@ -783,9 +817,14 @@ const buildCdfSvg = ({ topStrategies, evaluationsByStrategyId, scenarios, defaul
     };
   });
 
-  const allXValues = distributions.flatMap((distribution) => distribution.points.map((point) => point.x));
-  const minX = Math.min(...allXValues);
-  const maxX = Math.max(...allXValues);
+  let minX = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  distributions.forEach((distribution) => {
+    distribution.points.forEach((point) => {
+      if (point.x < minX) minX = point.x;
+      if (point.x > maxX) maxX = point.x;
+    });
+  });
   const scaleX = (value) => padding.left + ((value - minX) / Math.max(1, maxX - minX)) * plotWidth;
   const scaleY = (value) => padding.top + plotHeight - (value * plotHeight);
 
@@ -909,7 +948,7 @@ const buildMarkdownTable = ({ headers, rows }) => [
 
 const strategies = collectStrategyCandidates();
 const scenarios = buildScenarioSample();
-const { strategyEvaluations, scenarioBestNetWorth } = evaluateStrategies({
+const { strategyOutcomes, scenarioBestNetWorth } = evaluateStrategies({
   strategies,
   scenarios,
 });
@@ -921,7 +960,7 @@ const defaultScenarioWeights = buildScenarioWeightVector(
 );
 
 const metrics = computeMetricSet({
-  strategyEvaluations,
+  strategyOutcomes,
   scenarios,
   scenarioBestNetWorth,
   mediumWeight: DEFAULT_MEDIUM_WEIGHT,
@@ -929,8 +968,8 @@ const metrics = computeMetricSet({
 });
 
 const metricsById = new Map(metrics.map((metric) => [metric.strategyId, metric]));
-const evaluationsByStrategyId = new Map(
-  strategyEvaluations.map(({ strategy, evaluations }) => [strategy.strategyId, evaluations]),
+const outcomesByStrategyId = new Map(
+  strategyOutcomes.map((strategyOutcome) => [strategyOutcome.strategy.strategyId, strategyOutcome]),
 );
 const paretoFrontier = buildParetoFrontier(metrics);
 const topStrategies = metrics.slice(0, TOP_STRATEGY_COUNT);
@@ -938,7 +977,7 @@ const topCdfStrategies = topStrategies.slice(0, TOP_CDF_STRATEGY_COUNT);
 const heatmapCells = buildHeatmapCells(metrics);
 const plateauRegion = summarizePlateauRegion(heatmapCells, metricsById);
 const sensitivityGrid = buildSensitivityGrid({
-  strategyEvaluations,
+  strategyOutcomes,
   scenarios,
   scenarioBestNetWorth,
 });
@@ -950,8 +989,7 @@ const scatterSvg = buildScatterSvg({
 });
 const cdfSvg = buildCdfSvg({
   topStrategies: topCdfStrategies,
-  evaluationsByStrategyId,
-  scenarios,
+  outcomesByStrategyId,
   defaultWeights: defaultScenarioWeights,
 });
 const heatmapSvg = buildHeatmapSvg({ cells: heatmapCells });
