@@ -1456,6 +1456,76 @@ const compareOptimizerResults = (left, right) => (
   compareOptimizerResultsForObjective('netWorth', left, right)
 );
 
+const compareRobustnessStrategiesForObjective = (objectiveId, left, right) => {
+  if (objectiveId === 'cashEnd') {
+    if (right.metrics.expectedCashEnd !== left.metrics.expectedCashEnd) {
+      return right.metrics.expectedCashEnd - left.metrics.expectedCashEnd;
+    }
+    if (right.metrics.feasibilityProbability !== left.metrics.feasibilityProbability) {
+      return right.metrics.feasibilityProbability - left.metrics.feasibilityProbability;
+    }
+    if (left.metrics.regretCvar10 !== right.metrics.regretCvar10) {
+      return left.metrics.regretCvar10 - right.metrics.regretCvar10;
+    }
+    return right.metrics.expectedEndNetWorth - left.metrics.expectedEndNetWorth;
+  }
+
+  if (objectiveId === 'propertyValue') {
+    if (right.metrics.expectedFinalPropertyValue !== left.metrics.expectedFinalPropertyValue) {
+      return right.metrics.expectedFinalPropertyValue - left.metrics.expectedFinalPropertyValue;
+    }
+    if (right.metrics.feasibilityProbability !== left.metrics.feasibilityProbability) {
+      return right.metrics.feasibilityProbability - left.metrics.feasibilityProbability;
+    }
+    if (left.metrics.regretCvar10 !== right.metrics.regretCvar10) {
+      return left.metrics.regretCvar10 - right.metrics.regretCvar10;
+    }
+    return right.metrics.expectedEndNetWorth - left.metrics.expectedEndNetWorth;
+  }
+
+  if (objectiveId === 'bigFirstHouse') {
+    const leftDistance = Math.abs(left.decisionVector.deposit1 + left.decisionVector.mortgage1 - OPTIMIZER_BIG_FIRST_HOUSE_TARGET);
+    const rightDistance = Math.abs(right.decisionVector.deposit1 + right.decisionVector.mortgage1 - OPTIMIZER_BIG_FIRST_HOUSE_TARGET);
+
+    if (leftDistance !== rightDistance) {
+      return leftDistance - rightDistance;
+    }
+    const leftFirstHouseValue = left.decisionVector.deposit1 + left.decisionVector.mortgage1;
+    const rightFirstHouseValue = right.decisionVector.deposit1 + right.decisionVector.mortgage1;
+    if (rightFirstHouseValue !== leftFirstHouseValue) {
+      return rightFirstHouseValue - leftFirstHouseValue;
+    }
+    if (right.metrics.feasibilityProbability !== left.metrics.feasibilityProbability) {
+      return right.metrics.feasibilityProbability - left.metrics.feasibilityProbability;
+    }
+    return right.metrics.expectedEndNetWorth - left.metrics.expectedEndNetWorth;
+  }
+
+  if (objectiveId === 'privateSchoolSuccess') {
+    if (right.metrics.privateSchoolFeasibilityProbability !== left.metrics.privateSchoolFeasibilityProbability) {
+      return right.metrics.privateSchoolFeasibilityProbability - left.metrics.privateSchoolFeasibilityProbability;
+    }
+    if (right.metrics.feasibilityProbability !== left.metrics.feasibilityProbability) {
+      return right.metrics.feasibilityProbability - left.metrics.feasibilityProbability;
+    }
+    if (left.metrics.regretCvar10 !== right.metrics.regretCvar10) {
+      return left.metrics.regretCvar10 - right.metrics.regretCvar10;
+    }
+    return right.metrics.expectedEndNetWorth - left.metrics.expectedEndNetWorth;
+  }
+
+  if (right.metrics.compositeRobustScore !== left.metrics.compositeRobustScore) {
+    return right.metrics.compositeRobustScore - left.metrics.compositeRobustScore;
+  }
+  if (right.metrics.feasibilityProbability !== left.metrics.feasibilityProbability) {
+    return right.metrics.feasibilityProbability - left.metrics.feasibilityProbability;
+  }
+  if (left.metrics.regretCvar10 !== right.metrics.regretCvar10) {
+    return left.metrics.regretCvar10 - right.metrics.regretCvar10;
+  }
+  return right.metrics.expectedEndNetWorth - left.metrics.expectedEndNetWorth;
+};
+
 const buildOptimizerObjectiveResults = (results, topCount = 3) => Object.fromEntries(
   OPTIMIZER_OBJECTIVE_DEFINITIONS.map((objective) => {
     const sortedResults = [...results].sort((left, right) => (
@@ -1686,6 +1756,9 @@ const App = () => {
   const [selectedOptimizerObjective, setSelectedOptimizerObjective] = useState(
     initialScenario?.selectedOptimizerObjective ?? 'netWorth',
   );
+  const [robustnessObjective, setRobustnessObjective] = useState(
+    initialScenario?.robustnessObjective ?? 'robust',
+  );
   const [robustnessReport, setRobustnessReport] = useState(null);
   const [robustnessError, setRobustnessError] = useState('');
   const [robustnessPathView, setRobustnessPathView] = useState('all');
@@ -1869,6 +1942,7 @@ const App = () => {
     showOptimizerAssumptions,
     expandedOptimizerIncomeId,
     selectedOptimizerObjective,
+    robustnessObjective,
     optimizerFirstHouseDepositMin,
     optimizerFirstHouseDepositMax,
     optimizerFirstHouseMortgageMin,
@@ -1941,6 +2015,7 @@ const App = () => {
     showOptimizerAssumptions,
     expandedOptimizerIncomeId,
     selectedOptimizerObjective,
+    robustnessObjective,
     optimizerFirstHouseDepositMin,
     optimizerFirstHouseDepositMax,
     optimizerFirstHouseMortgageMin,
@@ -2498,11 +2573,37 @@ const App = () => {
   const robustnessRecommendation = robustnessReport?.recommendation ?? null;
   const robustnessMeta = robustnessReport?.meta ?? null;
   const robustnessCharts = robustnessReport?.charts ?? null;
+  const robustnessObjectiveDefinitions = robustnessMeta?.objectiveDefinitions ?? [
+    {
+      id: 'robust',
+      label: 'Balanced robustness',
+      description: 'Highest composite robust score: success rate first, then downside regret, then expected end net worth.',
+    },
+    {
+      id: 'cashEnd',
+      label: 'Cash savings at end',
+      description: 'Highest weighted mean liquid cash left after the age-70 mortgage payoff.',
+    },
+    {
+      id: 'propertyValue',
+      label: 'Highest property value',
+      description: 'Highest weighted mean end property value.',
+    },
+    {
+      id: 'bigFirstHouse',
+      label: 'Big first house',
+      description: `First house value as close as possible to about ${formatCurrency(OPTIMIZER_BIG_FIRST_HOUSE_TARGET)}.`,
+    },
+    {
+      id: 'privateSchoolSuccess',
+      label: 'Private school',
+      description: 'Highest weighted success rate inside the private-school futures.',
+    },
+  ];
+  const selectedRobustnessObjectiveDefinition = robustnessObjectiveDefinitions.find(
+    (objective) => objective.id === robustnessObjective,
+  ) ?? robustnessObjectiveDefinitions[0];
   const robustnessStrategyCatalog = robustnessReport?.strategyCatalog ?? robustnessTopStrategies;
-  const robustnessStrategiesById = useMemo(
-    () => new Map(robustnessStrategyCatalog.map((strategy) => [strategy.strategyId, strategy])),
-    [robustnessStrategyCatalog],
-  );
   const robustnessSelectedScatter = typeof robustnessCharts?.scatter === 'string'
     ? robustnessCharts.scatter
     : robustnessCharts?.scatter?.[robustnessPathView] ?? robustnessCharts?.scatter?.all ?? '';
@@ -2518,31 +2619,84 @@ const App = () => {
     }
     return robustnessStrategyCatalog;
   }, [robustnessPathView, robustnessStrategyCatalog]);
+  const robustnessRankedStrategies = useMemo(
+    () => [...robustnessFilteredStrategies].sort((left, right) => (
+      compareRobustnessStrategiesForObjective(robustnessObjective, left, right)
+    )),
+    [robustnessFilteredStrategies, robustnessObjective],
+  );
   const robustnessDisplayedStrategies = useMemo(
-    () => robustnessFilteredStrategies.slice(0, 15),
-    [robustnessFilteredStrategies],
+    () => robustnessRankedStrategies.slice(0, 15),
+    [robustnessRankedStrategies],
   );
   const robustnessPathLeaderCards = useMemo(() => ([
     {
       key: 'all',
       label: 'Best overall',
-      strategy: robustnessStrategiesById.get(robustnessReport?.pathSummaries?.all?.bestStrategyId)
-        ?? robustnessTopStrategies[0]
+      strategy: [...robustnessStrategyCatalog]
+        .sort((left, right) => compareRobustnessStrategiesForObjective(robustnessObjective, left, right))[0]
         ?? null,
     },
     {
       key: 'oneHome',
       label: 'Best one-home',
-      strategy: robustnessStrategiesById.get(robustnessReport?.pathSummaries?.oneHome?.bestStrategyId)
+      strategy: [...robustnessStrategyCatalog]
+        .filter((strategy) => strategy.pathType === 'One-home path')
+        .sort((left, right) => compareRobustnessStrategiesForObjective(robustnessObjective, left, right))[0]
         ?? null,
     },
     {
       key: 'twoHome',
       label: 'Best two-home',
-      strategy: robustnessStrategiesById.get(robustnessReport?.pathSummaries?.twoHome?.bestStrategyId)
+      strategy: [...robustnessStrategyCatalog]
+        .filter((strategy) => strategy.pathType === 'Two-home path')
+        .sort((left, right) => compareRobustnessStrategiesForObjective(robustnessObjective, left, right))[0]
         ?? null,
     },
-  ]), [robustnessReport, robustnessStrategiesById, robustnessTopStrategies]);
+  ]), [robustnessObjective, robustnessStrategyCatalog]);
+  const buildRobustnessWhyLines = useCallback((strategy) => {
+    if (!strategy) return [];
+
+    if (robustnessObjective === 'cashEnd') {
+      return [
+        `This strategy ranks first on weighted cash left at the end: ${formatCurrency(strategy.metrics.expectedCashEnd)} after the age-${END_AGE} mortgage payoff.`,
+        `It still keeps a weighted success rate of ${formatProbability(strategy.metrics.feasibilityProbability)}, so the extra cash is not coming from a fragile low-success path.`,
+        `Its downside regret remains ${formatCurrency(strategy.metrics.regretCvar10)} in the worst 10% regret tail.`,
+      ];
+    }
+
+    if (robustnessObjective === 'propertyValue') {
+      return [
+        `This strategy ranks first on weighted end property value: ${formatCurrency(strategy.metrics.expectedFinalPropertyValue)}.`,
+        `It still keeps a weighted success rate of ${formatProbability(strategy.metrics.feasibilityProbability)} while getting there.`,
+        `Its expected end net worth is ${formatCurrency(strategy.metrics.expectedEndNetWorth)}, so the higher property value is not being achieved by ignoring overall wealth entirely.`,
+      ];
+    }
+
+    if (robustnessObjective === 'bigFirstHouse') {
+      const firstHouseValue = strategy.decisionVector.deposit1 + strategy.decisionVector.mortgage1;
+      const distance = Math.abs(firstHouseValue - OPTIMIZER_BIG_FIRST_HOUSE_TARGET);
+      return [
+        `Its first house value is ${formatCurrency(firstHouseValue)}, which is ${formatCurrency(distance)} away from the ${formatCurrency(OPTIMIZER_BIG_FIRST_HOUSE_TARGET)} target.`,
+        `Among the strategies closest to that target, it has the strongest weighted success rate at ${formatProbability(strategy.metrics.feasibilityProbability)}.`,
+        `Its expected end net worth is ${formatCurrency(strategy.metrics.expectedEndNetWorth)}, which is used as a later tie-breaker once the first-house target fit is satisfied.`,
+      ];
+    }
+
+    if (robustnessObjective === 'privateSchoolSuccess') {
+      return [
+        `This strategy ranks first on private-school success rate: ${formatProbability(strategy.metrics.privateSchoolFeasibilityProbability)} inside the private-school futures.`,
+        `It still keeps an overall weighted success rate of ${formatProbability(strategy.metrics.feasibilityProbability)} across the full future set.`,
+        `Its downside regret remains ${formatCurrency(strategy.metrics.regretCvar10)}, so it is not only a school-fee specialist with weak downside behavior elsewhere.`,
+      ];
+    }
+
+    return [
+      `This strategy has the highest composite robust score at ${strategy.metrics.compositeRobustScore.toFixed(1)}.`,
+      `Its weighted success rate is ${formatProbability(strategy.metrics.feasibilityProbability)}, with regret CVaR 10% of ${formatCurrency(strategy.metrics.regretCvar10)}.`,
+      `Its weighted expected end net worth is ${formatCurrency(strategy.metrics.expectedEndNetWorth)}, so it balances survivability, downside control, and long-run wealth better than the nearby alternatives.`,
+    ];
+  }, [robustnessObjective]);
 
   const renderEndLabel = (color) => (props) => {
     const { x, y, index, value } = props;
@@ -4334,9 +4488,34 @@ const App = () => {
               </div>
 
               <div className="robustness-card">
+                <div className="optimizer-result-title">Robustness objective</div>
+                <div className="optimizer-result-sub">
+                  Choose what the robustness tab should prefer when it picks the “best” strategy from the same weighted future sample.
+                </div>
+                <div className="view-tabs robustness-path-tabs">
+                  {robustnessObjectiveDefinitions.map((objective) => (
+                    <button
+                      key={objective.id}
+                      type="button"
+                      className={`view-tab${robustnessObjective === objective.id ? ' view-tab-active' : ''}`}
+                      onClick={() => setRobustnessObjective(objective.id)}
+                    >
+                      {objective.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="optimizer-detail-list">
+                  <div>{selectedRobustnessObjectiveDefinition.description}</div>
+                  <div>
+                    The charts still show the same sampled strategy set. The objective buttons change which strategies are surfaced as the leaders and in the ranked table below.
+                  </div>
+                </div>
+              </div>
+
+              <div className="robustness-card">
                 <div className="optimizer-result-title">Best strategy by path type</div>
                 <div className="optimizer-result-sub">
-                  These three cards let you compare the best overall strategy with the strongest one-home and two-home strategies separately, so you can see how much you are giving up or gaining by forcing a path choice.
+                  These three cards now follow the selected robustness objective, so you can compare the best overall strategy with the strongest one-home and two-home strategies under that goal.
                 </div>
                 <div className="robustness-explainer-grid">
                   {robustnessPathLeaderCards.map(({ key, label, strategy }) => (
@@ -4361,6 +4540,11 @@ const App = () => {
                               Success rate: {formatProbability(strategy.metrics.feasibilityProbability)}
                             </div>
                           </div>
+                          <div className="optimizer-detail-list">
+                            {buildRobustnessWhyLines(strategy).map((line) => (
+                              <div key={line}>{line}</div>
+                            ))}
+                          </div>
                           <button
                             type="button"
                             className="preset-button preset-button-secondary"
@@ -4382,7 +4566,7 @@ const App = () => {
               <div className="robustness-card">
                 <div className="optimizer-result-title">Robust strategy range</div>
                 <div className="optimizer-result-sub">
-                  Use the path toggle to switch between all strategies, one-home only, and two-home only. This is the easiest way to see how different the strongest strategies really are instead of only looking at the overall winner.
+                  Use the path toggle to switch between all strategies, one-home only, and two-home only. The table ranking also follows the selected robustness objective above, so you can see how the strongest strategies change under different goals.
                 </div>
                 <div className="view-tabs robustness-path-tabs">
                   {[

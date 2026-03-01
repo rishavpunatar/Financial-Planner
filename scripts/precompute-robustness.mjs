@@ -35,6 +35,35 @@ const DEFAULT_FIRST_HOUSE_MORTGAGE_MAX = 600000;
 const DEFAULT_ROBUSTNESS_FIRST_DEPOSIT = 300000;
 const DEFAULT_ROBUSTNESS_FIRST_MORTGAGE = 300000;
 const DEFAULT_ROBUSTNESS_EARLY_MORTGAGE_PCT = 18;
+const ROBUSTNESS_BIG_FIRST_HOUSE_TARGET = 800000;
+
+const ROBUSTNESS_OBJECTIVE_DEFINITIONS = [
+  {
+    id: 'robust',
+    label: 'Balanced robustness',
+    description: 'Highest composite robust score: success rate first, then downside regret, then expected end net worth.',
+  },
+  {
+    id: 'cashEnd',
+    label: 'Cash savings at end',
+    description: 'Highest weighted mean liquid cash left after the age-70 mortgage payoff.',
+  },
+  {
+    id: 'propertyValue',
+    label: 'Highest property value',
+    description: 'Highest weighted mean end property value, using the second home value where the path upgrades.',
+  },
+  {
+    id: 'bigFirstHouse',
+    label: 'Big first house',
+    description: 'First house value as close as possible to about GBP 800k, while still preferring stronger robust outcomes on ties.',
+  },
+  {
+    id: 'privateSchoolSuccess',
+    label: 'Private school',
+    description: 'Highest weighted success rate inside the private-school futures, with overall success rate and downside regret as tie-breakers.',
+  },
+];
 
 const ROBUST_SCORE_WEIGHTS = {
   overallFeasibility: 0.6,
@@ -542,6 +571,8 @@ const simulateStrategyScenario = (strategy, scenario) => {
 
   return {
     endNetWorth: simulation.netWorthEnd,
+    cashEnd: simulation.cashEnd,
+    finalPropertyValue: simulation.finalPropertyValue,
     lifetimeInterestPaid: simulation.lifetimeInterestPaid,
     cashBufferOk: simulation.cashBufferOk ? 1 : 0,
     canBuyHouse2IfChosen: simulation.canBuyHouse2IfChosen ? 1 : 0,
@@ -558,6 +589,8 @@ const evaluateStrategies = ({ strategies, scenarios }) => {
 
   const strategyOutcomes = strategies.map((strategy) => {
     const endNetWorth = new Float64Array(scenarios.length);
+    const cashEnd = new Float64Array(scenarios.length);
+    const finalPropertyValue = new Float64Array(scenarios.length);
     const lifetimeInterestPaid = new Float64Array(scenarios.length);
     const overallFeasible = new Uint8Array(scenarios.length);
     const cashBufferOk = new Uint8Array(scenarios.length);
@@ -567,6 +600,8 @@ const evaluateStrategies = ({ strategies, scenarios }) => {
     scenarios.forEach((scenario, scenarioIndex) => {
       const outcome = simulateStrategyScenario(strategy, scenario);
       endNetWorth[scenarioIndex] = outcome.endNetWorth;
+      cashEnd[scenarioIndex] = outcome.cashEnd;
+      finalPropertyValue[scenarioIndex] = outcome.finalPropertyValue;
       lifetimeInterestPaid[scenarioIndex] = outcome.lifetimeInterestPaid;
       overallFeasible[scenarioIndex] = outcome.overallFeasible;
       cashBufferOk[scenarioIndex] = outcome.cashBufferOk;
@@ -581,6 +616,8 @@ const evaluateStrategies = ({ strategies, scenarios }) => {
     return {
       strategy,
       endNetWorth,
+      cashEnd,
+      finalPropertyValue,
       lifetimeInterestPaid,
       overallFeasible,
       cashBufferOk,
@@ -649,6 +686,8 @@ const computeStrategyMetrics = ({
   const {
     strategy,
     endNetWorth,
+    cashEnd,
+    finalPropertyValue,
     lifetimeInterestPaid,
     overallFeasible,
     cashBufferOk,
@@ -689,6 +728,8 @@ const computeStrategyMetrics = ({
     strategyId: strategy.strategyId,
     strategy,
     weightedMeanNetWorth: weightedMeanFromValues(endNetWorth, scenarioWeights),
+    weightedMeanCashEnd: weightedMeanFromValues(cashEnd, scenarioWeights),
+    weightedMeanFinalPropertyValue: weightedMeanFromValues(finalPropertyValue, scenarioWeights),
     weightedNetWorthCvar10: weightedTailMeanFromValues(endNetWorth, scenarioWeights, 0.1, 'lower'),
     weightedMeanLifetimeInterestPaid: weightedMeanFromValues(lifetimeInterestPaid, scenarioWeights),
     weightedMeanRegret: weightedMeanFromValues(regretValues, scenarioWeights),
@@ -759,6 +800,74 @@ const computeMetricSet = ({
   });
 
   return metrics;
+};
+
+const compareRobustnessMetricsForObjective = (objectiveId, left, right) => {
+  if (objectiveId === 'cashEnd') {
+    if (right.weightedMeanCashEnd !== left.weightedMeanCashEnd) {
+      return right.weightedMeanCashEnd - left.weightedMeanCashEnd;
+    }
+    if (right.weightedFeasibilityProbability !== left.weightedFeasibilityProbability) {
+      return right.weightedFeasibilityProbability - left.weightedFeasibilityProbability;
+    }
+    if (left.weightedRegretCvar10 !== right.weightedRegretCvar10) {
+      return left.weightedRegretCvar10 - right.weightedRegretCvar10;
+    }
+    return right.weightedMeanNetWorth - left.weightedMeanNetWorth;
+  }
+
+  if (objectiveId === 'propertyValue') {
+    if (right.weightedMeanFinalPropertyValue !== left.weightedMeanFinalPropertyValue) {
+      return right.weightedMeanFinalPropertyValue - left.weightedMeanFinalPropertyValue;
+    }
+    if (right.weightedFeasibilityProbability !== left.weightedFeasibilityProbability) {
+      return right.weightedFeasibilityProbability - left.weightedFeasibilityProbability;
+    }
+    if (left.weightedRegretCvar10 !== right.weightedRegretCvar10) {
+      return left.weightedRegretCvar10 - right.weightedRegretCvar10;
+    }
+    return right.weightedMeanNetWorth - left.weightedMeanNetWorth;
+  }
+
+  if (objectiveId === 'bigFirstHouse') {
+    const leftDistance = Math.abs(left.strategy.firstHouseValue - ROBUSTNESS_BIG_FIRST_HOUSE_TARGET);
+    const rightDistance = Math.abs(right.strategy.firstHouseValue - ROBUSTNESS_BIG_FIRST_HOUSE_TARGET);
+
+    if (leftDistance !== rightDistance) {
+      return leftDistance - rightDistance;
+    }
+    if (right.strategy.firstHouseValue !== left.strategy.firstHouseValue) {
+      return right.strategy.firstHouseValue - left.strategy.firstHouseValue;
+    }
+    if (right.weightedFeasibilityProbability !== left.weightedFeasibilityProbability) {
+      return right.weightedFeasibilityProbability - left.weightedFeasibilityProbability;
+    }
+    return right.weightedMeanNetWorth - left.weightedMeanNetWorth;
+  }
+
+  if (objectiveId === 'privateSchoolSuccess') {
+    if (right.weightedPrivateSchoolFeasibilityProbability !== left.weightedPrivateSchoolFeasibilityProbability) {
+      return right.weightedPrivateSchoolFeasibilityProbability - left.weightedPrivateSchoolFeasibilityProbability;
+    }
+    if (right.weightedFeasibilityProbability !== left.weightedFeasibilityProbability) {
+      return right.weightedFeasibilityProbability - left.weightedFeasibilityProbability;
+    }
+    if (left.weightedRegretCvar10 !== right.weightedRegretCvar10) {
+      return left.weightedRegretCvar10 - right.weightedRegretCvar10;
+    }
+    return right.weightedMeanNetWorth - left.weightedMeanNetWorth;
+  }
+
+  if (right.compositeRobustScore !== left.compositeRobustScore) {
+    return right.compositeRobustScore - left.compositeRobustScore;
+  }
+  if (right.weightedFeasibilityProbability !== left.weightedFeasibilityProbability) {
+    return right.weightedFeasibilityProbability - left.weightedFeasibilityProbability;
+  }
+  if (left.weightedRegretCvar10 !== right.weightedRegretCvar10) {
+    return left.weightedRegretCvar10 - right.weightedRegretCvar10;
+  }
+  return right.weightedMeanNetWorth - left.weightedMeanNetWorth;
 };
 
 const buildParetoFrontier = (metrics) => (
@@ -1190,6 +1299,8 @@ const serializeStrategyMetric = (metric, rank = null) => ({
   metrics: {
     compositeRobustScore: metric.compositeRobustScore,
     expectedEndNetWorth: metric.weightedMeanNetWorth,
+    expectedCashEnd: metric.weightedMeanCashEnd,
+    expectedFinalPropertyValue: metric.weightedMeanFinalPropertyValue,
     endNetWorthCvar10: metric.weightedNetWorthCvar10,
     expectedLifetimeInterest: metric.weightedMeanLifetimeInterestPaid,
     expectedRegret: metric.weightedMeanRegret,
@@ -1329,6 +1440,7 @@ const reportJson = {
     defaultMediumWeight: DEFAULT_MEDIUM_WEIGHT,
     defaultPrivateSchoolProbability: DEFAULT_PRIVATE_SCHOOL_PROBABILITY,
     robustScoreWeights: ROBUST_SCORE_WEIGHTS,
+    objectiveDefinitions: ROBUSTNESS_OBJECTIVE_DEFINITIONS,
     optimizerStartingIncomes: {
       person1: OPTIMIZER_STARTING_INCOME_1,
       person2: OPTIMIZER_STARTING_INCOME_2,
