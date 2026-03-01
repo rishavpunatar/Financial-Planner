@@ -3161,6 +3161,39 @@ const App = () => {
             </div>
           )}
 
+          {optimizerAllFeasibleResults.length > 0 && (
+            <div className="optimizer-selected-card">
+              <div className="optimizer-result-header">
+                <div>
+                  <div className="optimizer-result-title">All feasible combinations</div>
+                  <div className="optimizer-result-sub">
+                    Every scenario that passed the optimizer rules across the active ranges and all income/market cases.
+                  </div>
+                </div>
+                <div className="optimizer-result-meta">
+                  {optimizerAllFeasibleResults.length.toLocaleString()} feasible total
+                </div>
+              </div>
+
+              <div className="optimizer-feasible-list">
+                {optimizerAllFeasibleResults.map((result, index) => {
+                  const resultKey = getOptimizerResultKey(result);
+                  const isSelected = resultKey === getOptimizerResultKey(selectedOptimizerResult);
+                  return (
+                    <button
+                      key={resultKey}
+                      type="button"
+                      className={`optimizer-top-item${isSelected ? ' optimizer-choice-active' : ''}`}
+                      onClick={() => setSelectedOptimizerResultKey(resultKey)}
+                    >
+                      {index + 1}. {result.assumptionCase.incomeCase.shortLabel} income / {result.assumptionCase.marketCase.shortLabel} market | {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | first {formatCurrency(result.firstHouseValue)} ({formatCurrency(result.initialDeposit)} deposit + {formatCurrency(result.initialMortgage)} mortgage){result.enableSecondHouse ? ` | upgrade ${result.secondHouseYear} +${formatCurrency(result.secondUpgradeValue)}` : ''} | net worth {formatCurrency(getOptimizerNetWorth(result))} | cash {formatCurrency(result.cashEnd)} | equity {formatCurrency(result.equityEnd)} | interest {formatCurrency(result.lifetimeInterestPaid)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {optimizerResultsByIncome.map(({ incomeCase, caseResults }) => (
             <div key={incomeCase.id} className="optimizer-income-section">
               <div className="optimizer-income-header">
