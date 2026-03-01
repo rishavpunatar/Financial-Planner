@@ -112,7 +112,7 @@ const OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD = 750000;
 const OPTIMIZER_FAST_UPGRADE_YEAR_MAX = 2036;
 const OPTIMIZER_LATE_UPGRADE_YEAR_MAX = 2045;
 const OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE = 700000;
-const OPTIMIZER_MAX_TOTAL_MORTGAGE = 700000;
+const OPTIMIZER_MAX_TOTAL_MORTGAGE = 1000000;
 const OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX = 600000;
 const FIRST_HOME_SALE_AGENT_FEE_PCT = 1.5;
 const FIRST_HOME_SALE_LEGAL_FEES = 2000;
@@ -127,7 +127,7 @@ const OPTIMIZER_FAILURE_REASON_DEFINITIONS = [
   },
   {
     key: 'fundingGap',
-    label: 'Second-house deposit cannot be fully funded from ISA.',
+    label: 'Second-house deposit cannot be fully funded from surplus savings and ISA.',
   },
   {
     key: 'shortfall',
@@ -767,9 +767,12 @@ const simulateFinancialPlan = (params) => {
       const plannedSecondHouseStampDuty = calculateStampDuty(plannedSecondHouseValue, false);
       const firstHouseSaleCosts =
         (propertyValue * FIRST_HOME_SALE_AGENT_FEE_PCT / 100) + FIRST_HOME_SALE_LEGAL_FEES;
-      const withdrawn = Math.min(secondHouseDeposit, isaTotal);
-      isaTotal -= withdrawn;
-      const depositGap = Math.max(0, secondHouseDeposit - withdrawn);
+      const surplusWithdrawn = Math.min(secondHouseDeposit, surplusPot);
+      surplusPot -= surplusWithdrawn;
+      const depositNeedAfterSurplus = secondHouseDeposit - surplusWithdrawn;
+      const isaWithdrawn = Math.min(depositNeedAfterSurplus, isaTotal);
+      isaTotal -= isaWithdrawn;
+      const depositGap = Math.max(0, secondHouseDeposit - surplusWithdrawn - isaWithdrawn);
       if (depositGap > 0) {
         secondHouseFundingGapLocal += depositGap;
         cumulativeShortfall += depositGap;
@@ -2204,7 +2207,7 @@ const App = () => {
     `At age ${END_AGE}, surplus savings and then ISA are used to pay down any remaining mortgage before the final cash and equity figures are reported. The current plan applies ${formatCurrency(terminalMortgagePaydown)} and leaves ${formatCurrency(finalMortgageBalance)} of mortgage outstanding.`,
     `A car purchase is assumed in 2028, and gifts are assumed at age 27 (currently ${formatCurrency(kid1GiftAmount)} and ${formatCurrency(kid2GiftAmount)}).`,
     enableSecondHouse
-      ? `The second house uses ISA for the deposit, adds a second mortgage in ${effectiveSecondHouseYear}, and assumes the first property is sold for stamp duty treatment.${secondHouseFundingGap > 0 ? ` The current plan is short by ${formatCurrency(secondHouseFundingGap)} on the move deposit.` : ''}`
+      ? `The second house uses surplus savings first and then ISA for the deposit, adds a second mortgage in ${effectiveSecondHouseYear}, and assumes the first property is sold for stamp duty treatment.${secondHouseFundingGap > 0 ? ` The current plan is short by ${formatCurrency(secondHouseFundingGap)} on the move deposit.` : ''}`
       : 'Second house purchase is currently disabled.',
     `If the first property is below ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the latest second-house year is ${OPTIMIZER_FAST_UPGRADE_YEAR_MAX}; otherwise it is ${OPTIMIZER_LATE_UPGRADE_YEAR_MAX}.`,
     `Recession years (${recessionYear}, ${secondRecessionYear}, ${thirdRecessionYear}) reduce ISA, surplus savings, and property value by ${recessionHitPct}%.`,
@@ -2214,7 +2217,7 @@ const App = () => {
     negativeAmortizationYears > 0
       ? `In ${negativeAmortizationYears} year(s), the mortgage budget does not cover all interest, so ${formatCurrency(capitalizedInterestTotal)} is added back onto the loan balance.`
       : 'Mortgage repayments always cover interest under the current assumptions.',
-    'Mortgage repayments are budget-driven from salary percentages rather than a lender-style amortisation schedule.',
+    'Mortgage repayments are budget-driven from salary percentages rather than a lender-style amortisation schedule. The salary percentage is treated as the total mortgage payment, with interest paid first and only the remainder reducing principal.',
   ];
 
   const optimizerModeLabel = optimizerPropertyMode === 'both'
@@ -2256,8 +2259,8 @@ const App = () => {
       ? 'Private school costs are forced on for this optimizer run.'
       : 'Private school costs are forced off for this optimizer run.',
     `Base living costs, child costs, visa costs, car purchase, gifts, recessions, redundancy years, tax drag, and pension contribution rate all stay exactly as set in the planner tab.`,
-    `House move costs include stamp duty plus fixed legal fees of ${formatCurrency(FIRST_HOUSE_LEGAL_FEES)} on the first purchase, ${formatCurrency(SECOND_HOUSE_LEGAL_FEES)} on the second purchase, and first-home sale costs of ${FIRST_HOME_SALE_AGENT_FEE_PCT.toFixed(1)}% estate-agent fee plus ${formatCurrency(FIRST_HOME_SALE_LEGAL_FEES)} sale legal fees. No CGT is assumed on selling the main home.`,
-    `The optimizer still uses the same model rules shown in the planner assumptions, including stamp duty, legal fees, ISA deposit funding for the second move, and the age-${END_AGE} end point.`,
+    `House move costs include stamp duty plus fixed legal fees of ${formatCurrency(FIRST_HOUSE_LEGAL_FEES)} on the first purchase, ${formatCurrency(SECOND_HOUSE_LEGAL_FEES)} on the second purchase, and first-home sale costs of ${FIRST_HOME_SALE_AGENT_FEE_PCT.toFixed(1)}% estate-agent fee plus ${formatCurrency(FIRST_HOME_SALE_LEGAL_FEES)} sale legal fees. Second-house deposits are funded from surplus savings first and then ISA. No CGT is assumed on selling the main home.`,
+    `The optimizer still uses the same model rules shown in the planner assumptions, including stamp duty, legal fees, surplus-and-ISA deposit funding for the second move, and the age-${END_AGE} end point.`,
   ];
 
   return (

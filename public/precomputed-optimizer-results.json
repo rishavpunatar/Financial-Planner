@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-03-01T19:31:24.267Z",
+  "generatedAt": "2026-03-01T19:42:34.445Z",
   "variants": {
     "standard": {
-      "generatedAt": "2026-03-01T19:31:12.584Z",
+      "generatedAt": "2026-03-01T19:42:24.394Z",
       "baseParams": {
         "startYear": 2027,
         "firstHousePurchaseYear": 2027,
@@ -75,10 +75,10 @@
           "failureCounts": {
             "cashEnd": 12702,
             "propertyFloor": 165704,
-            "fundingGap": 141372,
+            "fundingGap": 141240,
             "shortfall": 165299,
             "negativeAmortization": 154129,
-            "mortgageCap": 143469
+            "mortgageCap": 136606
           },
           "failureSummary": [
             {
@@ -136,7 +136,7 @@
             "fundingGap": 132726,
             "shortfall": 165032,
             "negativeAmortization": 154129,
-            "mortgageCap": 143469
+            "mortgageCap": 136606
           },
           "failureSummary": [
             {
@@ -154,8 +154,8 @@
             {
               "key": "mortgageCap",
               "label": "Peak total mortgage exceeds the £700k cap.",
-              "count": 143469,
-              "share": 86.58149471346496
+              "count": 136606,
+              "share": 82.439772123787
             }
           ]
         },
@@ -194,7 +194,7 @@
             "fundingGap": 123486,
             "shortfall": 164578,
             "negativeAmortization": 154129,
-            "mortgageCap": 143469
+            "mortgageCap": 136606
           },
           "failureSummary": [
             {
@@ -212,8 +212,8 @@
             {
               "key": "mortgageCap",
               "label": "Peak total mortgage exceeds the £700k cap.",
-              "count": 143469,
-              "share": 86.58149471346496
+              "count": 136606,
+              "share": 82.439772123787
             }
           ]
         },
@@ -249,10 +249,10 @@
           "failureCounts": {
             "cashEnd": 0,
             "propertyFloor": 165704,
-            "fundingGap": 127974,
+            "fundingGap": 127776,
             "shortfall": 160098,
             "negativeAmortization": 147448,
-            "mortgageCap": 130548
+            "mortgageCap": 121510
           },
           "failureSummary": [
             {
@@ -307,10 +307,10 @@
           "failureCounts": {
             "cashEnd": 0,
             "propertyFloor": 109560,
-            "fundingGap": 117150,
+            "fundingGap": 116688,
             "shortfall": 157841,
             "negativeAmortization": 147448,
-            "mortgageCap": 130548
+            "mortgageCap": 121510
           },
           "failureSummary": [
             {
@@ -328,8 +328,8 @@
             {
               "key": "mortgageCap",
               "label": "Peak total mortgage exceeds the £700k cap.",
-              "count": 130548,
-              "share": 78.7838555496548
+              "count": 121510,
+              "share": 73.32955148940279
             }
           ]
         },
@@ -7896,11 +7896,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 100000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 811613.7339757099,
+              "cashBeforeTerminalMortgagePayoff": 811613.73397571,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 811613.7339757099,
+              "cashEnd": 811613.73397571,
               "equityEnd": 1228091.6123243894,
-              "netWorthEnd": 2039705.3463000993,
+              "netWorthEnd": 2039705.3463000995,
               "lifetimeInterestPaid": 487808.4651456815,
               "finalPropertyValue": 1228091.6123243894,
               "finalMortgageBalance": 0,
@@ -12878,10 +12878,10 @@
           "failureCounts": {
             "cashEnd": 0,
             "propertyFloor": 3410,
-            "fundingGap": 104874,
+            "fundingGap": 104148,
             "shortfall": 154760,
             "negativeAmortization": 147448,
-            "mortgageCap": 130548
+            "mortgageCap": 121510
           },
           "failureSummary": [
             {
@@ -12899,8 +12899,8 @@
             {
               "key": "mortgageCap",
               "label": "Peak total mortgage exceeds the £700k cap.",
-              "count": 130548,
-              "share": 78.7838555496548
+              "count": 121510,
+              "share": 73.32955148940279
             }
           ]
         },
@@ -12936,10 +12936,10 @@
           "failureCounts": {
             "cashEnd": 0,
             "propertyFloor": 165704,
-            "fundingGap": 114312,
+            "fundingGap": 111276,
             "shortfall": 148640,
             "negativeAmortization": 138867,
-            "mortgageCap": 115283
+            "mortgageCap": 103339
           },
           "failureSummary": [
             {
@@ -12994,10 +12994,10 @@
           "failureCounts": {
             "cashEnd": 0,
             "propertyFloor": 109560,
-            "fundingGap": 101574,
+            "fundingGap": 98142,
             "shortfall": 143790,
             "negativeAmortization": 138867,
-            "mortgageCap": 115283
+            "mortgageCap": 103339
           },
           "failureSummary": [
             {
@@ -13013,10 +13013,10 @@
               "share": 83.8042533674504
             },
             {
-              "key": "mortgageCap",
-              "label": "Peak total mortgage exceeds the £700k cap.",
-              "count": 115283,
-              "share": 69.57164582629267
+              "key": "propertyFloor",
+              "label": "End property value stays below £1.2m.",
+              "count": 109560,
+              "share": 66.11789697291556
             }
           ]
         },
@@ -14833,11 +14833,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2803485.2072678627,
+              "cashBeforeTerminalMortgagePayoff": 2803485.2072678637,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2803485.2072678627,
+              "cashEnd": 2803485.2072678637,
               "equityEnd": 1215816.324034472,
-              "netWorthEnd": 4019301.5313023347,
+              "netWorthEnd": 4019301.5313023357,
               "lifetimeInterestPaid": 205282.24813501668,
               "finalPropertyValue": 1215816.324034472,
               "finalMortgageBalance": 0,
@@ -16535,9 +16535,9 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2749216.8390759816,
+              "cashBeforeTerminalMortgagePayoff": 2749216.839075982,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2749216.8390759816,
+              "cashEnd": 2749216.839075982,
               "equityEnd": 1228157.3628860002,
               "netWorthEnd": 3977374.201961982,
               "lifetimeInterestPaid": 202586.98564119203,
@@ -17087,11 +17087,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2740007.3907119664,
+              "cashBeforeTerminalMortgagePayoff": 2740007.3907119674,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2740007.3907119664,
+              "cashEnd": 2740007.3907119674,
               "equityEnd": 1228157.3628860002,
-              "netWorthEnd": 3968164.7535979664,
+              "netWorthEnd": 3968164.7535979673,
               "lifetimeInterestPaid": 211082.38072663802,
               "finalPropertyValue": 1228157.3628860002,
               "finalMortgageBalance": 0,
@@ -17731,11 +17731,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2723862.8954772083,
+              "cashBeforeTerminalMortgagePayoff": 2723862.8954772074,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2723862.8954772083,
+              "cashEnd": 2723862.8954772074,
               "equityEnd": 1228157.3628860002,
-              "netWorthEnd": 3952020.2583632087,
+              "netWorthEnd": 3952020.258363208,
               "lifetimeInterestPaid": 215002.47241239762,
               "finalPropertyValue": 1228157.3628860002,
               "finalMortgageBalance": 0,
@@ -18881,11 +18881,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 200000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2705971.9235982145,
+              "cashBeforeTerminalMortgagePayoff": 2705971.923598215,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2705971.9235982145,
+              "cashEnd": 2705971.923598215,
               "equityEnd": 1228157.3628860002,
-              "netWorthEnd": 3934129.2864842145,
+              "netWorthEnd": 3934129.2864842154,
               "lifetimeInterestPaid": 241558.4124244666,
               "finalPropertyValue": 1228157.3628860002,
               "finalMortgageBalance": 0,
@@ -20077,11 +20077,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 200000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2688133.1285624253,
+              "cashBeforeTerminalMortgagePayoff": 2688133.128562426,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2688133.1285624253,
+              "cashEnd": 2688133.128562426,
               "equityEnd": 1228157.3628860002,
-              "netWorthEnd": 3916290.4914484257,
+              "netWorthEnd": 3916290.4914484266,
               "lifetimeInterestPaid": 268096.37517217174,
               "finalPropertyValue": 1228157.3628860002,
               "finalMortgageBalance": 0,
@@ -22699,9 +22699,9 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 2662064.1349458112,
+              "cashBeforeTerminalMortgagePayoff": 2662064.1349458117,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2662064.1349458112,
+              "cashEnd": 2662064.1349458117,
               "equityEnd": 1217513.5790230792,
               "netWorthEnd": 3879577.7139688907,
               "lifetimeInterestPaid": 255608.60379502026,
@@ -29645,11 +29645,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2579802.891276566,
+              "cashBeforeTerminalMortgagePayoff": 2579802.8912765654,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2579802.891276566,
+              "cashEnd": 2579802.8912765654,
               "equityEnd": 1215816.324034472,
-              "netWorthEnd": 3795619.215311038,
+              "netWorthEnd": 3795619.2153110374,
               "lifetimeInterestPaid": 443671.93922843866,
               "finalPropertyValue": 1215816.324034472,
               "finalMortgageBalance": 0,
@@ -30933,9 +30933,9 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 2549551.479482432,
+              "cashBeforeTerminalMortgagePayoff": 2549551.4794824324,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2549551.479482432,
+              "cashEnd": 2549551.4794824324,
               "equityEnd": 1228091.6123243894,
               "netWorthEnd": 3777643.0918068215,
               "lifetimeInterestPaid": 308386.05870786204,
@@ -36085,11 +36085,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 200000,
               "secondUpgradeValue": 400000,
-              "cashBeforeTerminalMortgagePayoff": 2440407.1145821367,
+              "cashBeforeTerminalMortgagePayoff": 2440407.114582136,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2440407.1145821367,
+              "cashEnd": 2440407.114582136,
               "equityEnd": 1286336.5460432018,
-              "netWorthEnd": 3726743.6606253386,
+              "netWorthEnd": 3726743.6606253376,
               "lifetimeInterestPaid": 337097.58010046004,
               "finalPropertyValue": 1286336.5460432018,
               "finalMortgageBalance": 0,
@@ -37465,9 +37465,9 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 100000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 2482580.6853063563,
+              "cashBeforeTerminalMortgagePayoff": 2482580.6853063568,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2482580.6853063563,
+              "cashEnd": 2482580.6853063568,
               "equityEnd": 1228091.6123243894,
               "netWorthEnd": 3710672.297630746,
               "lifetimeInterestPaid": 341165.35468600446,
@@ -38339,9 +38339,9 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 2475356.2293757973,
+              "cashBeforeTerminalMortgagePayoff": 2475356.229375798,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2475356.2293757973,
+              "cashEnd": 2475356.229375798,
               "equityEnd": 1228091.6123243894,
               "netWorthEnd": 3703447.841700187,
               "lifetimeInterestPaid": 374122.11079685827,
@@ -38661,9 +38661,9 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2412491.958501993,
+              "cashBeforeTerminalMortgagePayoff": 2412491.9585019927,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2412491.958501993,
+              "cashEnd": 2412491.9585019927,
               "equityEnd": 1288033.801031809,
               "netWorthEnd": 3700525.759533802,
               "lifetimeInterestPaid": 304348.96825416636,
@@ -41191,11 +41191,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 2447879.903446066,
+              "cashBeforeTerminalMortgagePayoff": 2447879.9034460653,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2447879.903446066,
+              "cashEnd": 2447879.9034460653,
               "equityEnd": 1228091.6123243894,
-              "netWorthEnd": 3675971.515770456,
+              "netWorthEnd": 3675971.515770455,
               "lifetimeInterestPaid": 376283.11784944875,
               "finalPropertyValue": 1228091.6123243894,
               "finalMortgageBalance": 0,
@@ -42341,11 +42341,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 100000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 2437934.8576462124,
+              "cashBeforeTerminalMortgagePayoff": 2437934.857646214,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2437934.8576462124,
+              "cashEnd": 2437934.857646214,
               "equityEnd": 1228091.6123243894,
-              "netWorthEnd": 3666026.4699706016,
+              "netWorthEnd": 3666026.4699706035,
               "lifetimeInterestPaid": 435446.8029104935,
               "finalPropertyValue": 1228091.6123243894,
               "finalMortgageBalance": 0,
@@ -44733,9 +44733,9 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 100000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 2418951.950096197,
+              "cashBeforeTerminalMortgagePayoff": 2418951.9500961965,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2418951.950096197,
+              "cashEnd": 2418951.9500961965,
               "equityEnd": 1228091.6123243894,
               "netWorthEnd": 3647043.562420586,
               "lifetimeInterestPaid": 428591.22251484933,
@@ -47355,9 +47355,9 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 200000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2414304.126628867,
+              "cashBeforeTerminalMortgagePayoff": 2414304.1266288674,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2414304.126628867,
+              "cashEnd": 2414304.1266288674,
               "equityEnd": 1209297.973159062,
               "netWorthEnd": 3623602.099787929,
               "lifetimeInterestPaid": 311419.22760874004,
@@ -48367,11 +48367,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 250000,
               "secondUpgradeValue": 400000,
-              "cashBeforeTerminalMortgagePayoff": 2313797.5228038365,
+              "cashBeforeTerminalMortgagePayoff": 2313797.522803837,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2313797.5228038365,
+              "cashEnd": 2313797.522803837,
               "equityEnd": 1300440.590444948,
-              "netWorthEnd": 3614238.1132487846,
+              "netWorthEnd": 3614238.113248785,
               "lifetimeInterestPaid": 423338.5351512859,
               "finalPropertyValue": 1300440.590444948,
               "finalMortgageBalance": 0,
@@ -49057,11 +49057,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 100000,
               "secondUpgradeValue": 250000,
-              "cashBeforeTerminalMortgagePayoff": 2389332.202196337,
+              "cashBeforeTerminalMortgagePayoff": 2389332.2021963373,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2389332.202196337,
+              "cashEnd": 2389332.2021963373,
               "equityEnd": 1219210.8340116856,
-              "netWorthEnd": 3608543.0362080224,
+              "netWorthEnd": 3608543.036208023,
               "lifetimeInterestPaid": 401922.6948951248,
               "finalPropertyValue": 1219210.8340116856,
               "finalMortgageBalance": 0,
@@ -50345,9 +50345,9 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2390695.0386133906,
+              "cashBeforeTerminalMortgagePayoff": 2390695.038613391,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2390695.0386133906,
+              "cashEnd": 2390695.038613391,
               "equityEnd": 1209297.973159062,
               "netWorthEnd": 3599993.011772453,
               "lifetimeInterestPaid": 336003.0050759309,
@@ -50805,11 +50805,11 @@
               "secondHouseDeposit": 250000,
               "secondMortgage": 200000,
               "secondUpgradeValue": 450000,
-              "cashBeforeTerminalMortgagePayoff": 2236834.815738729,
+              "cashBeforeTerminalMortgagePayoff": 2236834.8157387287,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2236834.815738729,
+              "cashEnd": 2236834.8157387287,
               "equityEnd": 1356856.7680519316,
-              "netWorthEnd": 3593691.583790661,
+              "netWorthEnd": 3593691.5837906604,
               "lifetimeInterestPaid": 337097.58010046004,
               "finalPropertyValue": 1356856.7680519316,
               "finalMortgageBalance": 0,
@@ -51357,11 +51357,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 250000,
               "secondUpgradeValue": 400000,
-              "cashBeforeTerminalMortgagePayoff": 2304390.369563413,
+              "cashBeforeTerminalMortgagePayoff": 2304390.369563414,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2304390.369563413,
+              "cashEnd": 2304390.369563414,
               "equityEnd": 1286336.5460432018,
-              "netWorthEnd": 3590726.9156066147,
+              "netWorthEnd": 3590726.9156066156,
               "lifetimeInterestPaid": 478348.4028887993,
               "finalPropertyValue": 1286336.5460432018,
               "finalMortgageBalance": 0,
@@ -54301,11 +54301,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 100000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 2337388.5780405835,
+              "cashBeforeTerminalMortgagePayoff": 2337388.5780405845,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2337388.5780405835,
+              "cashEnd": 2337388.5780405845,
               "equityEnd": 1228091.6123243894,
-              "netWorthEnd": 3565480.1903649727,
+              "netWorthEnd": 3565480.1903649736,
               "lifetimeInterestPaid": 487811.90949554875,
               "finalPropertyValue": 1228091.6123243894,
               "finalMortgageBalance": 0,
@@ -55359,11 +55359,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 250000,
               "secondUpgradeValue": 400000,
-              "cashBeforeTerminalMortgagePayoff": 2255341.163140841,
+              "cashBeforeTerminalMortgagePayoff": 2255341.1631408404,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2255341.163140841,
+              "cashEnd": 2255341.1631408404,
               "equityEnd": 1300440.590444948,
-              "netWorthEnd": 3555781.753585789,
+              "netWorthEnd": 3555781.7535857884,
               "lifetimeInterestPaid": 483683.13226617937,
               "finalPropertyValue": 1300440.590444948,
               "finalMortgageBalance": 0,
@@ -56141,9 +56141,9 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2339967.449834329,
+              "cashBeforeTerminalMortgagePayoff": 2339967.4498343286,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2339967.449834329,
+              "cashEnd": 2339967.4498343286,
               "equityEnd": 1209297.973159062,
               "netWorthEnd": 3549265.422993391,
               "lifetimeInterestPaid": 375029.29514388193,
@@ -56509,11 +56509,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2256819.726675217,
+              "cashBeforeTerminalMortgagePayoff": 2256819.726675218,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2256819.726675217,
+              "cashEnd": 2256819.726675218,
               "equityEnd": 1288033.801031809,
-              "netWorthEnd": 3544853.5277070263,
+              "netWorthEnd": 3544853.5277070273,
               "lifetimeInterestPaid": 451406.8729213962,
               "finalPropertyValue": 1288033.801031809,
               "finalMortgageBalance": 0,
@@ -58717,9 +58717,9 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 2310774.208339074,
+              "cashBeforeTerminalMortgagePayoff": 2310774.2083390746,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2310774.208339074,
+              "cashEnd": 2310774.2083390746,
               "equityEnd": 1217513.5790230792,
               "netWorthEnd": 3528287.7873621536,
               "lifetimeInterestPaid": 621412.0698731707,
@@ -61385,11 +61385,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 250000,
               "secondUpgradeValue": 400000,
-              "cashBeforeTerminalMortgagePayoff": 2205374.2114999583,
+              "cashBeforeTerminalMortgagePayoff": 2205374.2114999574,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2205374.2114999583,
+              "cashEnd": 2205374.2114999574,
               "equityEnd": 1300440.590444948,
-              "netWorthEnd": 3505814.8019449064,
+              "netWorthEnd": 3505814.8019449054,
               "lifetimeInterestPaid": 576550.9990125245,
               "finalPropertyValue": 1300440.590444948,
               "finalMortgageBalance": 0,
@@ -61891,11 +61891,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 200000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2293491.4521194557,
+              "cashBeforeTerminalMortgagePayoff": 2293491.4521194566,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2293491.4521194557,
+              "cashEnd": 2293491.4521194566,
               "equityEnd": 1209297.973159062,
-              "netWorthEnd": 3502789.4252785174,
+              "netWorthEnd": 3502789.4252785183,
               "lifetimeInterestPaid": 411122.7043377358,
               "finalPropertyValue": 1209297.973159062,
               "finalMortgageBalance": 0,
@@ -64467,11 +64467,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 250000,
               "secondUpgradeValue": 450000,
-              "cashBeforeTerminalMortgagePayoff": 2109077.8588867765,
+              "cashBeforeTerminalMortgagePayoff": 2109077.858886776,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2109077.8588867765,
+              "cashEnd": 2109077.858886776,
               "equityEnd": 1372723.8180038962,
-              "netWorthEnd": 3481801.6768906727,
+              "netWorthEnd": 3481801.676890672,
               "lifetimeInterestPaid": 385446.9580939856,
               "finalPropertyValue": 1372723.8180038962,
               "finalMortgageBalance": 0,
@@ -67181,11 +67181,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 2236250.1076355544,
+              "cashBeforeTerminalMortgagePayoff": 2236250.1076355553,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2236250.1076355544,
+              "cashEnd": 2236250.1076355553,
               "equityEnd": 1222243.2035580613,
-              "netWorthEnd": 3458493.3111936157,
+              "netWorthEnd": 3458493.3111936166,
               "lifetimeInterestPaid": 378451.8584827135,
               "finalPropertyValue": 1222243.2035580613,
               "finalMortgageBalance": 0,
@@ -67825,11 +67825,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2242500.814977397,
+              "cashBeforeTerminalMortgagePayoff": 2242500.8149773977,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2242500.814977397,
+              "cashEnd": 2242500.8149773977,
               "equityEnd": 1209297.973159062,
-              "netWorthEnd": 3451798.788136459,
+              "netWorthEnd": 3451798.78813646,
               "lifetimeInterestPaid": 451965.37039327965,
               "finalPropertyValue": 1209297.973159062,
               "finalMortgageBalance": 0,
@@ -69987,11 +69987,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 250000,
               "secondUpgradeValue": 450000,
-              "cashBeforeTerminalMortgagePayoff": 2061041.594574527,
+              "cashBeforeTerminalMortgagePayoff": 2061041.5945745273,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2061041.594574527,
+              "cashEnd": 2061041.5945745273,
               "equityEnd": 1372723.8180038962,
-              "netWorthEnd": 3433765.412578423,
+              "netWorthEnd": 3433765.4125784235,
               "lifetimeInterestPaid": 492635.2117446566,
               "finalPropertyValue": 1372723.8180038962,
               "finalMortgageBalance": 0,
@@ -71367,11 +71367,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2119700.3182188366,
+              "cashBeforeTerminalMortgagePayoff": 2119700.318218837,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2119700.3182188366,
+              "cashEnd": 2119700.318218837,
               "equityEnd": 1300374.8398833373,
-              "netWorthEnd": 3420075.158102174,
+              "netWorthEnd": 3420075.1581021743,
               "lifetimeInterestPaid": 460343.09615663846,
               "finalPropertyValue": 1300374.8398833373,
               "finalMortgageBalance": 0,
@@ -71643,11 +71643,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 200000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 2130715.297739658,
+              "cashBeforeTerminalMortgagePayoff": 2130715.297739659,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2130715.297739658,
+              "cashEnd": 2130715.297739659,
               "equityEnd": 1288033.801031809,
-              "netWorthEnd": 3418749.098771467,
+              "netWorthEnd": 3418749.098771468,
               "lifetimeInterestPaid": 636040.207478539,
               "finalPropertyValue": 1288033.801031809,
               "finalMortgageBalance": 0,
@@ -75553,9 +75553,9 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 100000,
               "secondUpgradeValue": 250000,
-              "cashBeforeTerminalMortgagePayoff": 2095274.1704199386,
+              "cashBeforeTerminalMortgagePayoff": 2095274.1704199389,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2095274.1704199386,
+              "cashEnd": 2095274.1704199389,
               "equityEnd": 1291428.3110090217,
               "netWorthEnd": 3386702.4814289603,
               "lifetimeInterestPaid": 412239.28721984435,
@@ -77301,11 +77301,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 300000,
               "secondUpgradeValue": 450000,
-              "cashBeforeTerminalMortgagePayoff": 1938500.8055739298,
+              "cashBeforeTerminalMortgagePayoff": 1938500.8055739303,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1938500.8055739298,
+              "cashEnd": 1938500.8055739303,
               "equityEnd": 1429074.2450492682,
-              "netWorthEnd": 3367575.050623198,
+              "netWorthEnd": 3367575.0506231985,
               "lifetimeInterestPaid": 369327.5499479535,
               "finalPropertyValue": 1429074.2450492682,
               "finalMortgageBalance": 0,
@@ -81717,11 +81717,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 100000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 2029683.189472831,
+              "cashBeforeTerminalMortgagePayoff": 2029683.1894728318,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2029683.189472831,
+              "cashEnd": 2029683.1894728318,
               "equityEnd": 1300309.0893217244,
-              "netWorthEnd": 3329992.2787945555,
+              "netWorthEnd": 3329992.278794556,
               "lifetimeInterestPaid": 509366.1192587804,
               "finalPropertyValue": 1300309.0893217244,
               "finalMortgageBalance": 0,
@@ -82315,9 +82315,9 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 200000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 1963739.744791024,
+              "cashBeforeTerminalMortgagePayoff": 1963739.7447910241,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1963739.744791024,
+              "cashEnd": 1963739.7447910241,
               "equityEnd": 1360251.278029145,
               "netWorthEnd": 3323991.022820169,
               "lifetimeInterestPaid": 434600.6091317162,
@@ -85351,11 +85351,11 @@
               "secondHouseDeposit": 250000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 400000,
-              "cashBeforeTerminalMortgagePayoff": 2022374.8745403755,
+              "cashBeforeTerminalMortgagePayoff": 2022374.874540376,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 2022374.8745403755,
+              "cashEnd": 2022374.874540376,
               "equityEnd": 1268570.2197573995,
-              "netWorthEnd": 3290945.094297775,
+              "netWorthEnd": 3290945.0942977755,
               "lifetimeInterestPaid": 512638.721976605,
               "finalPropertyValue": 1268570.2197573995,
               "finalMortgageBalance": 0,
@@ -86271,11 +86271,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 100000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 1983796.051300146,
+              "cashBeforeTerminalMortgagePayoff": 1983796.0513001466,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1983796.051300146,
+              "cashEnd": 1983796.0513001466,
               "equityEnd": 1300309.0893217244,
-              "netWorthEnd": 3284105.1406218703,
+              "netWorthEnd": 3284105.1406218708,
               "lifetimeInterestPaid": 589115.9198625428,
               "finalPropertyValue": 1300309.0893217244,
               "finalMortgageBalance": 0,
@@ -87329,9 +87329,9 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 300000,
               "secondUpgradeValue": 450000,
-              "cashBeforeTerminalMortgagePayoff": 1844462.3198396785,
+              "cashBeforeTerminalMortgagePayoff": 1844462.3198396787,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1844462.3198396785,
+              "cashEnd": 1844462.3198396787,
               "equityEnd": 1429074.2450492682,
               "netWorthEnd": 3273536.5648889467,
               "lifetimeInterestPaid": 483675.80033529317,
@@ -87513,11 +87513,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 200000,
               "secondUpgradeValue": 400000,
-              "cashBeforeTerminalMortgagePayoff": 1899061.5085221564,
+              "cashBeforeTerminalMortgagePayoff": 1899061.5085221566,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1899061.5085221564,
+              "cashEnd": 1899061.5085221566,
               "equityEnd": 1372658.0674422844,
-              "netWorthEnd": 3271719.5759644406,
+              "netWorthEnd": 3271719.575964441,
               "lifetimeInterestPaid": 545844.980103657,
               "finalPropertyValue": 1372658.0674422844,
               "finalMortgageBalance": 0,
@@ -90135,9 +90135,9 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 250000,
               "secondUpgradeValue": 400000,
-              "cashBeforeTerminalMortgagePayoff": 1866587.5671345543,
+              "cashBeforeTerminalMortgagePayoff": 1866587.567134554,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1866587.5671345543,
+              "cashEnd": 1866587.567134554,
               "equityEnd": 1372658.0674422844,
               "netWorthEnd": 3239245.6345768385,
               "lifetimeInterestPaid": 511626.0838501007,
@@ -90595,9 +90595,9 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 300000,
               "secondUpgradeValue": 450000,
-              "cashBeforeTerminalMortgagePayoff": 1805019.561554698,
+              "cashBeforeTerminalMortgagePayoff": 1805019.5615546983,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1805019.561554698,
+              "cashEnd": 1805019.5615546983,
               "equityEnd": 1429074.2450492682,
               "netWorthEnd": 3234093.8066039663,
               "lifetimeInterestPaid": 461278.32173203444,
@@ -91193,11 +91193,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 200000,
               "secondUpgradeValue": 400000,
-              "cashBeforeTerminalMortgagePayoff": 1960622.1640646385,
+              "cashBeforeTerminalMortgagePayoff": 1960622.1640646388,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1960622.1640646385,
+              "cashEnd": 1960622.1640646388,
               "equityEnd": 1268570.2197573995,
-              "netWorthEnd": 3229192.383822038,
+              "netWorthEnd": 3229192.3838220383,
               "lifetimeInterestPaid": 573948.7861352445,
               "finalPropertyValue": 1268570.2197573995,
               "finalMortgageBalance": 0,
@@ -91745,11 +91745,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 250000,
               "secondUpgradeValue": 400000,
-              "cashBeforeTerminalMortgagePayoff": 1866598.3591838186,
+              "cashBeforeTerminalMortgagePayoff": 1866598.359183819,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1866598.3591838186,
+              "cashEnd": 1866598.359183819,
               "equityEnd": 1358554.0230405394,
-              "netWorthEnd": 3225152.3822243577,
+              "netWorthEnd": 3225152.3822243586,
               "lifetimeInterestPaid": 575861.1843314852,
               "finalPropertyValue": 1358554.0230405394,
               "finalMortgageBalance": 0,
@@ -94597,9 +94597,9 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 250000,
               "secondUpgradeValue": 400000,
-              "cashBeforeTerminalMortgagePayoff": 1828686.5733121634,
+              "cashBeforeTerminalMortgagePayoff": 1828686.5733121638,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1828686.5733121634,
+              "cashEnd": 1828686.5733121638,
               "equityEnd": 1358554.0230405394,
               "netWorthEnd": 3187240.596352703,
               "lifetimeInterestPaid": 635724.2439432227,
@@ -96391,9 +96391,9 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 250000,
               "secondUpgradeValue": 400000,
-              "cashBeforeTerminalMortgagePayoff": 1793902.6037063252,
+              "cashBeforeTerminalMortgagePayoff": 1793902.6037063247,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1793902.6037063252,
+              "cashEnd": 1793902.6037063247,
               "equityEnd": 1372658.0674422844,
               "netWorthEnd": 3166560.6711486094,
               "lifetimeInterestPaid": 631705.6379240378,
@@ -96437,11 +96437,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 350000,
               "secondUpgradeValue": 500000,
-              "cashBeforeTerminalMortgagePayoff": 1719758.7541132828,
+              "cashBeforeTerminalMortgagePayoff": 1719758.7541132835,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1719758.7541132828,
+              "cashEnd": 1719758.7541132835,
               "equityEnd": 1445007.045562844,
-              "netWorthEnd": 3164765.799676127,
+              "netWorthEnd": 3164765.7996761277,
               "lifetimeInterestPaid": 602674.4146881226,
               "finalPropertyValue": 1445007.045562844,
               "finalMortgageBalance": 0,
@@ -101589,11 +101589,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 300000,
               "secondUpgradeValue": 450000,
-              "cashBeforeTerminalMortgagePayoff": 1641791.429052372,
+              "cashBeforeTerminalMortgagePayoff": 1641791.4290523722,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1641791.429052372,
+              "cashEnd": 1641791.4290523722,
               "equityEnd": 1444941.2950012328,
-              "netWorthEnd": 3086732.7240536045,
+              "netWorthEnd": 3086732.724053605,
               "lifetimeInterestPaid": 564026.9853415109,
               "finalPropertyValue": 1444941.2950012328,
               "finalMortgageBalance": 0,
@@ -102233,11 +102233,11 @@
               "secondHouseDeposit": 200000,
               "secondMortgage": 350000,
               "secondUpgradeValue": 550000,
-              "cashBeforeTerminalMortgagePayoff": 1578252.906387315,
+              "cashBeforeTerminalMortgagePayoff": 1578252.9063873154,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1578252.906387315,
+              "cashEnd": 1578252.9063873154,
               "equityEnd": 1497897.2120693906,
-              "netWorthEnd": 3076150.1184567055,
+              "netWorthEnd": 3076150.118456706,
               "lifetimeInterestPaid": 662096.8734822042,
               "finalPropertyValue": 1497897.2120693906,
               "finalMortgageBalance": 0,
@@ -102831,9 +102831,9 @@
               "secondHouseDeposit": 250000,
               "secondMortgage": 300000,
               "secondUpgradeValue": 550000,
-              "cashBeforeTerminalMortgagePayoff": 1561195.5215592217,
+              "cashBeforeTerminalMortgagePayoff": 1561195.5215592212,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1561195.5215592217,
+              "cashEnd": 1561195.5215592212,
               "equityEnd": 1497897.2120693906,
               "netWorthEnd": 3059092.733628612,
               "lifetimeInterestPaid": 649040.5172507253,
@@ -105131,11 +105131,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 200000,
               "secondUpgradeValue": 350000,
-              "cashBeforeTerminalMortgagePayoff": 1641774.0603021062,
+              "cashBeforeTerminalMortgagePayoff": 1641774.0603021067,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1641774.0603021062,
+              "cashEnd": 1641774.0603021067,
               "equityEnd": 1372592.316880673,
-              "netWorthEnd": 3014366.377182779,
+              "netWorthEnd": 3014366.37718278,
               "lifetimeInterestPaid": 697943.6957567813,
               "finalPropertyValue": 1372592.316880673,
               "finalMortgageBalance": 0,
@@ -105821,11 +105821,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 300000,
               "secondUpgradeValue": 450000,
-              "cashBeforeTerminalMortgagePayoff": 1554077.2519970173,
+              "cashBeforeTerminalMortgagePayoff": 1554077.251997018,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1554077.2519970173,
+              "cashEnd": 1554077.251997018,
               "equityEnd": 1444941.2950012328,
-              "netWorthEnd": 2999018.5469982503,
+              "netWorthEnd": 2999018.5469982508,
               "lifetimeInterestPaid": 656243.1572968204,
               "finalPropertyValue": 1444941.2950012328,
               "finalMortgageBalance": 0,
@@ -108535,11 +108535,11 @@
               "secondHouseDeposit": 150000,
               "secondMortgage": 150000,
               "secondUpgradeValue": 300000,
-              "cashBeforeTerminalMortgagePayoff": 1530225.0862071225,
+              "cashBeforeTerminalMortgagePayoff": 1530225.0862071228,
               "terminalMortgagePaydown": 0,
-              "cashEnd": 1530225.0862071225,
+              "cashEnd": 1530225.0862071228,
               "equityEnd": 1372526.566319061,
-              "netWorthEnd": 2902751.6525261835,
+              "netWorthEnd": 2902751.652526184,
               "lifetimeInterestPaid": 674272.9827349832,
               "finalPropertyValue": 1372526.566319061,
               "finalMortgageBalance": 0,
@@ -112781,10 +112781,10 @@
           "failureCounts": {
             "cashEnd": 0,
             "propertyFloor": 3410,
-            "fundingGap": 88044,
+            "fundingGap": 85734,
             "shortfall": 138376,
             "negativeAmortization": 138867,
-            "mortgageCap": 115283
+            "mortgageCap": 103339
           },
           "failureSummary": [
             {
@@ -112802,8 +112802,8 @@
             {
               "key": "mortgageCap",
               "label": "Peak total mortgage exceeds the £700k cap.",
-              "count": 115283,
-              "share": 69.57164582629267
+              "count": 103339,
+              "share": 62.363612224207024
             }
           ]
         }
@@ -112815,7 +112815,7 @@
       }
     },
     "privateSchool": {
-      "generatedAt": "2026-03-01T19:31:24.267Z",
+      "generatedAt": "2026-03-01T19:42:34.445Z",
       "baseParams": {
         "startYear": 2027,
         "firstHousePurchaseYear": 2027,
@@ -112888,10 +112888,10 @@
           "failureCounts": {
             "cashEnd": 12702,
             "propertyFloor": 165704,
-            "fundingGap": 141372,
+            "fundingGap": 141240,
             "shortfall": 165704,
             "negativeAmortization": 154129,
-            "mortgageCap": 143469
+            "mortgageCap": 136606
           },
           "failureSummary": [
             {
@@ -112949,7 +112949,7 @@
             "fundingGap": 132726,
             "shortfall": 165704,
             "negativeAmortization": 154129,
-            "mortgageCap": 143469
+            "mortgageCap": 136606
           },
           "failureSummary": [
             {
@@ -112967,8 +112967,8 @@
             {
               "key": "mortgageCap",
               "label": "Peak total mortgage exceeds the £700k cap.",
-              "count": 143469,
-              "share": 86.58149471346496
+              "count": 136606,
+              "share": 82.439772123787
             }
           ]
         },
@@ -113007,7 +113007,7 @@
             "fundingGap": 123486,
             "shortfall": 165704,
             "negativeAmortization": 154129,
-            "mortgageCap": 143469
+            "mortgageCap": 136606
           },
           "failureSummary": [
             {
@@ -113025,8 +113025,8 @@
             {
               "key": "mortgageCap",
               "label": "Peak total mortgage exceeds the £700k cap.",
-              "count": 143469,
-              "share": 86.58149471346496
+              "count": 136606,
+              "share": 82.439772123787
             }
           ]
         },
@@ -113062,10 +113062,10 @@
           "failureCounts": {
             "cashEnd": 0,
             "propertyFloor": 165704,
-            "fundingGap": 127974,
+            "fundingGap": 127776,
             "shortfall": 165704,
             "negativeAmortization": 147448,
-            "mortgageCap": 130548
+            "mortgageCap": 121510
           },
           "failureSummary": [
             {
@@ -113120,10 +113120,10 @@
           "failureCounts": {
             "cashEnd": 0,
             "propertyFloor": 109560,
-            "fundingGap": 117150,
+            "fundingGap": 116688,
             "shortfall": 165704,
             "negativeAmortization": 147448,
-            "mortgageCap": 130548
+            "mortgageCap": 121510
           },
           "failureSummary": [
             {
@@ -113141,8 +113141,8 @@
             {
               "key": "mortgageCap",
               "label": "Peak total mortgage exceeds the £700k cap.",
-              "count": 130548,
-              "share": 78.7838555496548
+              "count": 121510,
+              "share": 73.32955148940279
             }
           ]
         },
@@ -113178,10 +113178,10 @@
           "failureCounts": {
             "cashEnd": 0,
             "propertyFloor": 3410,
-            "fundingGap": 104874,
+            "fundingGap": 104148,
             "shortfall": 165699,
             "negativeAmortization": 147448,
-            "mortgageCap": 130548
+            "mortgageCap": 121510
           },
           "failureSummary": [
             {
@@ -113199,8 +113199,8 @@
             {
               "key": "mortgageCap",
               "label": "Peak total mortgage exceeds the £700k cap.",
-              "count": 130548,
-              "share": 78.7838555496548
+              "count": 121510,
+              "share": 73.32955148940279
             }
           ]
         },
@@ -113236,10 +113236,10 @@
           "failureCounts": {
             "cashEnd": 0,
             "propertyFloor": 165704,
-            "fundingGap": 114312,
+            "fundingGap": 111276,
             "shortfall": 165657,
             "negativeAmortization": 138867,
-            "mortgageCap": 115283
+            "mortgageCap": 103339
           },
           "failureSummary": [
             {
@@ -113294,10 +113294,10 @@
           "failureCounts": {
             "cashEnd": 0,
             "propertyFloor": 109560,
-            "fundingGap": 101574,
+            "fundingGap": 98142,
             "shortfall": 165638,
             "negativeAmortization": 138867,
-            "mortgageCap": 115283
+            "mortgageCap": 103339
           },
           "failureSummary": [
             {
@@ -113313,10 +113313,10 @@
               "share": 83.8042533674504
             },
             {
-              "key": "mortgageCap",
-              "label": "Peak total mortgage exceeds the £700k cap.",
-              "count": 115283,
-              "share": 69.57164582629267
+              "key": "propertyFloor",
+              "label": "End property value stays below £1.2m.",
+              "count": 109560,
+              "share": 66.11789697291556
             }
           ]
         },
@@ -113352,10 +113352,10 @@
           "failureCounts": {
             "cashEnd": 0,
             "propertyFloor": 3410,
-            "fundingGap": 88044,
+            "fundingGap": 85734,
             "shortfall": 165436,
             "negativeAmortization": 138867,
-            "mortgageCap": 115283
+            "mortgageCap": 103339
           },
           "failureSummary": [
             {
@@ -113373,8 +113373,8 @@
             {
               "key": "mortgageCap",
               "label": "Peak total mortgage exceeds the £700k cap.",
-              "count": 115283,
-              "share": 69.57164582629267
+              "count": 103339,
+              "share": 62.363612224207024
             }
           ]
         }
