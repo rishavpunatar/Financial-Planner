@@ -1,0 +1,461 @@
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, '..');
+const appPath = path.join(repoRoot, 'src', 'App.jsx');
+const tempDir = path.join(repoRoot, '.tmp');
+const tempModulePath = path.join(tempDir, 'optimizer-core.mjs');
+const outputPath = path.join(repoRoot, 'public', 'precomputed-optimizer-results.json');
+
+const appSource = await readFile(appPath, 'utf8');
+const startToken = 'const calculateStampDuty';
+const endToken = 'const App = () => {';
+const startIndex = appSource.indexOf(startToken);
+const endIndex = appSource.indexOf(endToken);
+
+if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+  throw new Error('Could not extract optimizer core from src/App.jsx');
+}
+
+const moduleSource = `${appSource.slice(startIndex, endIndex)}
+
+export {
+  BASE_BIRTH_YEAR,
+  OPTIMIZER_ASSUMPTION_CASES,
+  OPTIMIZER_STARTING_INCOME_1,
+  OPTIMIZER_STARTING_INCOME_2,
+  OPTIMIZER_MIN_FIRST_PROPERTY_VALUE,
+  OPTIMIZER_MIN_UPGRADE_VALUE,
+  OPTIMIZER_MIN_END_PROPERTY_VALUE,
+  OPTIMIZER_FIXED_FIRST_HOUSE_YEAR,
+  OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD,
+  OPTIMIZER_FAST_UPGRADE_YEAR_MAX,
+  OPTIMIZER_LATE_UPGRADE_YEAR_MAX,
+  OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE,
+  OPTIMIZER_MAX_TOTAL_MORTGAGE,
+  calculateStampDuty,
+  calculateRealTermsTakeHomePay,
+  calculateCareerIncome,
+  buildSteppedPoints,
+  getOptimizerUpgradeYearMax,
+  compareOptimizerResults,
+  roundToStep,
+  clampValue,
+  simulateFinancialPlan,
+};
+`;
+
+await mkdir(tempDir, { recursive: true });
+await writeFile(tempModulePath, moduleSource);
+
+const optimizerCore = await import(`${pathToFileURL(tempModulePath).href}?ts=${Date.now()}`);
+
+const {
+  BASE_BIRTH_YEAR,
+  OPTIMIZER_ASSUMPTION_CASES,
+  OPTIMIZER_STARTING_INCOME_1,
+  OPTIMIZER_STARTING_INCOME_2,
+  OPTIMIZER_MIN_FIRST_PROPERTY_VALUE,
+  OPTIMIZER_MIN_UPGRADE_VALUE,
+  OPTIMIZER_FIXED_FIRST_HOUSE_YEAR,
+  OPTIMIZER_LATE_UPGRADE_YEAR_MAX,
+  OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE,
+  OPTIMIZER_MAX_TOTAL_MORTGAGE,
+  buildSteppedPoints,
+  getOptimizerUpgradeYearMax,
+  compareOptimizerResults,
+  roundToStep,
+  clampValue,
+  simulateFinancialPlan,
+} = optimizerCore;
+
+const defaultScenario = {
+  startYear: 2027,
+  firstHousePurchaseYear: 2027,
+  mortgageRate: 6,
+  salaryMortgageEarly: 18,
+  salaryMortgageLater: 10,
+  realGrowthCosts: 2,
+  realGrowthProperty: 2,
+  isaGrowth: 3,
+  initialMortgage: 300000,
+  secondMortgage: 100000,
+  initialDeposit: 300000,
+  secondHouseDeposit: 200000,
+  isaSeed: 0,
+  income1Start: 90000,
+  income2Start: 90000,
+  incomeGrowth: 0,
+  secondHouseYear: 2037,
+  child1BirthYear: 2032,
+  child2BirthYear: 2034,
+  recessionYear: 2035,
+  secondRecessionYear: 2042,
+  thirdRecessionYear: 2050,
+  enableRedundancy: false,
+  redundancyYear: 2031,
+  secondRedundancyYear: 2039,
+  baseLivingCost: 40000,
+  child1AnnualCost: 30000,
+  child2AnnualCost: 20000,
+  emergencyFundAnnual: 5000,
+  pensionContributionRate: 5,
+  visaCostPreSecondHouse: 2200,
+  visaCostAtSecondHouse: 2500,
+  carCost: 20000,
+  kid1GiftAmount: 100000,
+  kid2GiftAmount: 100000,
+  isaContributionCap: 40000,
+  recessionHitPct: 20,
+  cgtRatePct: 20,
+  usePrivateSchool: false,
+  enableSecondHouse: true,
+};
+
+const startAge = defaultScenario.startYear - BASE_BIRTH_YEAR;
+const kid1GiftYear = defaultScenario.child1BirthYear + 27;
+const kid2GiftYear = defaultScenario.child2BirthYear + 27;
+
+const searchConfig = {
+  propertyMode: 'both',
+  firstHouseDepositMin: Math.max(
+    0,
+    roundToStep(Math.max(defaultScenario.initialDeposit, 50000) * 0.75, 50000),
+  ),
+  firstHouseDepositMax: Math.max(
+    Math.max(0, roundToStep(Math.max(defaultScenario.initialDeposit, 50000) * 0.75, 50000)),
+    roundToStep(Math.max(defaultScenario.initialDeposit, 50000) * 1.25, 50000),
+  ),
+  firstHouseMortgageMin: clampValue(
+    Math.max(0, roundToStep(Math.max(defaultScenario.initialMortgage, 100000) * 0.75, 50000)),
+    0,
+    OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE,
+  ),
+  firstHouseMortgageMax: clampValue(
+    Math.max(
+      Math.max(0, roundToStep(Math.max(defaultScenario.initialMortgage, 100000) * 0.75, 50000)),
+      roundToStep(Math.max(defaultScenario.initialMortgage, 100000) * 1.25, 50000),
+    ),
+    0,
+    OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE,
+  ),
+  firstHouseYearMin: OPTIMIZER_FIXED_FIRST_HOUSE_YEAR,
+  firstHouseYearMax: OPTIMIZER_FIXED_FIRST_HOUSE_YEAR,
+  secondHouseDepositMin: Math.max(
+    0,
+    roundToStep(Math.max(defaultScenario.secondHouseDeposit, 100000) * 0.75, 50000),
+  ),
+  secondHouseDepositMax: Math.max(
+    Math.max(0, roundToStep(Math.max(defaultScenario.secondHouseDeposit, 100000) * 0.75, 50000)),
+    roundToStep(Math.max(defaultScenario.secondHouseDeposit, 100000) * 1.25, 50000),
+  ),
+  secondHouseMortgageMin: clampValue(
+    Math.max(0, roundToStep(Math.max(defaultScenario.secondMortgage, 100000) * 0.75, 50000)),
+    0,
+    OPTIMIZER_MAX_TOTAL_MORTGAGE,
+  ),
+  secondHouseMortgageMax: clampValue(
+    Math.max(
+      Math.max(0, roundToStep(Math.max(defaultScenario.secondMortgage, 100000) * 0.75, 50000)),
+      roundToStep(Math.max(defaultScenario.secondMortgage, 100000) * 1.25, 50000),
+    ),
+    0,
+    OPTIMIZER_MAX_TOTAL_MORTGAGE,
+  ),
+  secondHouseYearMin: Math.max(defaultScenario.secondHouseYear - 3, defaultScenario.startYear + 1),
+  secondHouseYearMax: Math.min(defaultScenario.secondHouseYear + 3, OPTIMIZER_LATE_UPGRADE_YEAR_MAX),
+  earlyMortgagePctMin: clampValue(defaultScenario.salaryMortgageEarly - 5, 5, 35),
+  earlyMortgagePctMax: clampValue(defaultScenario.salaryMortgageEarly + 5, 5, 35),
+  laterMortgagePctMin: clampValue(defaultScenario.salaryMortgageLater - 5, 5, 50),
+  laterMortgagePctMax: clampValue(defaultScenario.salaryMortgageLater + 5, 5, 50),
+};
+
+const baseParams = {
+  ...defaultScenario,
+  startAge,
+  kid1GiftYear,
+  kid2GiftYear,
+  calculateTakeHomePayFn: optimizerCore.calculateRealTermsTakeHomePay,
+};
+
+const buildFullSearchPlan = (config) => {
+  const propertyModes = config.propertyMode === 'both' ? ['one', 'two'] : [config.propertyMode];
+
+  return {
+    propertyModes,
+    firstHouseDeposits: buildSteppedPoints(config.firstHouseDepositMin, config.firstHouseDepositMax, 50000),
+    firstHouseMortgages: buildSteppedPoints(
+      Math.min(config.firstHouseMortgageMin, OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE),
+      Math.min(config.firstHouseMortgageMax, OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE),
+      50000,
+    ),
+    firstHouseYears: buildSteppedPoints(config.firstHouseYearMin, config.firstHouseYearMax, 1),
+    earlyMortgagePcts: buildSteppedPoints(config.earlyMortgagePctMin, config.earlyMortgagePctMax, 1),
+    secondHouseDeposits: buildSteppedPoints(config.secondHouseDepositMin, config.secondHouseDepositMax, 50000),
+    secondHouseMortgages: buildSteppedPoints(
+      Math.min(config.secondHouseMortgageMin, OPTIMIZER_MAX_TOTAL_MORTGAGE),
+      Math.min(config.secondHouseMortgageMax, OPTIMIZER_MAX_TOTAL_MORTGAGE),
+      50000,
+    ),
+    secondHouseYears: buildSteppedPoints(
+      config.secondHouseYearMin,
+      Math.min(config.secondHouseYearMax, OPTIMIZER_LATE_UPGRADE_YEAR_MAX),
+      1,
+    ),
+    laterMortgagePcts: buildSteppedPoints(config.laterMortgagePctMin, config.laterMortgagePctMax, 1),
+  };
+};
+
+const sanitizeResult = (result) => ({
+  assumptionCase: {
+    id: result.assumptionCase.id,
+    label: result.assumptionCase.label,
+    incomeGrowth: result.assumptionCase.incomeGrowth,
+    isaGrowth: result.assumptionCase.isaGrowth,
+    propertyGrowth: result.assumptionCase.propertyGrowth,
+    incomeCase: result.assumptionCase.incomeCase,
+    marketCase: result.assumptionCase.marketCase,
+  },
+  enableSecondHouse: result.enableSecondHouse,
+  firstHousePurchaseYear: result.firstHousePurchaseYear,
+  initialDeposit: result.initialDeposit,
+  initialMortgage: result.initialMortgage,
+  firstHouseValue: result.firstHouseValue,
+  salaryMortgageEarly: result.salaryMortgageEarly,
+  salaryMortgageLater: result.salaryMortgageLater,
+  optimizerIsaSeed: result.optimizerIsaSeed,
+  secondHouseYear: result.secondHouseYear,
+  secondHouseDeposit: result.secondHouseDeposit,
+  secondMortgage: result.secondMortgage,
+  secondUpgradeValue: result.secondUpgradeValue,
+  cashEnd: result.cashEnd,
+  equityEnd: result.equityEnd,
+  netWorthEnd: result.netWorthEnd,
+  lifetimeInterestPaid: result.lifetimeInterestPaid,
+  finalPropertyValue: result.finalPropertyValue,
+  peakMortgageBalance: result.peakMortgageBalance,
+});
+
+const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
+  const searchPlan = buildFullSearchPlan(searchConfig);
+  const {
+    propertyModes,
+    firstHouseDeposits,
+    firstHouseMortgages,
+    firstHouseYears,
+    earlyMortgagePcts,
+    secondHouseDeposits,
+    secondHouseMortgages,
+    secondHouseYears,
+    laterMortgagePcts,
+  } = searchPlan;
+
+  const startingCashPool = baseParams.initialDeposit + baseParams.isaSeed;
+  const caseResults = OPTIMIZER_ASSUMPTION_CASES.map((assumptionCase) => {
+    const results = [];
+    let scenariosTested = 0;
+
+    for (const currentPropertyMode of propertyModes) {
+      for (const initialDeposit of firstHouseDeposits) {
+        for (const initialMortgage of firstHouseMortgages) {
+          for (const firstHousePurchaseYear of firstHouseYears) {
+            for (const salaryMortgageEarly of earlyMortgagePcts) {
+              const firstHouseValue = initialDeposit + initialMortgage;
+              const optimizerIsaSeed = Math.max(0, startingCashPool - initialDeposit);
+
+              if (
+                initialDeposit > startingCashPool ||
+                firstHouseValue < OPTIMIZER_MIN_FIRST_PROPERTY_VALUE ||
+                initialMortgage > OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE
+              ) {
+                continue;
+              }
+
+              if (currentPropertyMode === 'one') {
+                scenariosTested += 1;
+                const simulation = simulateFinancialPlan({
+                  ...baseParams,
+                  returnFullData: false,
+                  enableSecondHouse: false,
+                  firstHousePurchaseYear,
+                  salaryMortgageEarly,
+                  salaryMortgageLater: salaryMortgageEarly,
+                  initialDeposit,
+                  initialMortgage,
+                  isaSeed: optimizerIsaSeed,
+                  secondHouseDeposit: 0,
+                  secondMortgage: 0,
+                  income1Start: OPTIMIZER_STARTING_INCOME_1,
+                  income2Start: OPTIMIZER_STARTING_INCOME_2,
+                  incomeGrowth: assumptionCase.incomeGrowth,
+                  isaGrowth: assumptionCase.isaGrowth,
+                  realGrowthProperty: assumptionCase.propertyGrowth,
+                });
+
+                const feasible =
+                  simulation.cashEnd > 0 &&
+                  simulation.finalPropertyValue >= optimizerCore.OPTIMIZER_MIN_END_PROPERTY_VALUE &&
+                  simulation.cumulativeShortfall <= 0.01 &&
+                  simulation.secondHouseFundingGap <= 0.01 &&
+                  simulation.negativeAmortizationYears === 0 &&
+                  simulation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE;
+
+                if (!feasible) continue;
+
+                results.push({
+                  assumptionCase,
+                  enableSecondHouse: false,
+                  firstHousePurchaseYear,
+                  initialDeposit,
+                  initialMortgage,
+                  firstHouseValue,
+                  salaryMortgageEarly,
+                  salaryMortgageLater: salaryMortgageEarly,
+                  optimizerIsaSeed,
+                  secondHouseYear: null,
+                  secondHouseDeposit: 0,
+                  secondMortgage: 0,
+                  secondUpgradeValue: 0,
+                  ...simulation,
+                });
+
+                continue;
+              }
+
+              for (const secondHouseDeposit of secondHouseDeposits) {
+                for (const secondMortgage of secondHouseMortgages) {
+                  for (const salaryMortgageLater of laterMortgagePcts) {
+                    const secondUpgradeValue = secondHouseDeposit + secondMortgage;
+
+                    if (secondUpgradeValue < OPTIMIZER_MIN_UPGRADE_VALUE) {
+                      continue;
+                    }
+
+                    const scenarioSecondHouseYearMax = Math.min(
+                      getOptimizerUpgradeYearMax(firstHouseValue),
+                      searchConfig.secondHouseYearMax,
+                      OPTIMIZER_LATE_UPGRADE_YEAR_MAX,
+                    );
+                    const validSecondHouseYears = secondHouseYears.filter(
+                      secondHouseYear =>
+                        secondHouseYear > firstHousePurchaseYear &&
+                        secondHouseYear <= scenarioSecondHouseYearMax,
+                    );
+
+                    if (validSecondHouseYears.length === 0) {
+                      continue;
+                    }
+
+                    for (const secondHouseYear of validSecondHouseYears) {
+                      scenariosTested += 1;
+                      const simulation = simulateFinancialPlan({
+                        ...baseParams,
+                        returnFullData: false,
+                        enableSecondHouse: true,
+                        firstHousePurchaseYear,
+                        secondHouseYear,
+                        salaryMortgageEarly,
+                        salaryMortgageLater,
+                        initialDeposit,
+                        initialMortgage,
+                        isaSeed: optimizerIsaSeed,
+                        secondHouseDeposit,
+                        secondMortgage,
+                        income1Start: OPTIMIZER_STARTING_INCOME_1,
+                        income2Start: OPTIMIZER_STARTING_INCOME_2,
+                        incomeGrowth: assumptionCase.incomeGrowth,
+                        isaGrowth: assumptionCase.isaGrowth,
+                        realGrowthProperty: assumptionCase.propertyGrowth,
+                      });
+
+                      const feasible =
+                        simulation.cashEnd > 0 &&
+                        simulation.finalPropertyValue >= optimizerCore.OPTIMIZER_MIN_END_PROPERTY_VALUE &&
+                        simulation.cumulativeShortfall <= 0.01 &&
+                        simulation.secondHouseFundingGap <= 0.01 &&
+                        simulation.negativeAmortizationYears === 0 &&
+                        simulation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE;
+
+                      if (!feasible) continue;
+
+                      results.push({
+                        assumptionCase,
+                        enableSecondHouse: true,
+                        firstHousePurchaseYear,
+                        initialDeposit,
+                        initialMortgage,
+                        firstHouseValue,
+                        salaryMortgageEarly,
+                        salaryMortgageLater,
+                        optimizerIsaSeed,
+                        secondHouseYear,
+                        secondHouseDeposit,
+                        secondMortgage,
+                        secondUpgradeValue,
+                        ...simulation,
+                      });
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const feasibleResults = results.sort(compareOptimizerResults).map(sanitizeResult);
+
+    return {
+      assumptionCase: {
+        id: assumptionCase.id,
+        label: assumptionCase.label,
+        incomeGrowth: assumptionCase.incomeGrowth,
+        isaGrowth: assumptionCase.isaGrowth,
+        propertyGrowth: assumptionCase.propertyGrowth,
+        incomeCase: assumptionCase.incomeCase,
+        marketCase: assumptionCase.marketCase,
+      },
+      scenariosTested,
+      feasibleCount: feasibleResults.length,
+      bestResult: feasibleResults[0] ?? null,
+      feasibleResults,
+    };
+  });
+
+  return {
+    generatedAt: new Date().toISOString(),
+    baseParams: {
+      startYear: baseParams.startYear,
+      firstHousePurchaseYear: baseParams.firstHousePurchaseYear,
+      mortgageRate: baseParams.mortgageRate,
+      realGrowthCosts: baseParams.realGrowthCosts,
+      baseLivingCost: baseParams.baseLivingCost,
+      child1AnnualCost: baseParams.child1AnnualCost,
+      child2AnnualCost: baseParams.child2AnnualCost,
+      recessionYear: baseParams.recessionYear,
+      secondRecessionYear: baseParams.secondRecessionYear,
+      thirdRecessionYear: baseParams.thirdRecessionYear,
+      enableRedundancy: baseParams.enableRedundancy,
+    },
+    searchConfig,
+    searchMeta: {
+      isExhaustive: true,
+      exactScenarioCount: caseResults.reduce((count, caseResult) => count + caseResult.scenariosTested, 0),
+      testedScenarioCount: caseResults.reduce((count, caseResult) => count + caseResult.scenariosTested, 0),
+      feasibleScenarioCount: caseResults.reduce((count, caseResult) => count + caseResult.feasibleCount, 0),
+      startingCashPool,
+    },
+    caseResults,
+  };
+};
+
+const payload = runFullHousingOptimizer({ baseParams, searchConfig });
+await writeFile(outputPath, JSON.stringify(payload, null, 2));
+
+console.log(`Wrote ${outputPath}`);
+console.log(`Tested: ${payload.searchMeta.testedScenarioCount}`);
+console.log(`Feasible: ${payload.searchMeta.feasibleScenarioCount}`);

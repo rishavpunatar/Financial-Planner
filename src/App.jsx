@@ -100,6 +100,7 @@ const CAREER_GROWTH_END_AGE = 55;
 const OPTIMIZER_STARTING_INCOME_1 = 70000;
 const OPTIMIZER_STARTING_INCOME_2 = 90000;
 const OPTIMIZER_SAMPLE_COUNT = 3;
+const OPTIMIZER_FULL_SEARCH_LIMIT = 60000;
 const OPTIMIZER_MIN_FIRST_PROPERTY_VALUE = 500000;
 const OPTIMIZER_MIN_UPGRADE_VALUE = 200000;
 const OPTIMIZER_MIN_END_PROPERTY_VALUE = 1000000;
@@ -330,7 +331,7 @@ const buildOptimizerSearchPlan = (searchConfig) => {
     count + (propertyMode === 'one' ? exactOnePropertyCount : exactTwoPropertyCount)
   ), 0);
   const totalScenarioCount = exactScenarioCount * OPTIMIZER_ASSUMPTION_CASES.length;
-  const isExhaustive = true;
+  const isExhaustive = totalScenarioCount <= OPTIMIZER_FULL_SEARCH_LIMIT;
 
   return {
     propertyModes,
@@ -1057,14 +1058,14 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
       }
     }
 
-    const sortedResults = results.sort(compareOptimizerResults);
+    const sortedResults = results.sort(compareOptimizerResults).slice(0, 3);
 
     return {
       assumptionCase,
       scenariosTested,
       feasibleCount: results.length,
       bestResult: sortedResults[0] ?? null,
-      feasibleResults: sortedResults,
+      topResults: sortedResults,
     };
   });
 
@@ -1308,6 +1309,8 @@ const App = () => {
     initialScenario?.optimizerLaterMortgagePctMax ?? clampValue(salaryMortgageLater + 5, 5, 50),
   );
   const [selectedOptimizerResultKey, setSelectedOptimizerResultKey] = useState('');
+  const [precomputedOptimizerPayload, setPrecomputedOptimizerPayload] = useState(null);
+  const [precomputedOptimizerError, setPrecomputedOptimizerError] = useState('');
 
   const kid1GiftYear = child1BirthYear + 27;
   const kid2GiftYear = child2BirthYear + 27;
@@ -1589,6 +1592,38 @@ const App = () => {
     saveFiltersToURL(currentScenario);
   }, [currentScenario]);
 
+  useEffect(() => {
+    if (activeTab !== 'optimizer' || precomputedOptimizerPayload || precomputedOptimizerError) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const loadPrecomputedOptimizerResults = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.BASE_URL}precomputed-optimizer-results.json`);
+        if (!response.ok) {
+          throw new Error(`Request failed with ${response.status}`);
+        }
+
+        const payload = await response.json();
+        if (!cancelled) {
+          setPrecomputedOptimizerPayload(payload);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setPrecomputedOptimizerError(error instanceof Error ? error.message : 'Failed to load precomputed optimizer results');
+        }
+      }
+    };
+
+    loadPrecomputedOptimizerResults();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, precomputedOptimizerPayload, precomputedOptimizerError]);
+
   const handleSecondHouseYearChange = (value) => {
     const adjusted = Math.min(
       Math.max(value, firstHousePurchaseYear + 1),
@@ -1790,11 +1825,23 @@ const App = () => {
       .sort(compareOptimizerResults)
   ), [optimizerResults]);
 
-  const optimizerAllFeasibleResults = useMemo(() => (
-    optimizerResults
-      .flatMap(({ feasibleResults }) => feasibleResults)
+  const precomputedOptimizerResults = useMemo(
+    () => precomputedOptimizerPayload?.caseResults ?? [],
+    [precomputedOptimizerPayload],
+  );
+  const precomputedOptimizerSearchMeta = precomputedOptimizerPayload?.searchMeta ?? null;
+  const precomputedOptimizerGeneratedAt = precomputedOptimizerPayload?.generatedAt ?? '';
+  const precomputedRecommendedResults = useMemo(() => (
+    precomputedOptimizerResults
+      .map(({ bestResult }) => bestResult)
+      .filter(Boolean)
       .sort(compareOptimizerResults)
-  ), [optimizerResults]);
+  ), [precomputedOptimizerResults]);
+  const precomputedAllFeasibleResults = useMemo(() => (
+    precomputedOptimizerResults
+      .flatMap(({ feasibleResults = [] }) => feasibleResults)
+      .sort(compareOptimizerResults)
+  ), [precomputedOptimizerResults]);
 
   const optimizerResultsByIncome = useMemo(() => (
     OPTIMIZER_INCOME_CASES.map((incomeCase) => ({
@@ -1807,13 +1854,20 @@ const App = () => {
     }))
   ), [optimizerResults]);
 
-  const selectedOptimizerResult = useMemo(() => {
-    if (!optimizerAllFeasibleResults.length) return null;
+  const displayOptimizerResults = precomputedAllFeasibleResults.length
+    ? precomputedAllFeasibleResults
+    : optimizerRecommendedResults;
+  const displayOptimizerRecommendedResults = precomputedAllFeasibleResults.length
+    ? precomputedRecommendedResults
+    : optimizerRecommendedResults;
 
-    return optimizerAllFeasibleResults.find(
+  const selectedOptimizerResult = useMemo(() => {
+    if (!displayOptimizerResults.length) return null;
+
+    return displayOptimizerResults.find(
       result => getOptimizerResultKey(result) === selectedOptimizerResultKey,
-    ) || optimizerAllFeasibleResults[0];
-  }, [optimizerAllFeasibleResults, selectedOptimizerResultKey]);
+    ) || displayOptimizerResults[0];
+  }, [displayOptimizerResults, selectedOptimizerResultKey]);
 
   const handleApplyOptimizerResult = (result) => {
     setIncome1Start(OPTIMIZER_STARTING_INCOME_1);
@@ -2845,10 +2899,12 @@ const App = () => {
             Mode selected: {optimizerModeLabel}. {optimizerModeDescription}
           </p>
           <p className="helper-text">
-            Search type: full stepped search across every active value in the current ranges.
-            {optimizerSearchMeta
-              ? ` The current full grid contains ${optimizerSearchMeta.exactScenarioCount.toLocaleString()} assumption-path combinations, and the optimizer now tests all of them.`
-              : ''}
+            Search type: {optimizerSearchMeta?.isExhaustive ? 'full stepped search across every value in the active ranges' : 'sampled browser preview across the active ranges'}.
+            {optimizerSearchMeta && !optimizerSearchMeta.isExhaustive
+              ? ` The full stepped grid would require ${optimizerSearchMeta.exactScenarioCount.toLocaleString()} assumption-path combinations, so the browser preview only samples the range to stay responsive.`
+              : optimizerSearchMeta
+                ? ` The current browser run covers ${optimizerSearchMeta.exactScenarioCount.toLocaleString()} assumption-path combinations exactly.`
+                : ''}
           </p>
           <p className="helper-text">
             "Tested" means the number of housing combinations the optimizer actually ran for that assumption case. "Feasible" means the subset that passed every hard rule: positive liquid cash at the end, property floor above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, no funding gap, no cumulative shortfall, no capitalised interest, and mortgage balances within the caps.
@@ -3088,18 +3144,26 @@ const App = () => {
             <div className="optimizer-selected-card">
               <div className="optimizer-result-header">
                 <div>
-                  <div className="optimizer-result-title">Selected feasible combination</div>
+                  <div className="optimizer-result-title">
+                    {precomputedAllFeasibleResults.length
+                      ? 'Selected full-search combination'
+                      : 'Selected preview combination'}
+                  </div>
                   <div className="optimizer-result-sub">
-                    The buttons below switch between the best feasible result from each income-growth and market-growth case. All feasible combinations are listed further down the page.
+                    {precomputedAllFeasibleResults.length
+                      ? 'The buttons below switch between the best combination from each income-growth and market-growth case using the terminal-side full search.'
+                      : 'The buttons below switch between the best combinations from the browser-side preview for each income-growth and market-growth case.'}
                   </div>
                 </div>
                 <div className="optimizer-result-meta">
-                  {optimizerAllFeasibleResults.length.toLocaleString()} feasible / {optimizerSearchMeta ? optimizerSearchMeta.testedScenarioCount.toLocaleString() : '0'} tested
+                  {precomputedAllFeasibleResults.length
+                    ? `${precomputedAllFeasibleResults.length.toLocaleString()} feasible / ${precomputedOptimizerSearchMeta ? precomputedOptimizerSearchMeta.testedScenarioCount.toLocaleString() : '0'} tested`
+                    : `${optimizerRecommendedResults.length.toLocaleString()} preview winners`}
                 </div>
               </div>
 
               <div className="optimizer-choice-row">
-                {optimizerRecommendedResults.map((result, index) => {
+                {displayOptimizerRecommendedResults.map((result, index) => {
                   const resultKey = getOptimizerResultKey(result);
                   return (
                     <button
@@ -3161,22 +3225,28 @@ const App = () => {
             </div>
           )}
 
-          {optimizerAllFeasibleResults.length > 0 && (
+          {precomputedAllFeasibleResults.length > 0 && (
             <div className="optimizer-selected-card">
               <div className="optimizer-result-header">
                 <div>
-                  <div className="optimizer-result-title">All feasible combinations</div>
+                  <div className="optimizer-result-title">All feasible combinations from terminal run</div>
                   <div className="optimizer-result-sub">
-                    Every scenario that passed the optimizer rules across the active ranges and all income/market cases.
+                    Every scenario that passed the optimizer rules across the active ranges and all income/market cases in the last terminal-side full search. These results stay fixed until the terminal precompute is run again.
                   </div>
                 </div>
                 <div className="optimizer-result-meta">
-                  {optimizerAllFeasibleResults.length.toLocaleString()} feasible total
+                  {precomputedAllFeasibleResults.length.toLocaleString()} feasible total
                 </div>
               </div>
 
+              {precomputedOptimizerGeneratedAt && (
+                <div className="optimizer-result-sub">
+                  Generated: {new Date(precomputedOptimizerGeneratedAt).toLocaleString()}
+                </div>
+              )}
+
               <div className="optimizer-feasible-list">
-                {optimizerAllFeasibleResults.map((result, index) => {
+                {precomputedAllFeasibleResults.map((result, index) => {
                   const resultKey = getOptimizerResultKey(result);
                   const isSelected = resultKey === getOptimizerResultKey(selectedOptimizerResult);
                   return (
@@ -3194,6 +3264,12 @@ const App = () => {
             </div>
           )}
 
+          {activeTab === 'optimizer' && !precomputedAllFeasibleResults.length && precomputedOptimizerError && (
+            <div className="optimizer-empty">
+              Full terminal results could not be loaded: {precomputedOptimizerError}
+            </div>
+          )}
+
           {optimizerResultsByIncome.map(({ incomeCase, caseResults }) => (
             <div key={incomeCase.id} className="optimizer-income-section">
               <div className="optimizer-income-header">
@@ -3204,7 +3280,7 @@ const App = () => {
               </div>
 
               <div className="optimizer-results-grid">
-                {caseResults.map(({ assumptionCase, scenariosTested, feasibleCount, bestResult, feasibleResults }) => (
+                {caseResults.map(({ assumptionCase, scenariosTested, feasibleCount, bestResult, topResults }) => (
                   <div key={assumptionCase.id} className="optimizer-result-card">
                     <div className="optimizer-result-header">
                       <div>
@@ -3246,11 +3322,11 @@ const App = () => {
                         </div>
 
                         <div className="optimizer-detail-list">
-                          <div>All feasible combinations in this case: {feasibleResults.length}</div>
+                          <div>Quick preview options in this case: {topResults.length}</div>
                         </div>
 
-                        <div className="optimizer-feasible-list">
-                          {feasibleResults.map((result, index) => {
+                        <div className="optimizer-top-list">
+                          {topResults.map((result, index) => {
                             const resultKey = getOptimizerResultKey(result);
                             const isSelected = resultKey === getOptimizerResultKey(selectedOptimizerResult || bestResult);
 
@@ -3261,7 +3337,7 @@ const App = () => {
                                 className={`optimizer-top-item${isSelected ? ' optimizer-choice-active' : ''}`}
                                 onClick={() => setSelectedOptimizerResultKey(resultKey)}
                               >
-                                Feasible {index + 1}: {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | net worth {formatCurrency(getOptimizerNetWorth(result))} | cash {formatCurrency(result.cashEnd)} | equity {formatCurrency(result.equityEnd)} | interest {formatCurrency(result.lifetimeInterestPaid)}
+                                Preview {index + 1}: {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | net worth {formatCurrency(getOptimizerNetWorth(result))} | cash {formatCurrency(result.cashEnd)} | equity {formatCurrency(result.equityEnd)} | interest {formatCurrency(result.lifetimeInterestPaid)}
                               </button>
                             );
                           })}
