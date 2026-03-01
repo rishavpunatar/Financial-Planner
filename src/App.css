@@ -230,6 +230,13 @@ body {
   margin-top: 12px;
 }
 
+.optimizer-range-summary {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .optimizer-results-grid {
   margin-top: 14px;
   display: grid;
@@ -746,6 +753,10 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .optimizer-range-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .chart-top-row {
     flex-direction: column;
   }
@@ -797,6 +808,10 @@ body {
   }
 
   .optimizer-results-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .optimizer-range-summary {
     grid-template-columns: minmax(0, 1fr);
   }
 
