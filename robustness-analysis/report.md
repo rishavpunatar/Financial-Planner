@@ -1,6 +1,6 @@
 # Robustness analysis
 
-Generated: 2026-03-01T22:57:58.056Z
+Generated: 2026-03-01T23:13:53.058Z
 
 ## Setup
 
@@ -28,16 +28,16 @@ A robust starting region is first deposit GBP 250k to GBP 250k and first mortgag
 
 | Rank | Strategy | Path | Deposit 1 | Mortgage 1 | Expected Net Worth | Regret CVaR 10% | Feasibility | Private School Feasibility |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | S013 | Two-home | GBP 250k | GBP 250k | GBP 2.24m | GBP 1.04m | 63.9% | 4.5% |
-| 2 | S008 | Two-home | GBP 250k | GBP 250k | GBP 2.25m | GBP 1.06m | 64.3% | 3.3% |
-| 3 | S019 | Two-home | GBP 250k | GBP 250k | GBP 2.23m | GBP 1.01m | 62.5% | 5.7% |
-| 4 | S002 | Two-home | GBP 250k | GBP 250k | GBP 2.27m | GBP 1.04m | 61.0% | 4.3% |
-| 5 | S016 | Two-home | GBP 250k | GBP 300k | GBP 2.23m | GBP 1.08m | 62.8% | 2.9% |
-| 6 | S004 | Two-home | GBP 250k | GBP 250k | GBP 2.26m | GBP 1.01m | 59.4% | 5.6% |
-| 7 | S003 | Two-home | GBP 250k | GBP 250k | GBP 2.26m | GBP 1.04m | 60.4% | 4.5% |
-| 8 | S001 | Two-home | GBP 250k | GBP 250k | GBP 2.27m | GBP 1.06m | 61.0% | 3.3% |
-| 9 | S007 | Two-home | GBP 250k | GBP 250k | GBP 2.25m | GBP 1.02m | 57.3% | 5.9% |
-| 10 | S006 | Two-home | GBP 250k | GBP 300k | GBP 2.25m | GBP 1.06m | 58.5% | 3.9% |
+| 1 | S019 | Two-home | GBP 250k | GBP 250k | GBP 2.23m | GBP 1.01m | 59.3% | 2.8% |
+| 2 | S013 | Two-home | GBP 250k | GBP 250k | GBP 2.24m | GBP 1.04m | 59.3% | 2.0% |
+| 3 | S008 | Two-home | GBP 250k | GBP 250k | GBP 2.25m | GBP 1.06m | 56.5% | 1.3% |
+| 4 | S216 | One-home | GBP 300k | GBP 550k | GBP 2.30m | GBP 1.12m | 53.9% | 0.1% |
+| 5 | S030 | Two-home | GBP 250k | GBP 250k | GBP 2.30m | GBP 880k | 45.2% | 5.9% |
+| 6 | S016 | Two-home | GBP 250k | GBP 300k | GBP 2.23m | GBP 1.08m | 54.0% | 1.1% |
+| 7 | S029 | Two-home | GBP 250k | GBP 250k | GBP 2.31m | GBP 903k | 45.9% | 4.9% |
+| 8 | S150 | Two-home | GBP 250k | GBP 300k | GBP 2.28m | GBP 903k | 46.2% | 5.7% |
+| 9 | S012 | Two-home | GBP 250k | GBP 250k | GBP 2.24m | GBP 993k | 49.3% | 3.7% |
+| 10 | S028 | Two-home | GBP 250k | GBP 250k | GBP 2.32m | GBP 927k | 45.1% | 3.8% |
 
 ## Pareto frontier
 
