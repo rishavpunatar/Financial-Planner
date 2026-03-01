@@ -100,6 +100,7 @@ const CAREER_GROWTH_END_AGE = 55;
 const OPTIMIZER_STARTING_INCOME_1 = 70000;
 const OPTIMIZER_STARTING_INCOME_2 = 90000;
 const OPTIMIZER_SAMPLE_COUNT = 3;
+const OPTIMIZER_FULL_SEARCH_LIMIT = 60000;
 const OPTIMIZER_INCOME_PROFILES = [
   {
     id: 'steady',
@@ -151,6 +152,130 @@ const buildSamplePoints = (min, max, step, count = OPTIMIZER_SAMPLE_COUNT) => {
   }
 
   return Array.from(points).sort((a, b) => a - b);
+};
+
+const buildSteppedPoints = (min, max, step) => {
+  const lower = Math.min(min, max);
+  const upper = Math.max(min, max);
+  const points = [];
+
+  for (let value = lower; value <= upper + step / 2; value += step) {
+    points.push(clampValue(roundToStep(value, step), lower, upper));
+  }
+
+  return Array.from(new Set(points)).sort((a, b) => a - b);
+};
+
+const countSecondHouseYearOptions = (
+  firstHouseYears,
+  secondHouseYearMin,
+  secondHouseYearMax,
+) =>
+  firstHouseYears.reduce((count, firstHousePurchaseYear) => {
+    const earliestSecondYear = Math.max(secondHouseYearMin, firstHousePurchaseYear + 1);
+    if (earliestSecondYear > secondHouseYearMax) return count;
+
+    return count + (secondHouseYearMax - earliestSecondYear + 1);
+  }, 0);
+
+const buildOptimizerSearchPlan = (searchConfig) => {
+  const exactFirstHouseValues = buildSteppedPoints(
+    searchConfig.firstHouseValueMin,
+    searchConfig.firstHouseValueMax,
+    50000,
+  );
+  const exactFirstHouseDepositPcts = buildSteppedPoints(
+    searchConfig.firstHouseDepositPctMin,
+    searchConfig.firstHouseDepositPctMax,
+    5,
+  );
+  const exactFirstHouseYears = buildSteppedPoints(
+    searchConfig.firstHouseYearMin,
+    searchConfig.firstHouseYearMax,
+    1,
+  );
+  const exactEarlyMortgagePcts = buildSteppedPoints(
+    searchConfig.earlyMortgagePctMin,
+    searchConfig.earlyMortgagePctMax,
+    1,
+  );
+  const exactSecondUpgradeValues = buildSteppedPoints(
+    searchConfig.secondUpgradeValueMin,
+    searchConfig.secondUpgradeValueMax,
+    50000,
+  );
+  const exactSecondHouseDepositPcts = buildSteppedPoints(
+    searchConfig.secondHouseDepositPctMin,
+    searchConfig.secondHouseDepositPctMax,
+    5,
+  );
+  const exactSecondHouseYears = buildSteppedPoints(
+    searchConfig.secondHouseYearMin,
+    searchConfig.secondHouseYearMax,
+    1,
+  );
+  const exactLaterMortgagePcts = buildSteppedPoints(
+    searchConfig.laterMortgagePctMin,
+    searchConfig.laterMortgagePctMax,
+    1,
+  );
+
+  const exactOnePropertyCount =
+    exactFirstHouseValues.length *
+    exactFirstHouseDepositPcts.length *
+    exactFirstHouseYears.length *
+    exactEarlyMortgagePcts.length;
+  const exactTwoPropertyCount =
+    exactFirstHouseValues.length *
+    exactFirstHouseDepositPcts.length *
+    exactEarlyMortgagePcts.length *
+    exactSecondUpgradeValues.length *
+    exactSecondHouseDepositPcts.length *
+    exactLaterMortgagePcts.length *
+    countSecondHouseYearOptions(
+      exactFirstHouseYears,
+      searchConfig.secondHouseYearMin,
+      searchConfig.secondHouseYearMax,
+    );
+
+  const propertyModes = searchConfig.propertyMode === 'both'
+    ? ['one', 'two']
+    : [searchConfig.propertyMode];
+
+  const exactScenarioCount = propertyModes.reduce((count, propertyMode) => (
+    count + (propertyMode === 'one' ? exactOnePropertyCount : exactTwoPropertyCount)
+  ), 0);
+  const isExhaustive = exactScenarioCount <= OPTIMIZER_FULL_SEARCH_LIMIT;
+
+  return {
+    propertyModes,
+    isExhaustive,
+    exactScenarioCount,
+    firstHouseValues: isExhaustive
+      ? exactFirstHouseValues
+      : buildSamplePoints(searchConfig.firstHouseValueMin, searchConfig.firstHouseValueMax, 50000),
+    firstHouseDepositPcts: isExhaustive
+      ? exactFirstHouseDepositPcts
+      : buildSamplePoints(searchConfig.firstHouseDepositPctMin, searchConfig.firstHouseDepositPctMax, 5),
+    firstHouseYears: isExhaustive
+      ? exactFirstHouseYears
+      : buildSamplePoints(searchConfig.firstHouseYearMin, searchConfig.firstHouseYearMax, 1),
+    earlyMortgagePcts: isExhaustive
+      ? exactEarlyMortgagePcts
+      : buildSamplePoints(searchConfig.earlyMortgagePctMin, searchConfig.earlyMortgagePctMax, 1),
+    secondUpgradeValues: isExhaustive
+      ? exactSecondUpgradeValues
+      : buildSamplePoints(searchConfig.secondUpgradeValueMin, searchConfig.secondUpgradeValueMax, 50000),
+    secondHouseDepositPcts: isExhaustive
+      ? exactSecondHouseDepositPcts
+      : buildSamplePoints(searchConfig.secondHouseDepositPctMin, searchConfig.secondHouseDepositPctMax, 5),
+    secondHouseYears: isExhaustive
+      ? exactSecondHouseYears
+      : buildSamplePoints(searchConfig.secondHouseYearMin, searchConfig.secondHouseYearMax, 1),
+    laterMortgagePcts: isExhaustive
+      ? exactLaterMortgagePcts
+      : buildSamplePoints(searchConfig.laterMortgagePctMin, searchConfig.laterMortgagePctMax, 1),
+  };
 };
 
 const calculateRealTermsTakeHomePay = (
@@ -647,36 +772,21 @@ const simulateFinancialPlan = (params) => {
 
 const runHousingOptimizer = ({ baseParams, searchConfig }) => {
   const {
-    propertyMode,
-    firstHouseValueMin,
-    firstHouseValueMax,
-    firstHouseDepositPctMin,
-    firstHouseDepositPctMax,
-    firstHouseYearMin,
-    firstHouseYearMax,
-    secondUpgradeValueMin,
-    secondUpgradeValueMax,
-    secondHouseDepositPctMin,
-    secondHouseDepositPctMax,
-    secondHouseYearMin,
-    secondHouseYearMax,
-    earlyMortgagePctMin,
-    earlyMortgagePctMax,
-    laterMortgagePctMin,
-    laterMortgagePctMax,
-  } = searchConfig;
+    propertyModes,
+    isExhaustive,
+    exactScenarioCount,
+    firstHouseValues,
+    firstHouseDepositPcts,
+    firstHouseYears,
+    earlyMortgagePcts,
+    secondUpgradeValues,
+    secondHouseDepositPcts,
+    secondHouseYears,
+    laterMortgagePcts,
+  } = buildOptimizerSearchPlan(searchConfig);
+  const startingCashPool = baseParams.initialDeposit + baseParams.isaSeed;
 
-  const firstHouseValues = buildSamplePoints(firstHouseValueMin, firstHouseValueMax, 50000);
-  const firstHouseDepositPcts = buildSamplePoints(firstHouseDepositPctMin, firstHouseDepositPctMax, 5);
-  const firstHouseYears = buildSamplePoints(firstHouseYearMin, firstHouseYearMax, 1);
-  const earlyMortgagePcts = buildSamplePoints(earlyMortgagePctMin, earlyMortgagePctMax, 1);
-  const secondUpgradeValues = buildSamplePoints(secondUpgradeValueMin, secondUpgradeValueMax, 50000);
-  const secondHouseDepositPcts = buildSamplePoints(secondHouseDepositPctMin, secondHouseDepositPctMax, 5);
-  const laterMortgagePcts = buildSamplePoints(laterMortgagePctMin, laterMortgagePctMax, 1);
-
-  const propertyModes = propertyMode === 'both' ? ['one', 'two'] : [propertyMode];
-
-  return OPTIMIZER_INCOME_PROFILES.map((profile) => {
+  const profileResults = OPTIMIZER_INCOME_PROFILES.map((profile) => {
     const results = [];
     let scenariosTested = 0;
 
@@ -690,6 +800,11 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                 10000,
               );
               const initialMortgage = Math.max(0, firstHouseValue - initialDeposit);
+              const optimizerIsaSeed = Math.max(0, startingCashPool - initialDeposit);
+
+              if (initialDeposit > startingCashPool) {
+                continue;
+              }
 
               if (currentPropertyMode === 'one') {
                 scenariosTested += 1;
@@ -702,6 +817,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                   salaryMortgageLater: salaryMortgageEarly,
                   initialDeposit,
                   initialMortgage,
+                  isaSeed: optimizerIsaSeed,
                   secondHouseDeposit: 0,
                   secondMortgage: 0,
                   income1Start: OPTIMIZER_STARTING_INCOME_1,
@@ -727,6 +843,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                   firstHouseValue,
                   salaryMortgageEarly,
                   salaryMortgageLater: salaryMortgageEarly,
+                  optimizerIsaSeed,
                   secondHouseYear: null,
                   secondHouseDeposit: 0,
                   secondMortgage: 0,
@@ -749,11 +866,13 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                       10000,
                     );
                     const secondMortgage = Math.max(0, secondUpgradeValue - secondHouseDeposit);
-                    const validSecondHouseYears = buildSamplePoints(
-                      Math.max(secondHouseYearMin, firstHousePurchaseYear + 1),
-                      secondHouseYearMax,
-                      1,
+                    const validSecondHouseYears = secondHouseYears.filter(
+                      secondHouseYear => secondHouseYear > firstHousePurchaseYear,
                     );
+
+                    if (validSecondHouseYears.length === 0) {
+                      continue;
+                    }
 
                     for (const secondHouseYear of validSecondHouseYears) {
                       scenariosTested += 1;
@@ -767,6 +886,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                         salaryMortgageLater,
                         initialDeposit,
                         initialMortgage,
+                        isaSeed: optimizerIsaSeed,
                         secondHouseDeposit,
                         secondMortgage,
                         income1Start: OPTIMIZER_STARTING_INCOME_1,
@@ -792,6 +912,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                         firstHouseValue,
                         salaryMortgageEarly,
                         salaryMortgageLater,
+                        optimizerIsaSeed,
                         secondHouseYear,
                         secondHouseDeposit,
                         secondMortgage,
@@ -822,7 +943,35 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
       topResults: sortedResults,
     };
   });
+
+  return {
+    profileResults,
+    searchMeta: {
+      isExhaustive,
+      exactScenarioCount,
+      testedScenarioCount: profileResults.reduce(
+        (count, profileResult) => count + profileResult.scenariosTested,
+        0,
+      ),
+      startingCashPool,
+    },
+  };
 };
+
+const getOptimizerResultKey = (result) => [
+  result.incomeProfile.id,
+  result.enableSecondHouse ? 'two' : 'one',
+  result.firstHousePurchaseYear,
+  result.firstHouseValue,
+  result.initialDeposit,
+  result.initialMortgage,
+  result.secondHouseYear ?? 'none',
+  result.secondUpgradeValue ?? 0,
+  result.secondHouseDeposit ?? 0,
+  result.secondMortgage ?? 0,
+  result.salaryMortgageEarly,
+  result.salaryMortgageLater,
+].join('|');
 
 const App = () => {
   const initialScenario = useMemo(() => loadStoredScenario(), []);
@@ -989,6 +1138,7 @@ const App = () => {
   const [optimizerLaterMortgagePctMax, setOptimizerLaterMortgagePctMax] = useState(
     initialScenario?.optimizerLaterMortgagePctMax ?? clampValue(salaryMortgageLater + 5, 5, 50),
   );
+  const [selectedOptimizerResultKey, setSelectedOptimizerResultKey] = useState('');
 
   const kid1GiftYear = child1BirthYear + 27;
   const kid2GiftYear = child2BirthYear + 27;
@@ -1411,8 +1561,13 @@ const App = () => {
     ? finalIsaTotal + finalSurplusPot - finalMortgageBalance - finalShortfall
     : simulatedFinalLiquidNet;
 
-  const optimizerResults = useMemo(() => {
-    if (activeTab !== 'optimizer') return [];
+  const { profileResults: optimizerResults, searchMeta: optimizerSearchMeta } = useMemo(() => {
+    if (activeTab !== 'optimizer') {
+      return {
+        profileResults: [],
+        searchMeta: null,
+      };
+    }
 
     return runHousingOptimizer({
       baseParams: buildSimulationParams(),
@@ -1458,16 +1613,42 @@ const App = () => {
     optimizerLaterMortgagePctMax,
   ]);
 
+  const optimizerRecommendedResults = useMemo(() => {
+    const seenResults = new Set();
+
+    return optimizerResults
+      .flatMap(({ topResults }) => topResults)
+      .sort((left, right) => right.score - left.score)
+      .filter((result) => {
+        const resultKey = getOptimizerResultKey(result);
+        if (seenResults.has(resultKey)) return false;
+        seenResults.add(resultKey);
+        return true;
+      })
+      .slice(0, 6);
+  }, [optimizerResults]);
+
+  const selectedOptimizerResult = useMemo(() => {
+    if (!optimizerRecommendedResults.length) return null;
+
+    return optimizerRecommendedResults.find(
+      result => getOptimizerResultKey(result) === selectedOptimizerResultKey,
+    ) || optimizerRecommendedResults[0];
+  }, [optimizerRecommendedResults, selectedOptimizerResultKey]);
+
   const handleApplyOptimizerResult = (result) => {
     setIncome1Start(OPTIMIZER_STARTING_INCOME_1);
     setIncome2Start(OPTIMIZER_STARTING_INCOME_2);
     setIncomeGrowth(result.incomeProfile.growth);
+    setInitialCash(result.initialDeposit + result.optimizerIsaSeed);
     setInitialDeposit(result.initialDeposit);
     setInitialMortgage(result.initialMortgage);
+    setIsaSeed(result.optimizerIsaSeed);
     setFirstHousePurchaseYear(result.firstHousePurchaseYear);
     setSalaryMortgageEarly(result.salaryMortgageEarly);
     setSalaryMortgageLater(result.salaryMortgageLater);
     setEnableSecondHouse(result.enableSecondHouse);
+    setLockHouseLink(false);
 
     if (result.enableSecondHouse) {
       setSecondHouseDeposit(result.secondHouseDeposit);
@@ -1568,6 +1749,25 @@ const App = () => {
       ? `In ${negativeAmortizationYears} year(s), the mortgage budget does not cover all interest, so ${formatCurrency(capitalizedInterestTotal)} is added back onto the loan balance.`
       : 'Mortgage repayments always cover interest under the current assumptions.',
     'Mortgage repayments are budget-driven from salary percentages rather than a lender-style amortisation schedule.',
+  ];
+
+  const optimizerModeLabel = optimizerPropertyMode === 'both'
+    ? 'Let optimizer choose'
+    : optimizerPropertyMode === 'one'
+      ? 'Keep one home'
+      : 'Buy then upgrade';
+  const optimizerModeDescription = optimizerPropertyMode === 'both'
+    ? 'Tests both a one-home path and a later move to a second home, then keeps whichever scores best.'
+    : optimizerPropertyMode === 'one'
+      ? 'Only tests scenarios where you buy one property and never move again.'
+      : 'Only tests scenarios where you buy a first property and later move to a second home.';
+  const showOptimizerSecondHouseControls = optimizerPropertyMode !== 'one';
+  const optimizerFrozenAssumptions = [
+    `Starting incomes are fixed at ${formatCurrency(OPTIMIZER_STARTING_INCOME_1)} and ${formatCurrency(OPTIMIZER_STARTING_INCOME_2)}.`,
+    `The first-house deposit and starting ISA seed share one fixed starting cash pool of ${formatCurrency(optimizerSearchMeta?.startingCashPool ?? (initialDeposit + isaSeed))}.`,
+    `Outside housing choices and income growth, the planner assumptions stay frozen: mortgage real rate ${mortgageRate}%, property growth ${realGrowthProperty}%, ISA growth ${isaGrowth}%, and living-cost growth ${realGrowthCosts}%.`,
+    `Base living costs, child costs, visa costs, car purchase, gifts, private school setting, recessions, redundancy years, tax drag, and pension contribution rate all stay exactly as set in the planner tab.`,
+    `The optimizer still uses the same model rules shown in the planner assumptions, including stamp duty, ISA deposit funding for the second move, and the age-${END_AGE} end point.`,
   ];
 
   return (
@@ -2430,13 +2630,19 @@ const App = () => {
         <div className="chart-card">
           <h2 className="panel-title">Housing Optimizer</h2>
           <p className="helper-text">
-            This optimizer keeps the current planner assumptions fixed, but resets income to £70k for person 1 and £90k for person 2 and searches for the best housing setup under three reasonable real corporate income-growth paths.
+            This tab keeps the planner assumptions fixed, resets starting income to £70k for person 1 and £90k for person 2, and searches housing choices against three real income-growth paths for corporate careers.
           </p>
           <p className="helper-text">
             Score = final cash + final property value - lifetime mortgage paid. Results are only kept if final cash and property stay positive, with no funding gap, no cumulative shortfall, and no capitalised interest.
           </p>
           <p className="helper-text">
-            Each range is sampled at low, middle, and high points, so this works best as a fast scenario search rather than a mathematically exhaustive optimizer.
+            Mode selected: {optimizerModeLabel}. {optimizerModeDescription}
+          </p>
+          <p className="helper-text">
+            Search type: {optimizerSearchMeta?.isExhaustive ? 'full stepped search across every value in the active ranges' : 'sampled search across the active ranges'}.
+            {!optimizerSearchMeta?.isExhaustive && optimizerSearchMeta
+              ? ` The full stepped grid would require ${optimizerSearchMeta.exactScenarioCount.toLocaleString()} scenarios, so the optimizer is using a faster sampled search. Narrow the ranges if you want a true full-grid answer.`
+              : ''}
           </p>
 
           <div className="optimizer-mode-row">
@@ -2445,22 +2651,33 @@ const App = () => {
               className={`view-tab${optimizerPropertyMode === 'both' ? ' view-tab-active' : ''}`}
               onClick={() => setOptimizerPropertyMode('both')}
             >
-              Search 1 & 2 properties
+              Let optimizer choose
             </button>
             <button
               type="button"
               className={`view-tab${optimizerPropertyMode === 'one' ? ' view-tab-active' : ''}`}
               onClick={() => setOptimizerPropertyMode('one')}
             >
-              1 property only
+              Keep one home
             </button>
             <button
               type="button"
               className={`view-tab${optimizerPropertyMode === 'two' ? ' view-tab-active' : ''}`}
               onClick={() => setOptimizerPropertyMode('two')}
             >
-              2 properties only
+              Buy then upgrade
             </button>
+          </div>
+
+          <div className="assumptions-box">
+            <h3 className="assumptions-title">Frozen assumptions during search</h3>
+            <div className="assumptions-list">
+              {optimizerFrozenAssumptions.map((assumption) => (
+                <div key={assumption} className="assumption-item">
+                  {assumption}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="advanced-grid optimizer-grid">
@@ -2519,60 +2736,6 @@ const App = () => {
               formatValue={v => v}
             />
             <RangeSlider
-              label="Second House Upgrade Min"
-              value={optimizerSecondUpgradeValueMin}
-              min={50000}
-              max={1000000}
-              step={50000}
-              onChange={setOptimizerSecondUpgradeValueMin}
-              formatValue={formatCurrency}
-            />
-            <RangeSlider
-              label="Second House Upgrade Max"
-              value={optimizerSecondUpgradeValueMax}
-              min={50000}
-              max={1000000}
-              step={50000}
-              onChange={setOptimizerSecondUpgradeValueMax}
-              formatValue={formatCurrency}
-            />
-            <RangeSlider
-              label="Second House Deposit % Range Start"
-              value={optimizerSecondHouseDepositPctMin}
-              min={10}
-              max={90}
-              step={5}
-              onChange={setOptimizerSecondHouseDepositPctMin}
-              formatValue={v => `${v}%`}
-            />
-            <RangeSlider
-              label="Second House Deposit % Range End"
-              value={optimizerSecondHouseDepositPctMax}
-              min={10}
-              max={90}
-              step={5}
-              onChange={setOptimizerSecondHouseDepositPctMax}
-              formatValue={v => `${v}%`}
-            />
-            <RangeSlider
-              label="Second House Year Min"
-              value={optimizerSecondHouseYearMin}
-              min={startYear + 1}
-              max={BASE_BIRTH_YEAR + END_AGE}
-              step={1}
-              onChange={setOptimizerSecondHouseYearMin}
-              formatValue={v => v}
-            />
-            <RangeSlider
-              label="Second House Year Max"
-              value={optimizerSecondHouseYearMax}
-              min={startYear + 1}
-              max={BASE_BIRTH_YEAR + END_AGE}
-              step={1}
-              onChange={setOptimizerSecondHouseYearMax}
-              formatValue={v => v}
-            />
-            <RangeSlider
               label="Mortgage % Early Range Start"
               value={optimizerEarlyMortgagePctMin}
               min={5}
@@ -2590,25 +2753,154 @@ const App = () => {
               onChange={setOptimizerEarlyMortgagePctMax}
               formatValue={v => `${v}%`}
             />
-            <RangeSlider
-              label="Mortgage % Later Range Start"
-              value={optimizerLaterMortgagePctMin}
-              min={5}
-              max={50}
-              step={1}
-              onChange={setOptimizerLaterMortgagePctMin}
-              formatValue={v => `${v}%`}
-            />
-            <RangeSlider
-              label="Mortgage % Later Range End"
-              value={optimizerLaterMortgagePctMax}
-              min={5}
-              max={50}
-              step={1}
-              onChange={setOptimizerLaterMortgagePctMax}
-              formatValue={v => `${v}%`}
-            />
+            {showOptimizerSecondHouseControls && (
+              <>
+                <RangeSlider
+                  label="Second House Upgrade Min"
+                  value={optimizerSecondUpgradeValueMin}
+                  min={50000}
+                  max={1000000}
+                  step={50000}
+                  onChange={setOptimizerSecondUpgradeValueMin}
+                  formatValue={formatCurrency}
+                />
+                <RangeSlider
+                  label="Second House Upgrade Max"
+                  value={optimizerSecondUpgradeValueMax}
+                  min={50000}
+                  max={1000000}
+                  step={50000}
+                  onChange={setOptimizerSecondUpgradeValueMax}
+                  formatValue={formatCurrency}
+                />
+                <RangeSlider
+                  label="Second House Deposit % Range Start"
+                  value={optimizerSecondHouseDepositPctMin}
+                  min={10}
+                  max={90}
+                  step={5}
+                  onChange={setOptimizerSecondHouseDepositPctMin}
+                  formatValue={v => `${v}%`}
+                />
+                <RangeSlider
+                  label="Second House Deposit % Range End"
+                  value={optimizerSecondHouseDepositPctMax}
+                  min={10}
+                  max={90}
+                  step={5}
+                  onChange={setOptimizerSecondHouseDepositPctMax}
+                  formatValue={v => `${v}%`}
+                />
+                <RangeSlider
+                  label="Second House Year Min"
+                  value={optimizerSecondHouseYearMin}
+                  min={startYear + 1}
+                  max={BASE_BIRTH_YEAR + END_AGE}
+                  step={1}
+                  onChange={setOptimizerSecondHouseYearMin}
+                  formatValue={v => v}
+                />
+                <RangeSlider
+                  label="Second House Year Max"
+                  value={optimizerSecondHouseYearMax}
+                  min={startYear + 1}
+                  max={BASE_BIRTH_YEAR + END_AGE}
+                  step={1}
+                  onChange={setOptimizerSecondHouseYearMax}
+                  formatValue={v => v}
+                />
+                <RangeSlider
+                  label="Mortgage % Later Range Start"
+                  value={optimizerLaterMortgagePctMin}
+                  min={5}
+                  max={50}
+                  step={1}
+                  onChange={setOptimizerLaterMortgagePctMin}
+                  formatValue={v => `${v}%`}
+                />
+                <RangeSlider
+                  label="Mortgage % Later Range End"
+                  value={optimizerLaterMortgagePctMax}
+                  min={5}
+                  max={50}
+                  step={1}
+                  onChange={setOptimizerLaterMortgagePctMax}
+                  formatValue={v => `${v}%`}
+                />
+              </>
+            )}
           </div>
+
+          {selectedOptimizerResult && (
+            <div className="optimizer-selected-card">
+              <div className="optimizer-result-header">
+                <div>
+                  <div className="optimizer-result-title">Best combinations found</div>
+                  <div className="optimizer-result-sub">
+                    Toggle between the strongest scenarios the optimizer found in the active search ranges.
+                  </div>
+                </div>
+                <div className="optimizer-result-meta">
+                  {optimizerSearchMeta ? optimizerSearchMeta.testedScenarioCount.toLocaleString() : '0'} tested
+                </div>
+              </div>
+
+              <div className="optimizer-choice-row">
+                {optimizerRecommendedResults.map((result, index) => {
+                  const resultKey = getOptimizerResultKey(result);
+                  return (
+                    <button
+                      key={resultKey}
+                      type="button"
+                      className={`optimizer-choice-button${resultKey === getOptimizerResultKey(selectedOptimizerResult) ? ' optimizer-choice-active' : ''}`}
+                      onClick={() => setSelectedOptimizerResultKey(resultKey)}
+                    >
+                      #{index + 1} {result.incomeProfile.label} · {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="optimizer-metric-grid">
+                <div className="summary-card summary-accent-cyan">
+                  <div className="summary-label">Score</div>
+                  <div className="summary-value">{formatCurrency(selectedOptimizerResult.score)}</div>
+                  <div className="summary-sub">Cash + property - mortgage paid</div>
+                </div>
+                <div className="summary-card summary-accent-green">
+                  <div className="summary-label">Final Cash</div>
+                  <div className="summary-value">{formatCurrency(selectedOptimizerResult.finalLiquidNet)}</div>
+                  <div className="summary-sub">Liquid net of mortgage</div>
+                </div>
+                <div className="summary-card summary-accent-blue">
+                  <div className="summary-label">Final Property</div>
+                  <div className="summary-value">{formatCurrency(selectedOptimizerResult.finalPropertyValue)}</div>
+                  <div className="summary-sub">{selectedOptimizerResult.enableSecondHouse ? 'Upgrade path' : 'One-home path'}</div>
+                </div>
+              </div>
+
+              <div className="optimizer-detail-list">
+                <div>Income path: {selectedOptimizerResult.incomeProfile.label} | real growth {selectedOptimizerResult.incomeProfile.growth}%</div>
+                <div>Starting cash split: deposit {formatCurrency(selectedOptimizerResult.initialDeposit)} | ISA seed {formatCurrency(selectedOptimizerResult.optimizerIsaSeed)}</div>
+                <div>First house: {selectedOptimizerResult.firstHousePurchaseYear} | value {formatCurrency(selectedOptimizerResult.firstHouseValue)} | mortgage {formatCurrency(selectedOptimizerResult.initialMortgage)}</div>
+                <div>Mortgage budget: {selectedOptimizerResult.salaryMortgageEarly}% early{selectedOptimizerResult.enableSecondHouse ? `, ${selectedOptimizerResult.salaryMortgageLater}% after the move` : ''}</div>
+                {selectedOptimizerResult.enableSecondHouse ? (
+                  <div>Second house: {selectedOptimizerResult.secondHouseYear} | upgrade {formatCurrency(selectedOptimizerResult.secondUpgradeValue)} | deposit {formatCurrency(selectedOptimizerResult.secondHouseDeposit)} | mortgage {formatCurrency(selectedOptimizerResult.secondMortgage)}</div>
+                ) : (
+                  <div>Housing path: one property only with no later move</div>
+                )}
+                <div>Lifetime mortgage paid: {formatCurrency(selectedOptimizerResult.totalMortgagePayments)}</div>
+              </div>
+
+              <button
+                type="button"
+                className="preset-button"
+                onClick={() => handleApplyOptimizerResult(selectedOptimizerResult)}
+              >
+                Apply selected combination to planner
+              </button>
+            </div>
+          )}
 
           <div className="optimizer-results-grid">
             {optimizerResults.map(({ profile, scenariosTested, feasibleCount, bestResult, topResults }) => (
@@ -2645,33 +2937,30 @@ const App = () => {
                       </div>
                     </div>
 
-                    <div className="optimizer-detail-list">
-                      <div>First house: {bestResult.firstHousePurchaseYear} | value {formatCurrency(bestResult.firstHouseValue)} | deposit {formatCurrency(bestResult.initialDeposit)} | mortgage {formatCurrency(bestResult.initialMortgage)}</div>
-                      <div>Mortgage budget: {bestResult.salaryMortgageEarly}% early{bestResult.enableSecondHouse ? `, ${bestResult.salaryMortgageLater}% later` : ''}</div>
-                      {bestResult.enableSecondHouse ? (
-                        <div>Second house: {bestResult.secondHouseYear} | upgrade {formatCurrency(bestResult.secondUpgradeValue)} | deposit {formatCurrency(bestResult.secondHouseDeposit)} | mortgage {formatCurrency(bestResult.secondMortgage)}</div>
-                      ) : (
-                        <div>Housing path: one property only</div>
-                      )}
-                      <div>Lifetime mortgage paid: {formatCurrency(bestResult.totalMortgagePayments)}</div>
-                    </div>
+                    <div className="optimizer-top-list">
+                      {topResults.map((result, index) => {
+                        const resultKey = getOptimizerResultKey(result);
+                        const isSelected = resultKey === getOptimizerResultKey(selectedOptimizerResult || bestResult);
 
-                    {topResults.length > 1 && (
-                      <div className="optimizer-top-list">
-                        {topResults.slice(1).map((result, index) => (
-                          <div key={`${profile.id}-${index}`} className="optimizer-top-item">
-                            Option {index + 2}: {result.enableSecondHouse ? '2 properties' : '1 property'} | cash {formatCurrency(result.finalLiquidNet)} | property {formatCurrency(result.finalPropertyValue)} | mortgage {formatCurrency(result.totalMortgagePayments)}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                        return (
+                          <button
+                            key={resultKey}
+                            type="button"
+                            className={`optimizer-top-item${isSelected ? ' optimizer-choice-active' : ''}`}
+                            onClick={() => setSelectedOptimizerResultKey(resultKey)}
+                          >
+                            Option {index + 1}: {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | cash {formatCurrency(result.finalLiquidNet)} | property {formatCurrency(result.finalPropertyValue)} | mortgage {formatCurrency(result.totalMortgagePayments)}
+                          </button>
+                        );
+                      })}
+                    </div>
 
                     <button
                       type="button"
-                      className="preset-button"
-                      onClick={() => handleApplyOptimizerResult(bestResult)}
+                      className="preset-button preset-button-secondary"
+                      onClick={() => setSelectedOptimizerResultKey(getOptimizerResultKey(bestResult))}
                     >
-                      Apply best plan to planner
+                      View this profile's best combination
                     </button>
                   </>
                 ) : (
