@@ -116,21 +116,21 @@ const OPTIMIZER_INCOME_CASES = [
     id: 'income-low',
     label: 'Income low',
     shortLabel: 'Low',
-    growth: 0.5,
+    growth: 2,
     description: 'Slower real career progression.',
   },
   {
     id: 'income-medium',
     label: 'Income medium',
     shortLabel: 'Medium',
-    growth: 1.5,
+    growth: 3.5,
     description: 'Reasonable long-run corporate base case.',
   },
   {
     id: 'income-high',
     label: 'Income high',
     shortLabel: 'High',
-    growth: 2.5,
+    growth: 5,
     description: 'Strong real progression without extreme jumps.',
   },
 ];
@@ -2830,7 +2830,7 @@ const App = () => {
             This tab keeps the planner assumptions fixed, resets starting income to £70k for person 1 and £90k for person 2, and searches housing choices against three real income-growth paths for corporate careers.
           </p>
           <p className="helper-text">
-            This optimizer now tests a 9-case matrix: income growth 0.5% / 1.5% / 2.5%, crossed with correlated market growth cases where ISA/property move together at 2.5%/0.5%, 4.0%/1.5%, and 5.5%/2.5% in real terms.
+            This optimizer now tests a 9-case matrix: income growth 2.0% / 3.5% / 5.0%, crossed with correlated market growth cases where ISA/property move together at 2.5%/0.5%, 4.0%/1.5%, and 5.5%/2.5% in real terms.
           </p>
           <p className="helper-text">
             The first house is fixed to {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}. Housing inputs searched here are explicit deposit and mortgage ranges. House 1 value is deposit plus mortgage and must be at least {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}. The first-house mortgage cannot exceed {formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}. In the upgrade path, the extra deposit plus extra mortgage must be at least {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)}.
