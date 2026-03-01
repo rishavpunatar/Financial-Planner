@@ -427,6 +427,37 @@ body {
   color: #b91c1c;
 }
 
+.assumptions-box {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #dbe4ee;
+}
+
+.assumptions-title {
+  margin: 0 0 8px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.assumptions-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.assumption-item {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: #475569;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
 /* -------- Line toggles (Income / ISA / etc) -------- */
 
 .line-toggle-row {
@@ -627,6 +658,10 @@ body {
   .stamp-duty-row {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .assumptions-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 800px) {
@@ -651,6 +686,10 @@ body {
   }
 
   .stamp-duty-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .assumptions-list {
     grid-template-columns: minmax(0, 1fr);
   }
 }

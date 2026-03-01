@@ -89,11 +89,21 @@ const loadFiltersFromURL = () => {
 };
 
 const BASE_BIRTH_YEAR = 1998;
+const CAREER_GROWTH_PEAK_AGE = 40;
+const CAREER_GROWTH_END_AGE = 55;
+const TAX_YEAR_LABEL = '2025/26';
+const PERSONAL_ALLOWANCE = 12570;
+const BASIC_RATE_LIMIT = 50270;
+const ADDITIONAL_RATE_LIMIT = 125140;
+const BASIC_RATE_BAND = BASIC_RATE_LIMIT - PERSONAL_ALLOWANCE;
+const HIGHER_RATE_BAND = ADDITIONAL_RATE_LIMIT - BASIC_RATE_LIMIT;
+const EMPLOYEE_NI_PRIMARY_THRESHOLD = 12570;
+const EMPLOYEE_NI_UPPER_EARNINGS_LIMIT = 50270;
 
-const calculatePostTax = (income) => {
-  if (income <= 12570) return income;
+const calculateIncomeTax = (income) => {
+  if (income <= PERSONAL_ALLOWANCE) return 0;
 
-  let personalAllowance = 12570;
+  let personalAllowance = PERSONAL_ALLOWANCE;
   if (income > 100000) {
     const excessOver100k = income - 100000;
     const taperAmount = Math.floor(excessOver100k / 2);
@@ -104,13 +114,13 @@ const calculatePostTax = (income) => {
   let remainingIncome = income - personalAllowance;
 
   if (remainingIncome > 0) {
-    const basicRateBand = Math.min(remainingIncome, 37700);
+    const basicRateBand = Math.min(remainingIncome, BASIC_RATE_BAND);
     tax += basicRateBand * 0.2;
     remainingIncome -= basicRateBand;
   }
 
   if (remainingIncome > 0) {
-    const higherRateBand = Math.min(remainingIncome, 74870);
+    const higherRateBand = Math.min(remainingIncome, HIGHER_RATE_BAND);
     tax += higherRateBand * 0.4;
     remainingIncome -= higherRateBand;
   }
@@ -119,7 +129,64 @@ const calculatePostTax = (income) => {
     tax += remainingIncome * 0.45;
   }
 
-  return income - tax;
+  return tax;
+};
+
+const calculateEmployeeNationalInsurance = (income) => {
+  if (income <= EMPLOYEE_NI_PRIMARY_THRESHOLD) return 0;
+
+  let nationalInsurance = 0;
+  const mainBand =
+    Math.min(income, EMPLOYEE_NI_UPPER_EARNINGS_LIMIT) -
+    EMPLOYEE_NI_PRIMARY_THRESHOLD;
+
+  if (mainBand > 0) {
+    nationalInsurance += mainBand * 0.08;
+  }
+
+  if (income > EMPLOYEE_NI_UPPER_EARNINGS_LIMIT) {
+    nationalInsurance +=
+      (income - EMPLOYEE_NI_UPPER_EARNINGS_LIMIT) * 0.02;
+  }
+
+  return nationalInsurance;
+};
+
+const calculateTakeHomePay = (income) => {
+  const incomeTax = calculateIncomeTax(income);
+  const nationalInsurance = calculateEmployeeNationalInsurance(income);
+
+  return income - incomeTax - nationalInsurance;
+};
+
+const getCareerGrowthFactor = (age) => {
+  if (age < CAREER_GROWTH_PEAK_AGE) return 1;
+  if (age >= CAREER_GROWTH_END_AGE) return 0;
+
+  return 1 - (
+    (age - CAREER_GROWTH_PEAK_AGE) /
+    (CAREER_GROWTH_END_AGE - CAREER_GROWTH_PEAK_AGE)
+  );
+};
+
+const calculateCareerIncome = (
+  startIncome,
+  baseGrowthRate,
+  startAge,
+  currentAge,
+) => {
+  if (currentAge <= startAge || baseGrowthRate <= 0) {
+    return startIncome;
+  }
+
+  const baseIncrement = startIncome * (baseGrowthRate / 100);
+  let income = startIncome;
+
+  for (let age = startAge; age < currentAge; age += 1) {
+    income += baseIncrement * getCareerGrowthFactor(age);
+  }
+
+  return income;
 };
 
 const simulateFinancialPlan = (params) => {
@@ -165,7 +232,7 @@ const simulateFinancialPlan = (params) => {
     cgtRatePct,
     usePrivateSchool,
     enableSecondHouse,
-    calculatePostTaxFn = calculatePostTax,
+    calculateTakeHomePayFn = calculateTakeHomePay,
     returnFullData = true,
   } = params;
 
@@ -193,6 +260,8 @@ const simulateFinancialPlan = (params) => {
   let secondHouseValueAtMoveLocal = null;
   let secondHousePurchasePriceLocal = null;
   let minIsaBalance = isaSeed || 0;
+  let negativeAmortizationYears = 0;
+  let capitalizedInterestTotal = 0;
   let finalSnapshot = null;
 
   for (let year = startYear; year <= maxYear; year++) {
@@ -209,17 +278,27 @@ const simulateFinancialPlan = (params) => {
     const yearsFromStart = year - startYear;
     const age = startAge + yearsFromStart;
 
-    let income1 = income1Start * Math.pow(1 + incomeGrowth / 100, yearsFromStart);
-    let income2 = income2Start * Math.pow(1 + incomeGrowth / 100, yearsFromStart);
+    let income1 = calculateCareerIncome(
+      income1Start,
+      incomeGrowth,
+      startAge,
+      age,
+    );
+    let income2 = calculateCareerIncome(
+      income2Start,
+      incomeGrowth,
+      startAge,
+      age,
+    );
 
     if (year === child1BirthYear || year === child2BirthYear) {
       income2 *= 0.5;
     }
 
     const grossIncome = income1 + income2;
-    const postTax1 = calculatePostTaxFn(income1);
-    const postTax2 = calculatePostTaxFn(income2);
-    const netBeforePension = postTax1 + postTax2;
+    const takeHome1 = calculateTakeHomePayFn(income1);
+    const takeHome2 = calculateTakeHomePayFn(income2);
+    const netBeforePension = takeHome1 + takeHome2;
     const pension = grossIncome * (pensionRate / 100);
     const netIncome = netBeforePension - pension;
     const totalPostTax = netIncome;
@@ -252,11 +331,11 @@ const simulateFinancialPlan = (params) => {
     }
 
     const yearlyRate = mortgageRate / 100;
-    const totalMortgageBalance = firstMortgageBalance + secondMortgageBalance;
-    const mortgageInterest = totalMortgageBalance * yearlyRate;
+    const openingMortgageBalance = firstMortgageBalance + secondMortgageBalance;
+    const mortgageInterest = openingMortgageBalance * yearlyRate;
 
     let mortgageRepayment = 0;
-    if (totalMortgageBalance > 0) {
+    if (openingMortgageBalance > 0) {
       const isLatePhase = enableSecondHouse ? year > secondHouseYear : false;
       const salaryPercent = isLatePhase
         ? salaryMortgageLater / 100
@@ -264,12 +343,25 @@ const simulateFinancialPlan = (params) => {
 
       mortgageRepayment = grossIncome * salaryPercent;
 
-      const maxPossible = totalMortgageBalance + mortgageInterest;
+      const maxPossible = openingMortgageBalance + mortgageInterest;
       if (mortgageRepayment > maxPossible) {
         mortgageRepayment = maxPossible;
       }
 
-      let principalPayment = mortgageRepayment - mortgageInterest;
+      const interestPaid = Math.min(mortgageRepayment, mortgageInterest);
+      let principalPayment = Math.max(0, mortgageRepayment - mortgageInterest);
+      const unpaidInterest = Math.max(0, mortgageInterest - interestPaid);
+
+      if (unpaidInterest > 0.01) {
+        negativeAmortizationYears += 1;
+        capitalizedInterestTotal += unpaidInterest;
+
+        const firstShare = firstMortgageBalance / openingMortgageBalance;
+        const secondShare = secondMortgageBalance / openingMortgageBalance;
+
+        firstMortgageBalance += unpaidInterest * firstShare;
+        secondMortgageBalance += unpaidInterest * secondShare;
+      }
 
       if (firstMortgageBalance > 0) {
         const firstMortgagePayment = Math.min(principalPayment, firstMortgageBalance);
@@ -286,10 +378,13 @@ const simulateFinancialPlan = (params) => {
         secondMortgageBalance -= secondMortgagePayment;
       }
 
-      cumulativeMortgageInterest += mortgageInterest;
+      cumulativeMortgageInterest += interestPaid;
       cumulativeMortgageRepayment += mortgageRepayment;
 
-      if (totalMortgageBalance <= 0.01 && mortgageRepayYearLocal === null) {
+      if (
+        firstMortgageBalance + secondMortgageBalance <= 0.01 &&
+        mortgageRepayYearLocal === null
+      ) {
         mortgageRepayYearLocal = year;
       }
     }
@@ -374,8 +469,10 @@ const simulateFinancialPlan = (params) => {
       displayInterestPaid = null;
     }
 
+    const closingMortgageBalance =
+      firstMortgageBalance + secondMortgageBalance;
     const displayTotalMortgage =
-      totalMortgageBalance > 0.01 ? totalMortgageBalance : null;
+      closingMortgageBalance > 0.01 ? closingMortgageBalance : null;
 
     if (returnFullData && data) {
       data.push({
@@ -404,6 +501,8 @@ const simulateFinancialPlan = (params) => {
       cumulativeShortfall,
       totalMortgagePayments: cumulativeMortgageRepayment,
       totalInterestPaid: cumulativeMortgageInterest,
+      negativeAmortizationYears,
+      capitalizedInterestTotal,
     };
   }
 
@@ -422,6 +521,8 @@ const simulateFinancialPlan = (params) => {
     firstMortgagePaidOffYear: firstMortgagePaidOffYearLocal,
     minIsaBalance,
     finalLiquidNet,
+    negativeAmortizationYears,
+    capitalizedInterestTotal,
   };
 };
 
@@ -484,17 +585,11 @@ const App = () => {
   const [showIncomeLine, setShowIncomeLine] = useState(true);
   const [showSurplusLine, setShowSurplusLine] = useState(true);
   const [showIsaLine, setShowIsaLine] = useState(true);
-  const [showMortgagePaidLine, setShowMortgagePaidLine] = useState(true);
-  const [showInterestLine, setShowInterestLine] = useState(true);
   const [showMortgageBalanceLine, setShowMortgageBalanceLine] = useState(true);
-  const [showStampDuty, setShowStampDuty] = useState(true);
-  const [showPieChart, setShowPieChart] = useState(true);
 
   const [presetName, setPresetName] = useState('');
   const [savedPresets, setSavedPresets] = useState([]);
   const [selectedPreset, setSelectedPreset] = useState('');
-
-  const [zoomOut, setZoomOut] = useState(false);
 
   const [startYear, setStartYear] = useState(2027);
   const [firstHousePurchaseYear, setFirstHousePurchaseYear] = useState(2027);
@@ -526,6 +621,16 @@ const App = () => {
   );
 
   const [secondHouseStampDuty, setSecondHouseStampDuty] = useState(0);
+
+  const handleCombinedGiftAmountChange = (value) => {
+    const totalGift = Math.max(0, value);
+    const firstGift = Math.round(totalGift / 2);
+    const secondGift = totalGift - firstGift;
+
+    setCombinedGiftAmount(totalGift);
+    setKid1GiftAmount(firstGift);
+    setKid2GiftAmount(secondGift);
+  };
 
   const handleInitialCashChange = (value) => {
     const newCash = Math.max(0, value);
@@ -673,11 +778,7 @@ const App = () => {
       showIncomeLine,
       showSurplusLine,
       showIsaLine,
-      showMortgagePaidLine,
-      showInterestLine,
       showMortgageBalanceLine,
-      showStampDuty,
-      showPieChart,
       startYear,
       firstHousePurchaseYear,
       enableSecondHouse,
@@ -733,6 +834,7 @@ const App = () => {
     setCarCost(p.carCost);
     setKid1GiftAmount(p.kid1GiftAmount);
     setKid2GiftAmount(p.kid2GiftAmount);
+    setCombinedGiftAmount((p.kid1GiftAmount ?? 0) + (p.kid2GiftAmount ?? 0));
 
     setIsaContributionCap(p.isaContributionCap);
     setRecessionHitPct(p.recessionHitPct);
@@ -749,11 +851,7 @@ const App = () => {
     setShowIncomeLine(p.showIncomeLine ?? true);
     setShowSurplusLine(p.showSurplusLine ?? true);
     setShowIsaLine(p.showIsaLine ?? true);
-    setShowMortgagePaidLine(p.showMortgagePaidLine ?? true);
-    setShowInterestLine(p.showInterestLine ?? true);
     setShowMortgageBalanceLine(p.showMortgageBalanceLine ?? true);
-    setShowStampDuty(p.showStampDuty ?? true);
-    setShowPieChart(p.showPieChart ?? true);
 
     setStartYear(p.startYear ?? startYear);
     setFirstHousePurchaseYear(p.firstHousePurchaseYear ?? p.startYear ?? firstHousePurchaseYear);
@@ -870,7 +968,7 @@ const App = () => {
       cgtRatePct,
       usePrivateSchool,
       enableSecondHouse,
-      calculatePostTaxFn: calculatePostTax,
+      calculateTakeHomePayFn: calculateTakeHomePay,
       ...overrides,
     }),
     [
@@ -925,6 +1023,8 @@ const App = () => {
     firstMortgagePaidOffYear,
     minIsaBalance,
     finalLiquidNet: simulatedFinalLiquidNet,
+    negativeAmortizationYears,
+    capitalizedInterestTotal,
   } = useMemo(
     () => simulateFinancialPlan(buildSimulationParams()),
     [buildSimulationParams],
@@ -949,9 +1049,6 @@ const App = () => {
   const finalLiquidNet = financialData.length
     ? finalIsaTotal + finalSurplusPot - finalMortgageBalance - finalShortfall
     : simulatedFinalLiquidNet;
-
-  const finalCombinedGross = finalYear.combinedIncomeGross || 0;
-  const finalTotalInterestPaid = finalYear.totalInterestPaid || 0;
 
   const pieData = [
     { name: 'Mortgage Paid', value: totalMortgagePayments, color: '#f97316' },
@@ -1087,11 +1184,33 @@ const App = () => {
     ? firstHouseStampDuty + secondHouseStampDuty
     : firstHouseStampDuty;
 
+  const bakedInAssumptions = [
+    `All values are modelled in today's money, and the mortgage rate input is treated as a real annual borrowing rate.`,
+    `Net pay uses England/Wales/Northern Ireland income tax plus employee National Insurance thresholds for ${TAX_YEAR_LABEL}.`,
+    `Income rises by a fixed real cash increment until age ${CAREER_GROWTH_PEAK_AGE}, then that increment linearly tapers to zero by age ${CAREER_GROWTH_END_AGE}.`,
+    `Partner 2 income falls by 50% in each birth year (${child1BirthYear} and ${child2BirthYear}).`,
+    'Child costs start one year after birth and continue until age 21.',
+    usePrivateSchool
+      ? 'Private school fees are applied in real terms between ages 11 and 18.'
+      : 'Private school fees are excluded unless the toggle is turned on.',
+    `Shortfalls are met from surplus savings first, then ISA, with any remaining gap tracked as a cumulative shortfall.`,
+    `Surplus savings grow at the ISA real growth rate less ${cgtRatePct}% CGT on gains.`,
+    `A car purchase is assumed in 2028, and gifts are assumed at age 27 (currently ${formatCurrency(kid1GiftAmount)} and ${formatCurrency(kid2GiftAmount)}).`,
+    enableSecondHouse
+      ? `The second house uses ISA for the deposit, adds a second mortgage in ${secondHouseYear}, and assumes the first property is sold for stamp duty treatment.`
+      : 'Second house purchase is currently disabled.',
+    `Recession years (${recessionYear}, ${secondRecessionYear}, ${thirdRecessionYear}) reduce ISA and property value by ${recessionHitPct}%.`,
+    negativeAmortizationYears > 0
+      ? `In ${negativeAmortizationYears} year(s), the mortgage budget does not cover all interest, so ${formatCurrency(capitalizedInterestTotal)} is added back onto the loan balance.`
+      : 'Mortgage repayments always cover interest under the current assumptions.',
+    'Mortgage repayments are budget-driven from salary percentages rather than a lender-style amortisation schedule.',
+  ];
+
   return (
     <div className="app-root">
       <h1 className="app-title">Financial Life Planner</h1>
       <p className="app-subtitle">
-        Combined pre-tax income line; all costs applied to post-tax income (UK Tax Bands 2024/25)
+        Combined pre-tax income line; all figures are shown in real terms, mortgage uses a real rate, and take-home pay includes UK employee NI.
       </p>
 
       <div className="summary-grid">
@@ -1313,7 +1432,7 @@ const App = () => {
                 min={0}
                 max={400000}
                 step={5000}
-                onChange={setCombinedGiftAmount}
+                onChange={handleCombinedGiftAmountChange}
                 formatValue={formatCurrency}
               />
 
@@ -1430,7 +1549,7 @@ const App = () => {
                   formatValue={v => `${v}%`}
                 />
                 <RangeSlider
-                  label="Interest Rate"
+                  label="Mortgage Real Rate"
                   value={mortgageRate}
                   min={1}
                   max={10}
@@ -1520,7 +1639,7 @@ const App = () => {
                   formatValue={v => `£${(v / 1000).toFixed(0)}k`}
                 />
                 <RangeSlider
-                  label="Combined Income Real Growth"
+                  label="Base Career Income Growth"
                   value={incomeGrowth}
                   min={0}
                   max={5}
@@ -1621,44 +1740,42 @@ const App = () => {
           </div>
         </div>
 
-        {showStampDuty && (
-          <div className="stamp-duty-box">
-            <h3 className="stamp-duty-title">Stamp Duty Land Tax (England)</h3>
-            <div className="stamp-duty-row">
+        <div className="stamp-duty-box">
+          <h3 className="stamp-duty-title">Stamp Duty Land Tax (England)</h3>
+          <div className="stamp-duty-row">
+            <div className="stamp-duty-item">
+              <div className="stamp-duty-label">First House</div>
+              <div className="stamp-duty-value">{formatCurrency(firstHouseStampDuty)}</div>
+              <div className="stamp-duty-details">
+                Property value: {formatCurrency(initialPropertyValue)}
+              </div>
+            </div>
+            {enableSecondHouse ? (
               <div className="stamp-duty-item">
-                <div className="stamp-duty-label">First House</div>
-                <div className="stamp-duty-value">{formatCurrency(firstHouseStampDuty)}</div>
+                <div className="stamp-duty-label">Second House (assumes first sold)</div>
+                <div className="stamp-duty-value">{formatCurrency(secondHouseStampDuty)}</div>
                 <div className="stamp-duty-details">
-                  Property value: {formatCurrency(initialPropertyValue)}
+                  Property value: {formatCurrency(secondHousePurchasePrice || (initialPropertyValue + moveIncrementValue))}
                 </div>
               </div>
-              {enableSecondHouse ? (
-                <div className="stamp-duty-item">
-                  <div className="stamp-duty-label">Second House (assumes first sold)</div>
-                  <div className="stamp-duty-value">{formatCurrency(secondHouseStampDuty)}</div>
-                  <div className="stamp-duty-details">
-                    Property value: {formatCurrency(secondHousePurchasePrice || (initialPropertyValue + moveIncrementValue))}
-                  </div>
-                </div>
-              ) : (
-                <div className="stamp-duty-item">
-                  <div className="stamp-duty-label">Second House</div>
-                  <div className="stamp-duty-value">—</div>
-                  <div className="stamp-duty-details">Second purchase disabled</div>
-                </div>
-              )}
+            ) : (
               <div className="stamp-duty-item">
-                <div className="stamp-duty-label">Total Stamp Duty</div>
-                <div className="stamp-duty-value stamp-duty-total">
-                  {formatCurrency(totalStampDuty)}
-                </div>
-                <div className="stamp-duty-details">
-                  All purchases combined
-                </div>
+                <div className="stamp-duty-label">Second House</div>
+                <div className="stamp-duty-value">—</div>
+                <div className="stamp-duty-details">Second purchase disabled</div>
+              </div>
+            )}
+            <div className="stamp-duty-item">
+              <div className="stamp-duty-label">Total Stamp Duty</div>
+              <div className="stamp-duty-value stamp-duty-total">
+                {formatCurrency(totalStampDuty)}
+              </div>
+              <div className="stamp-duty-details">
+                All purchases combined
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         <div className="derived-line derived-line-inline">
           Initial Property Value:{' '}
@@ -1680,6 +1797,22 @@ const App = () => {
           <span className="derived-highlight">
             {formatCurrency(totalStampDuty)}
           </span>
+          {'  •  '}
+          Capitalised Interest:{' '}
+          <span className={`derived-highlight${negativeAmortizationYears > 0 ? ' derived-warning' : ''}`}>
+            {formatCurrency(capitalizedInterestTotal)}
+          </span>
+        </div>
+
+        <div className="assumptions-box">
+          <h3 className="assumptions-title">Assumptions baked into the model</h3>
+          <div className="assumptions-list">
+            {bakedInAssumptions.map((assumption) => (
+              <div key={assumption} className="assumption-item">
+                {assumption}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="line-toggle-row">
@@ -1705,23 +1838,7 @@ const App = () => {
               checked={showSurplusLine}
               onChange={e => setShowSurplusLine(e.target.checked)}
             />
-            Surplus pot
-          </label>
-          <label className="line-toggle">
-            <input
-              type="checkbox"
-              checked={showMortgagePaidLine}
-              onChange={e => setShowMortgagePaidLine(e.target.checked)}
-            />
-            Mortgage paid
-          </label>
-          <label className="line-toggle">
-            <input
-              type="checkbox"
-              checked={showInterestLine}
-              onChange={e => setShowInterestLine(e.target.checked)}
-            />
-            Interest paid
+            Surplus savings
           </label>
           <label className="line-toggle">
             <input
@@ -1729,31 +1846,7 @@ const App = () => {
               checked={showMortgageBalanceLine}
               onChange={e => setShowMortgageBalanceLine(e.target.checked)}
             />
-            Total Mortgage Balance
-          </label>
-          <label className="line-toggle">
-            <input
-              type="checkbox"
-              checked={showStampDuty}
-              onChange={e => setShowStampDuty(e.target.checked)}
-            />
-            Show Stamp Duty
-          </label>
-          <label className="line-toggle">
-            <input
-              type="checkbox"
-              checked={showPieChart}
-              onChange={e => setShowPieChart(e.target.checked)}
-            />
-            Show Pie Chart
-          </label>
-          <label className="line-toggle">
-            <input
-              type="checkbox"
-              checked={zoomOut}
-              onChange={e => setZoomOut(e.target.checked)}
-            />
-            Zoom Out (Uncapped Chart)
+            Mortgage value
           </label>
         </div>
 
@@ -1766,7 +1859,7 @@ const App = () => {
                   <XAxis dataKey="year" />
                   <YAxis
                     tickFormatter={formatCurrency}
-                    domain={zoomOut ? ['auto', 'auto'] : [0, 600000]}
+                    domain={['auto', 'auto']}
                     scale="sqrt"
                   />
                   <Tooltip formatter={value => formatCurrency(value)} />
@@ -1819,13 +1912,13 @@ const App = () => {
                     <Line
                       type="monotone"
                       dataKey="surplusPot"
-                      name="Surplus Pot (after CGT)"
+                      name="Surplus Savings"
                       stroke="#0ea5e9"
                       strokeWidth={2}
                       dot={false}
                     >
                       <LabelList
-                        content={renderInlineNameLabel('Surplus', '#0ea5e9')}
+                        content={renderInlineNameLabel('Surplus savings', '#0ea5e9')}
                       />
                       <LabelList content={renderEndLabel('#0ea5e9')} />
                     </Line>
@@ -1861,7 +1954,7 @@ const App = () => {
                     <Line
                       type="monotone"
                       dataKey="mortgageBalance"
-                      name="Total Mortgage Balance"
+                      name="Mortgage Value"
                       stroke="#dc2626"
                       strokeWidth={2}
                       strokeDasharray="3 3"
@@ -1874,42 +1967,6 @@ const App = () => {
                       <LabelList content={renderEndLabel('#dc2626')} />
                     </Line>
                   )}
-
-                  {showMortgagePaidLine && (
-                    <Line
-                      type="monotone"
-                      dataKey="totalMortgagePaymentsDisplay"
-                      name="Total Mortgage Payments (cumulative)"
-                      stroke="#f97316"
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      dot={false}
-                      connectNulls={false}
-                    >
-                      <LabelList
-                        content={renderInlineNameLabel('Mortgage paid', '#f97316')}
-                      />
-                      <LabelList content={renderEndLabel('#f97316')} />
-                    </Line>
-                  )}
-
-                  {showInterestLine && (
-                    <Line
-                      type="monotone"
-                      dataKey="totalInterestPaidDisplay"
-                      name="Total Interest Paid (cumulative)"
-                      stroke="#b91c1c"
-                      strokeWidth={2}
-                      strokeDasharray="4 4"
-                      dot={false}
-                      connectNulls={false}
-                    >
-                      <LabelList
-                        content={renderInlineNameLabel('Interest', '#b91c1c')}
-                      />
-                      <LabelList content={renderEndLabel('#b91c1c')} />
-                    </Line>
-                  )}
                 </LineChart>
               </ResponsiveContainer>
             ) : (
@@ -1917,30 +1974,28 @@ const App = () => {
             )}
           </div>
 
-          {showPieChart && (
-            <div className="pie-chart-container pie-chart-inline">
-              <h3 className="pie-chart-title">Final Financial Breakdown</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={entry => `${entry.name}: ${formatCurrency(entry.value)}`}
-                    outerRadius={90}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={value => formatCurrency(value)} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+          <div className="pie-chart-container pie-chart-inline">
+            <h3 className="pie-chart-title">Final Financial Breakdown</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={entry => `${entry.name}: ${formatCurrency(entry.value)}`}
+                  outerRadius={90}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={value => formatCurrency(value)} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <div className="milestones">
