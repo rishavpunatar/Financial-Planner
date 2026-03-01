@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-03-01T21:56:18.258Z",
+  "generatedAt": "2026-03-01T22:28:54.402Z",
   "meta": {
     "sampleMethod": "Weighted stratified Monte Carlo",
-    "scenarioCount": 1080,
-    "scenarioDrawsPerBucket": 60,
-    "candidateStrategyCount": 80,
+    "scenarioCount": 54000,
+    "scenarioDrawsPerBucket": 3000,
+    "candidateStrategyCount": 173,
     "defaultMediumWeight": 0.6,
     "defaultPrivateSchoolProbability": 0.3,
     "robustScoreWeights": {
@@ -59,13 +59,13 @@
     "usePrivateSchool": false
   },
   "recommendation": {
-    "headline": "A robust starting region is first deposit GBP 250k to GBP 250k and first mortgage GBP 300k to GBP 300k.",
+    "headline": "A robust starting region is first deposit GBP 250k to GBP 250k and first mortgage GBP 250k to GBP 250k.",
     "plateauRegion": {
       "plateauCellCount": 1,
       "deposit1Min": 250000,
       "deposit1Max": 250000,
-      "mortgage1Min": 300000,
-      "mortgage1Max": 300000,
+      "mortgage1Min": 250000,
+      "mortgage1Max": 250000,
       "twoHomeShare": 1
     },
     "notes": [
@@ -77,226 +77,97 @@
   },
   "frontier": [
     {
-      "strategyId": "S67",
-      "expectedEndNetWorth": 2480305.3558303607,
-      "regretCvar10": 91950.21155033237,
-      "feasibilityProbability": 0.0018666666666666664,
-      "compositeRobustScore": 25.112000000000002
+      "strategyId": "S104",
+      "expectedEndNetWorth": 2502145.6609856933,
+      "regretCvar10": 142185.7716401428,
+      "feasibilityProbability": 0.08826933333333979,
+      "compositeRobustScore": 30.13704294533257
+    },
+    {
+      "strategyId": "S103",
+      "expectedEndNetWorth": 2505068.8323754733,
+      "regretCvar10": 142352.41101373197,
+      "feasibilityProbability": 0.08583200000000642,
+      "compositeRobustScore": 30.06298730148614
+    },
+    {
+      "strategyId": "S169",
+      "expectedEndNetWorth": 2518259.9689672017,
+      "regretCvar10": 143585.2867115674,
+      "feasibilityProbability": 0.05276133333332985,
+      "compositeRobustScore": 28.369111110156215
+    },
+    {
+      "strategyId": "S140",
+      "expectedEndNetWorth": 2519958.7430864014,
+      "regretCvar10": 184045.78709332593,
+      "feasibilityProbability": 0.09022000000000309,
+      "compositeRobustScore": 29.504834579249856
     }
   ],
   "topStrategies": [
     {
       "rank": 1,
-      "strategyId": "S80",
-      "pathType": "Two-home path",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 300000,
-        "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 200000,
-        "buyYear2": 2034,
-        "salaryMortgageEarly": 15,
-        "salaryMortgageLater": 5,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 45.61073925189297,
-        "expectedEndNetWorth": 2204202.3341689245,
-        "endNetWorthCvar10": 901085.1131588243,
-        "expectedLifetimeInterest": 260912.4519878914,
-        "expectedRegret": 293571.266169857,
-        "regretCvar10": 501908.0315786331,
-        "feasibilityProbability": 0.5000666666666673,
-        "privateSchoolFeasibilityProbability": 0.060000000000000484,
-        "cashBufferProbability": 0.7114666666666565,
-        "secondHouseFundingProbability": 0.9999999999999917,
-        "firstHouseValue": 550000,
-        "secondHousePurchaseValueRule": 900000
-      }
-    },
-    {
-      "rank": 2,
-      "strategyId": "S76",
-      "pathType": "Two-home path",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 300000,
-        "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 200000,
-        "buyYear2": 2034,
-        "salaryMortgageEarly": 14,
-        "salaryMortgageLater": 5,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 41.83403508890496,
-        "expectedEndNetWorth": 2194792.980045188,
-        "endNetWorthCvar10": 876944.8016437499,
-        "expectedLifetimeInterest": 278648.50185742625,
-        "expectedRegret": 302980.6202935917,
-        "regretCvar10": 532670.7297674854,
-        "feasibilityProbability": 0.4435333333333338,
-        "privateSchoolFeasibilityProbability": 0.07533333333333385,
-        "cashBufferProbability": 0.7195333333333228,
-        "secondHouseFundingProbability": 0.9999999999999917,
-        "firstHouseValue": 550000,
-        "secondHousePurchaseValueRule": 900000
-      }
-    },
-    {
-      "rank": 3,
-      "strategyId": "S75",
+      "strategyId": "S08",
       "pathType": "Two-home path",
       "decisionVector": {
         "deposit1": 250000,
         "mortgage1": 250000,
         "buyYear1": 2027,
         "deposit2": 150000,
-        "mortgage2": 300000,
-        "buyYear2": 2036,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 5,
+        "mortgage2": 250000,
+        "buyYear2": 2034,
+        "salaryMortgageEarly": 15,
+        "salaryMortgageLater": 6,
         "optimizerIsaSeed": 50000
       },
       "metrics": {
-        "compositeRobustScore": 37.99608829549942,
-        "expectedEndNetWorth": 2228929.6534209284,
-        "endNetWorthCvar10": 926452.7647553857,
-        "expectedLifetimeInterest": 271505.6519388326,
-        "expectedRegret": 268843.94691785227,
-        "regretCvar10": 468278.56088207086,
-        "feasibilityProbability": 0.3639333333333342,
-        "privateSchoolFeasibilityProbability": 0.03866666666666701,
-        "cashBufferProbability": 0.6755999999999909,
-        "secondHouseFundingProbability": 0.9999999999999917,
+        "compositeRobustScore": 46.792905049945524,
+        "expectedEndNetWorth": 2250597.548152556,
+        "endNetWorthCvar10": 981380.7868253335,
+        "expectedLifetimeInterest": 204178.17316519434,
+        "expectedRegret": 317640.15887084283,
+        "regretCvar10": 486348.75002691924,
+        "feasibilityProbability": 0.6429226666664715,
+        "privateSchoolFeasibilityProbability": 0.03293333333332292,
+        "cashBufferProbability": 0.6773159999998397,
+        "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
       }
     },
     {
-      "rank": 4,
-      "strategyId": "S72",
+      "rank": 2,
+      "strategyId": "S74",
       "pathType": "Two-home path",
       "decisionVector": {
         "deposit1": 250000,
-        "mortgage1": 300000,
+        "mortgage1": 250000,
         "buyYear1": 2027,
-        "deposit2": 150000,
+        "deposit2": 200000,
         "mortgage2": 200000,
         "buyYear2": 2034,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 5,
+        "salaryMortgageEarly": 14,
+        "salaryMortgageLater": 11,
         "optimizerIsaSeed": 50000
       },
       "metrics": {
-        "compositeRobustScore": 37.37975225094903,
-        "expectedEndNetWorth": 2185662.489469167,
-        "endNetWorthCvar10": 852826.1651826975,
-        "expectedLifetimeInterest": 296075.8262655702,
-        "expectedRegret": 312111.1108696131,
-        "regretCvar10": 564672.0075448665,
-        "feasibilityProbability": 0.37546666666666706,
-        "privateSchoolFeasibilityProbability": 0.09266666666666724,
-        "cashBufferProbability": 0.7272666666666563,
-        "secondHouseFundingProbability": 0.9999999999999917,
-        "firstHouseValue": 550000,
+        "compositeRobustScore": 46.38854430122772,
+        "expectedEndNetWorth": 2398899.9658087287,
+        "endNetWorthCvar10": 1364512.92773096,
+        "expectedLifetimeInterest": 99694.93842714721,
+        "expectedRegret": 169337.74121467245,
+        "regretCvar10": 394530.3430032402,
+        "feasibilityProbability": 0.5329306666663362,
+        "privateSchoolFeasibilityProbability": 0.002573333333332515,
+        "cashBufferProbability": 0.5409293333330091,
+        "secondHouseFundingProbability": 1.00000000000017,
+        "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
       }
     },
     {
-      "rank": 5,
-      "strategyId": "S78",
-      "pathType": "Two-home path",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 350000,
-        "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 150000,
-        "buyYear2": 2034,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 5,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 34.71962704132925,
-        "expectedEndNetWorth": 2164265.9305049526,
-        "endNetWorthCvar10": 828678.4934326361,
-        "expectedLifetimeInterest": 314940.8453675827,
-        "expectedRegret": 333507.66983382765,
-        "regretCvar10": 587690.1158724454,
-        "feasibilityProbability": 0.34413333333333357,
-        "privateSchoolFeasibilityProbability": 0.08466666666666718,
-        "cashBufferProbability": 0.7254666666666563,
-        "secondHouseFundingProbability": 0.9999999999999917,
-        "firstHouseValue": 600000,
-        "secondHousePurchaseValueRule": 900000
-      }
-    },
-    {
-      "rank": 6,
-      "strategyId": "S34",
-      "pathType": "Two-home path",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 500000,
-        "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 350000,
-        "buyYear2": 2040,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 10,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 33.45216521428123,
-        "expectedEndNetWorth": 1861808.8480354676,
-        "endNetWorthCvar10": 708367.3879710101,
-        "expectedLifetimeInterest": 466863.65256931697,
-        "expectedRegret": 635964.7523033137,
-        "regretCvar10": 922363.0813111698,
-        "feasibilityProbability": 0.5021333333333351,
-        "privateSchoolFeasibilityProbability": 0,
-        "cashBufferProbability": 0.5091333333333342,
-        "secondHouseFundingProbability": 0.9903333333333252,
-        "firstHouseValue": 750000,
-        "secondHousePurchaseValueRule": 900000
-      }
-    },
-    {
-      "rank": 7,
-      "strategyId": "S27",
-      "pathType": "Two-home path",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 500000,
-        "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 350000,
-        "buyYear2": 2040,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 9,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 31.662415441039894,
-        "expectedEndNetWorth": 1850782.8099057486,
-        "endNetWorthCvar10": 663140.5364238166,
-        "expectedLifetimeInterest": 493053.62051887205,
-        "expectedRegret": 646990.79043303,
-        "regretCvar10": 919564.0746606481,
-        "feasibilityProbability": 0.47413333333333546,
-        "privateSchoolFeasibilityProbability": 0,
-        "cashBufferProbability": 0.5091333333333342,
-        "secondHouseFundingProbability": 0.9903333333333252,
-        "firstHouseValue": 750000,
-        "secondHousePurchaseValueRule": 900000
-      }
-    },
-    {
-      "rank": 8,
+      "rank": 3,
       "strategyId": "S77",
       "pathType": "Two-home path",
       "decisionVector": {
@@ -304,84 +175,234 @@
         "mortgage1": 250000,
         "buyYear1": 2027,
         "deposit2": 150000,
-        "mortgage2": 300000,
-        "buyYear2": 2035,
-        "salaryMortgageEarly": 13,
+        "mortgage2": 250000,
+        "buyYear2": 2034,
+        "salaryMortgageEarly": 18,
+        "salaryMortgageLater": 10,
+        "optimizerIsaSeed": 50000
+      },
+      "metrics": {
+        "compositeRobustScore": 46.362331076027985,
+        "expectedEndNetWorth": 2392126.386304183,
+        "endNetWorthCvar10": 1341676.846549741,
+        "expectedLifetimeInterest": 100025.77610814881,
+        "expectedRegret": 176111.3207191791,
+        "regretCvar10": 402438.2886138713,
+        "feasibilityProbability": 0.5394933333330136,
+        "privateSchoolFeasibilityProbability": 0.0020799999999993385,
+        "cashBufferProbability": 0.5483319999996878,
+        "secondHouseFundingProbability": 1.00000000000017,
+        "firstHouseValue": 500000,
+        "secondHousePurchaseValueRule": 900000
+      }
+    },
+    {
+      "rank": 4,
+      "strategyId": "S02",
+      "pathType": "Two-home path",
+      "decisionVector": {
+        "deposit1": 250000,
+        "mortgage1": 250000,
+        "buyYear1": 2027,
+        "deposit2": 200000,
+        "mortgage2": 200000,
+        "buyYear2": 2034,
+        "salaryMortgageEarly": 14,
         "salaryMortgageLater": 5,
         "optimizerIsaSeed": 50000
       },
       "metrics": {
-        "compositeRobustScore": 29.512922575281713,
-        "expectedEndNetWorth": 2200321.5299075306,
-        "endNetWorthCvar10": 881921.6610271966,
-        "expectedLifetimeInterest": 302770.0129738662,
-        "expectedRegret": 297452.0704312488,
-        "regretCvar10": 518558.8370348137,
-        "feasibilityProbability": 0.2412000000000009,
-        "privateSchoolFeasibilityProbability": 0.04333333333333374,
-        "cashBufferProbability": 0.6915999999999903,
-        "secondHouseFundingProbability": 0.9999999999999917,
+        "compositeRobustScore": 46.24104575944586,
+        "expectedEndNetWorth": 2268678.1324955407,
+        "endNetWorthCvar10": 1002244.0079137731,
+        "expectedLifetimeInterest": 199587.56886246137,
+        "expectedRegret": 299559.57452784455,
+        "regretCvar10": 459743.82587351155,
+        "feasibilityProbability": 0.6102666666664611,
+        "privateSchoolFeasibilityProbability": 0.042613333333321665,
+        "cashBufferProbability": 0.6701746666664931,
+        "secondHouseFundingProbability": 1.00000000000017,
+        "firstHouseValue": 500000,
+        "secondHousePurchaseValueRule": 900000
+      }
+    },
+    {
+      "rank": 5,
+      "strategyId": "S01",
+      "pathType": "Two-home path",
+      "decisionVector": {
+        "deposit1": 250000,
+        "mortgage1": 250000,
+        "buyYear1": 2027,
+        "deposit2": 150000,
+        "mortgage2": 250000,
+        "buyYear2": 2034,
+        "salaryMortgageEarly": 18,
+        "salaryMortgageLater": 5,
+        "optimizerIsaSeed": 50000
+      },
+      "metrics": {
+        "compositeRobustScore": 46.167410551926196,
+        "expectedEndNetWorth": 2269158.3436080506,
+        "endNetWorthCvar10": 1009731.5136323695,
+        "expectedLifetimeInterest": 188750.52228663323,
+        "expectedRegret": 299079.3634153641,
+        "regretCvar10": 456940.1002429177,
+        "feasibilityProbability": 0.6099133333331276,
+        "privateSchoolFeasibilityProbability": 0.03278666666665636,
+        "cashBufferProbability": 0.656583999999806,
+        "secondHouseFundingProbability": 1.00000000000017,
+        "firstHouseValue": 500000,
+        "secondHousePurchaseValueRule": 900000
+      }
+    },
+    {
+      "rank": 6,
+      "strategyId": "S13",
+      "pathType": "Two-home path",
+      "decisionVector": {
+        "deposit1": 250000,
+        "mortgage1": 250000,
+        "buyYear1": 2027,
+        "deposit2": 150000,
+        "mortgage2": 250000,
+        "buyYear2": 2034,
+        "salaryMortgageEarly": 14,
+        "salaryMortgageLater": 6,
+        "optimizerIsaSeed": 50000
+      },
+      "metrics": {
+        "compositeRobustScore": 45.96260322137886,
+        "expectedEndNetWorth": 2240194.975900541,
+        "endNetWorthCvar10": 956351.7100744684,
+        "expectedLifetimeInterest": 221524.30393266492,
+        "expectedRegret": 328042.7311228551,
+        "regretCvar10": 503187.7852667591,
+        "feasibilityProbability": 0.638939999999812,
+        "privateSchoolFeasibilityProbability": 0.04491999999998794,
+        "cashBufferProbability": 0.6917053333331945,
+        "secondHouseFundingProbability": 1.00000000000017,
+        "firstHouseValue": 500000,
+        "secondHousePurchaseValueRule": 900000
+      }
+    },
+    {
+      "rank": 7,
+      "strategyId": "S71",
+      "pathType": "Two-home path",
+      "decisionVector": {
+        "deposit1": 250000,
+        "mortgage1": 250000,
+        "buyYear1": 2027,
+        "deposit2": 200000,
+        "mortgage2": 200000,
+        "buyYear2": 2034,
+        "salaryMortgageEarly": 15,
+        "salaryMortgageLater": 10,
+        "optimizerIsaSeed": 50000
+      },
+      "metrics": {
+        "compositeRobustScore": 45.727353863083934,
+        "expectedEndNetWorth": 2399477.491018409,
+        "endNetWorthCvar10": 1354009.669815646,
+        "expectedLifetimeInterest": 98742.16187391328,
+        "expectedRegret": 168760.21600496152,
+        "regretCvar10": 388797.7708810342,
+        "feasibilityProbability": 0.5188679999996669,
+        "privateSchoolFeasibilityProbability": 0.0025199999999991982,
+        "cashBufferProbability": 0.5252893333329917,
+        "secondHouseFundingProbability": 0.9999906666668368,
+        "firstHouseValue": 500000,
+        "secondHousePurchaseValueRule": 900000
+      }
+    },
+    {
+      "rank": 8,
+      "strategyId": "S72",
+      "pathType": "Two-home path",
+      "decisionVector": {
+        "deposit1": 250000,
+        "mortgage1": 250000,
+        "buyYear1": 2027,
+        "deposit2": 150000,
+        "mortgage2": 250000,
+        "buyYear2": 2034,
+        "salaryMortgageEarly": 18,
+        "salaryMortgageLater": 11,
+        "optimizerIsaSeed": 50000
+      },
+      "metrics": {
+        "compositeRobustScore": 45.31875819651538,
+        "expectedEndNetWorth": 2397264.6961141536,
+        "endNetWorthCvar10": 1366407.5418712045,
+        "expectedLifetimeInterest": 93692.70316399785,
+        "expectedRegret": 170973.01090921668,
+        "regretCvar10": 407935.02257483633,
+        "feasibilityProbability": 0.5224973333329985,
+        "privateSchoolFeasibilityProbability": 0.002079999999999339,
+        "cashBufferProbability": 0.5300759999996585,
+        "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
       }
     },
     {
       "rank": 9,
-      "strategyId": "S36",
+      "strategyId": "S03",
       "pathType": "Two-home path",
       "decisionVector": {
         "deposit1": 250000,
-        "mortgage1": 500000,
+        "mortgage1": 250000,
         "buyYear1": 2027,
         "deposit2": 150000,
-        "mortgage2": 350000,
-        "buyYear2": 2039,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 9,
+        "mortgage2": 250000,
+        "buyYear2": 2034,
+        "salaryMortgageEarly": 17,
+        "salaryMortgageLater": 5,
         "optimizerIsaSeed": 50000
       },
       "metrics": {
-        "compositeRobustScore": 29.173251976615383,
-        "expectedEndNetWorth": 1826275.2270263252,
-        "endNetWorthCvar10": 628763.3389219898,
-        "expectedLifetimeInterest": 516638.8056343116,
-        "expectedRegret": 671498.3733124544,
-        "regretCvar10": 951086.1964761087,
-        "feasibilityProbability": 0.4466000000000021,
-        "privateSchoolFeasibilityProbability": 0,
-        "cashBufferProbability": 0.5049333333333348,
-        "secondHouseFundingProbability": 0.9961333333333251,
-        "firstHouseValue": 750000,
+        "compositeRobustScore": 45.203704783637505,
+        "expectedEndNetWorth": 2258887.4018410877,
+        "endNetWorthCvar10": 984045.6668494663,
+        "expectedLifetimeInterest": 206467.1015350089,
+        "expectedRegret": 309350.3051822905,
+        "regretCvar10": 474087.6764567389,
+        "feasibilityProbability": 0.6037159999997846,
+        "privateSchoolFeasibilityProbability": 0.045106666666654666,
+        "cashBufferProbability": 0.6879026666665216,
+        "secondHouseFundingProbability": 1.00000000000017,
+        "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
       }
     },
     {
       "rank": 10,
-      "strategyId": "S28",
+      "strategyId": "S04",
       "pathType": "Two-home path",
       "decisionVector": {
         "deposit1": 250000,
-        "mortgage1": 500000,
+        "mortgage1": 250000,
         "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 350000,
-        "buyYear2": 2040,
-        "salaryMortgageEarly": 14,
-        "salaryMortgageLater": 9,
+        "deposit2": 200000,
+        "mortgage2": 200000,
+        "buyYear2": 2034,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 5,
         "optimizerIsaSeed": 50000
       },
       "metrics": {
-        "compositeRobustScore": 29.08732259887415,
-        "expectedEndNetWorth": 1879059.4744739851,
-        "endNetWorthCvar10": 723329.6664277911,
-        "expectedLifetimeInterest": 462014.0820600729,
-        "expectedRegret": 618714.1258647934,
-        "regretCvar10": 885803.0568809542,
-        "feasibilityProbability": 0.415800000000002,
-        "privateSchoolFeasibilityProbability": 0,
-        "cashBufferProbability": 0.42513333333333536,
-        "secondHouseFundingProbability": 0.9713999999999924,
-        "firstHouseValue": 750000,
+        "compositeRobustScore": 44.68909740230494,
+        "expectedEndNetWorth": 2258632.1782733058,
+        "endNetWorthCvar10": 976856.3838300311,
+        "expectedLifetimeInterest": 217477.73566915322,
+        "expectedRegret": 309605.5287500765,
+        "regretCvar10": 477760.13513305056,
+        "feasibilityProbability": 0.5943293333331034,
+        "privateSchoolFeasibilityProbability": 0.055973333333318505,
+        "cashBufferProbability": 0.6950559999998647,
+        "secondHouseFundingProbability": 1.00000000000017,
+        "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
       }
     }
@@ -391,61 +412,51 @@
       {
         "deposit1": 250000,
         "mortgage1": 250000,
-        "strategyId": "S75",
-        "compositeRobustScore": 37.99608829549942,
-        "weightedFeasibilityProbability": 0.3639333333333342,
-        "weightedMeanNetWorth": 2228929.6534209284,
-        "weightedRegretCvar10": 468278.56088207086,
-        "isPlateau": false
-      },
-      {
-        "deposit1": 250000,
-        "mortgage1": 300000,
-        "strategyId": "S80",
-        "compositeRobustScore": 45.61073925189297,
-        "weightedFeasibilityProbability": 0.5000666666666673,
-        "weightedMeanNetWorth": 2204202.3341689245,
-        "weightedRegretCvar10": 501908.0315786331,
+        "strategyId": "S08",
+        "compositeRobustScore": 46.792905049945524,
+        "weightedFeasibilityProbability": 0.6429226666664715,
+        "weightedMeanNetWorth": 2250597.548152556,
+        "weightedRegretCvar10": 486348.75002691924,
         "isPlateau": true
       },
       {
         "deposit1": 250000,
+        "mortgage1": 300000,
+        "strategyId": "S16",
+        "compositeRobustScore": 44.57178368189636,
+        "weightedFeasibilityProbability": 0.628351999999809,
+        "weightedMeanNetWorth": 2229009.60194591,
+        "weightedRegretCvar10": 510793.4698583779,
+        "isPlateau": false
+      },
+      {
+        "deposit1": 250000,
         "mortgage1": 350000,
-        "strategyId": "S78",
-        "compositeRobustScore": 34.71962704132925,
-        "weightedFeasibilityProbability": 0.34413333333333357,
-        "weightedMeanNetWorth": 2164265.9305049526,
-        "weightedRegretCvar10": 587690.1158724454,
-        "isPlateau": false
-      },
-      {
-        "deposit1": 250000,
-        "mortgage1": 500000,
-        "strategyId": "S34",
-        "compositeRobustScore": 33.45216521428123,
-        "weightedFeasibilityProbability": 0.5021333333333351,
-        "weightedMeanNetWorth": 1861808.8480354676,
-        "weightedRegretCvar10": 922363.0813111698,
-        "isPlateau": false
-      },
-      {
-        "deposit1": 250000,
-        "mortgage1": 550000,
-        "strategyId": "S39",
-        "compositeRobustScore": 23.000357155947633,
-        "weightedFeasibilityProbability": 0.3397333333333351,
-        "weightedMeanNetWorth": 1829488.5691025495,
-        "weightedRegretCvar10": 938723.9791491638,
+        "strategyId": "S14",
+        "compositeRobustScore": 40.203107849617524,
+        "weightedFeasibilityProbability": 0.5538066666663759,
+        "weightedMeanNetWorth": 2226223.0793674444,
+        "weightedRegretCvar10": 507378.04213452036,
         "isPlateau": false
       },
       {
         "deposit1": 300000,
-        "mortgage1": 450000,
-        "strategyId": "S62",
-        "compositeRobustScore": 12.488952315724132,
-        "weightedFeasibilityProbability": 0.1255333333333334,
-        "weightedMeanNetWorth": 1889008.0319957284,
-        "weightedRegretCvar10": 842607.6819971284,
+        "mortgage1": 250000,
+        "strategyId": "S09",
+        "compositeRobustScore": 41.96573089819546,
+        "weightedFeasibilityProbability": 0.5739506666664066,
+        "weightedMeanNetWorth": 2231295.2094522663,
+        "weightedRegretCvar10": 493972.9536548771,
+        "isPlateau": false
+      },
+      {
+        "deposit1": 300000,
+        "mortgage1": 300000,
+        "strategyId": "S18",
+        "compositeRobustScore": 38.598825044997945,
+        "weightedFeasibilityProbability": 0.5395973333330216,
+        "weightedMeanNetWorth": 2210196.4325829213,
+        "weightedRegretCvar10": 517321.59097341093,
         "isPlateau": false
       }
     ],
@@ -453,8 +464,8 @@
       "plateauCellCount": 1,
       "deposit1Min": 250000,
       "deposit1Max": 250000,
-      "mortgage1Min": 300000,
-      "mortgage1Max": 300000,
+      "mortgage1Min": 250000,
+      "mortgage1Max": 250000,
       "twoHomeShare": 1
     }
   },
@@ -477,202 +488,202 @@
       {
         "mediumWeight": 0.4,
         "privateSchoolProbability": 0.1,
-        "strategyId": "S80",
-        "compositeRobustScore": 52.432537920045554,
-        "weightedFeasibilityProbability": 0.5900500000000007,
-        "weightedMeanNetWorth": 2374566.8783691693
+        "strategyId": "S08",
+        "compositeRobustScore": 54.58441791447025,
+        "weightedFeasibilityProbability": 0.7808770000000158,
+        "weightedMeanNetWorth": 2411088.3925735946
       },
       {
         "mediumWeight": 0.4,
         "privateSchoolProbability": 0.2,
-        "strategyId": "S80",
-        "compositeRobustScore": 48.59862079429522,
-        "weightedFeasibilityProbability": 0.5347666666666624,
-        "weightedMeanNetWorth": 2299415.4914500276
+        "strategyId": "S08",
+        "compositeRobustScore": 50.18779332449847,
+        "weightedFeasibilityProbability": 0.7002073333334962,
+        "weightedMeanNetWorth": 2340871.074374534
       },
       {
         "mediumWeight": 0.4,
         "privateSchoolProbability": 0.3,
-        "strategyId": "S80",
-        "compositeRobustScore": 44.78300296821724,
-        "weightedFeasibilityProbability": 0.4794833333333338,
-        "weightedMeanNetWorth": 2224264.1045309044
+        "strategyId": "S08",
+        "compositeRobustScore": 45.76141463719278,
+        "weightedFeasibilityProbability": 0.6195376666667441,
+        "weightedMeanNetWorth": 2270653.7561754663
       },
       {
         "mediumWeight": 0.4,
         "privateSchoolProbability": 0.4,
-        "strategyId": "S80",
-        "compositeRobustScore": 40.97379106742597,
-        "weightedFeasibilityProbability": 0.4242000000000002,
-        "weightedMeanNetWorth": 2149112.7176117525
+        "strategyId": "S08",
+        "compositeRobustScore": 41.32798493676195,
+        "weightedFeasibilityProbability": 0.5388680000001934,
+        "weightedMeanNetWorth": 2200436.437978638
       },
       {
         "mediumWeight": 0.4,
         "privateSchoolProbability": 0.5,
-        "strategyId": "S80",
-        "compositeRobustScore": 37.16436055937534,
-        "weightedFeasibilityProbability": 0.36891666666666445,
-        "weightedMeanNetWorth": 2073961.330692635
+        "strategyId": "S74",
+        "compositeRobustScore": 37.09209355016883,
+        "weightedFeasibilityProbability": 0.3339749999999164,
+        "weightedMeanNetWorth": 2339448.7927807514
       },
       {
         "mediumWeight": 0.5,
         "privateSchoolProbability": 0.1,
-        "strategyId": "S80",
-        "compositeRobustScore": 53.33734620476234,
-        "weightedFeasibilityProbability": 0.6076041666666693,
-        "weightedMeanNetWorth": 2363941.075534669
+        "strategyId": "S08",
+        "compositeRobustScore": 55.33475632369059,
+        "weightedFeasibilityProbability": 0.7989312499998262,
+        "weightedMeanNetWorth": 2400123.963609102
       },
       {
         "mediumWeight": 0.5,
         "privateSchoolProbability": 0.2,
-        "strategyId": "S80",
-        "compositeRobustScore": 49.251353166726915,
-        "weightedFeasibilityProbability": 0.5485416666666676,
-        "weightedMeanNetWorth": 2289257.2721202234
+        "strategyId": "S08",
+        "compositeRobustScore": 50.81004224671051,
+        "weightedFeasibilityProbability": 0.714987499999989,
+        "weightedMeanNetWorth": 2330398.2916361433
       },
       {
         "mediumWeight": 0.5,
         "privateSchoolProbability": 0.3,
-        "strategyId": "S80",
-        "compositeRobustScore": 45.190186228842116,
-        "weightedFeasibilityProbability": 0.48947916666666774,
-        "weightedMeanNetWorth": 2214573.4687057994
+        "strategyId": "S08",
+        "compositeRobustScore": 46.24881278624683,
+        "weightedFeasibilityProbability": 0.6310437500000174,
+        "weightedMeanNetWorth": 2260672.6196640437
       },
       {
         "mediumWeight": 0.5,
         "privateSchoolProbability": 0.4,
-        "strategyId": "S80",
-        "compositeRobustScore": 41.1396777725675,
-        "weightedFeasibilityProbability": 0.43041666666666434,
-        "weightedMeanNetWorth": 2139889.665291385
+        "strategyId": "S08",
+        "compositeRobustScore": 41.659720670272826,
+        "weightedFeasibilityProbability": 0.5471000000000075,
+        "weightedMeanNetWorth": 2190946.947691053
       },
       {
         "mediumWeight": 0.5,
         "privateSchoolProbability": 0.5,
-        "strategyId": "S80",
-        "compositeRobustScore": 37.086851318795446,
-        "weightedFeasibilityProbability": 0.37135416666666854,
-        "weightedMeanNetWorth": 2065205.8618769236
+        "strategyId": "S74",
+        "compositeRobustScore": 38.23271151572756,
+        "weightedFeasibilityProbability": 0.3574895833334647,
+        "weightedMeanNetWorth": 2323511.3734467267
       },
       {
         "mediumWeight": 0.6,
         "privateSchoolProbability": 0.1,
-        "strategyId": "S80",
-        "compositeRobustScore": 54.271321212155456,
-        "weightedFeasibilityProbability": 0.6258000000000044,
-        "weightedMeanNetWorth": 2352171.7210762845
+        "strategyId": "S08",
+        "compositeRobustScore": 56.14090823242584,
+        "weightedFeasibilityProbability": 0.8172053333335737,
+        "weightedMeanNetWorth": 2388998.0249635284
       },
       {
         "mediumWeight": 0.6,
         "privateSchoolProbability": 0.2,
-        "strategyId": "S80",
-        "compositeRobustScore": 49.917966641121296,
-        "weightedFeasibilityProbability": 0.5629333333333348,
-        "weightedMeanNetWorth": 2278187.027622586
+        "strategyId": "S08",
+        "compositeRobustScore": 51.48505701291879,
+        "weightedFeasibilityProbability": 0.730064000000468,
+        "weightedMeanNetWorth": 2319797.7865564725
       },
       {
         "mediumWeight": 0.6,
         "privateSchoolProbability": 0.3,
-        "strategyId": "S80",
-        "compositeRobustScore": 45.61073925189297,
-        "weightedFeasibilityProbability": 0.5000666666666673,
-        "weightedMeanNetWorth": 2204202.3341689245
+        "strategyId": "S08",
+        "compositeRobustScore": 46.792905049945524,
+        "weightedFeasibilityProbability": 0.6429226666664715,
+        "weightedMeanNetWorth": 2250597.548152556
       },
       {
         "mediumWeight": 0.6,
         "privateSchoolProbability": 0.4,
-        "strategyId": "S80",
-        "compositeRobustScore": 41.31458732445845,
-        "weightedFeasibilityProbability": 0.4372000000000001,
-        "weightedMeanNetWorth": 2130217.640715228
+        "strategyId": "S74",
+        "compositeRobustScore": 42.88680049445798,
+        "weightedFeasibilityProbability": 0.45716533333351583,
+        "weightedMeanNetWorth": 2353155.0924741216
       },
       {
         "mediumWeight": 0.6,
         "privateSchoolProbability": 0.5,
-        "strategyId": "S80",
-        "compositeRobustScore": 37.023022414482945,
-        "weightedFeasibilityProbability": 0.37433333333333607,
-        "weightedMeanNetWorth": 2056232.9472615316
+        "strategyId": "S74",
+        "compositeRobustScore": 39.37613470174574,
+        "weightedFeasibilityProbability": 0.38140000000002267,
+        "weightedMeanNetWorth": 2307410.2191391834
       },
       {
         "mediumWeight": 0.7,
         "privateSchoolProbability": 0.1,
-        "strategyId": "S80",
-        "compositeRobustScore": 55.21899477874233,
-        "weightedFeasibilityProbability": 0.6446375000000004,
-        "weightedMeanNetWorth": 2339258.8149939924
+        "strategyId": "S08",
+        "compositeRobustScore": 57.049371987395205,
+        "weightedFeasibilityProbability": 0.8356992500001073,
+        "weightedMeanNetWorth": 2377710.576635728
       },
       {
         "mediumWeight": 0.7,
         "privateSchoolProbability": 0.2,
-        "strategyId": "S80",
-        "compositeRobustScore": 50.58846464595577,
-        "weightedFeasibilityProbability": 0.577941666666666,
-        "weightedMeanNetWorth": 2266204.7579571167
+        "strategyId": "S08",
+        "compositeRobustScore": 52.263902139740324,
+        "weightedFeasibilityProbability": 0.7454368333332008,
+        "weightedMeanNetWorth": 2309069.5591400852
       },
       {
         "mediumWeight": 0.7,
         "privateSchoolProbability": 0.3,
-        "strategyId": "S80",
-        "compositeRobustScore": 46.018300214427754,
-        "weightedFeasibilityProbability": 0.5112458333333304,
-        "weightedMeanNetWorth": 2193150.7009201953
+        "strategyId": "S77",
+        "compositeRobustScore": 48.09016187036895,
+        "weightedFeasibilityProbability": 0.575100833333111,
+        "weightedMeanNetWorth": 2373343.107032414
       },
       {
         "mediumWeight": 0.7,
         "privateSchoolProbability": 0.4,
-        "strategyId": "S80",
-        "compositeRobustScore": 41.47383498174147,
-        "weightedFeasibilityProbability": 0.44454999999999606,
-        "weightedMeanNetWorth": 2120096.643883279
+        "strategyId": "S77",
+        "compositeRobustScore": 44.30140845083524,
+        "weightedFeasibilityProbability": 0.49313750000003426,
+        "weightedMeanNetWorth": 2329878.129236705
       },
       {
         "mediumWeight": 0.7,
         "privateSchoolProbability": 0.5,
-        "strategyId": "S80",
-        "compositeRobustScore": 36.930837730697384,
-        "weightedFeasibilityProbability": 0.377854166666669,
-        "weightedMeanNetWorth": 2047042.5868464122
+        "strategyId": "S74",
+        "compositeRobustScore": 40.50505300039819,
+        "weightedFeasibilityProbability": 0.405706250000163,
+        "weightedMeanNetWorth": 2291145.329857743
       },
       {
         "mediumWeight": 0.8,
         "privateSchoolProbability": 0.1,
-        "strategyId": "S80",
-        "compositeRobustScore": 56.12276539420035,
-        "weightedFeasibilityProbability": 0.6641166666666622,
-        "weightedMeanNetWorth": 2325202.357287814
+        "strategyId": "S08",
+        "compositeRobustScore": 58.09981564890624,
+        "weightedFeasibilityProbability": 0.8544130000000837,
+        "weightedMeanNetWorth": 2366261.6186251463
       },
       {
         "mediumWeight": 0.8,
         "privateSchoolProbability": 0.2,
-        "strategyId": "S80",
-        "compositeRobustScore": 51.20789750999498,
-        "weightedFeasibilityProbability": 0.593566666666664,
-        "weightedMeanNetWorth": 2253310.463123762
+        "strategyId": "S77",
+        "compositeRobustScore": 53.7496417193225,
+        "weightedFeasibilityProbability": 0.69839666666678,
+        "weightedMeanNetWorth": 2396079.435115697
       },
       {
         "mediumWeight": 0.8,
         "privateSchoolProbability": 0.3,
-        "strategyId": "S80",
-        "compositeRobustScore": 46.36972473196624,
-        "weightedFeasibilityProbability": 0.5230166666666658,
-        "weightedMeanNetWorth": 2181418.568959701
+        "strategyId": "S77",
+        "compositeRobustScore": 49.82544159624827,
+        "weightedFeasibilityProbability": 0.611193333333012,
+        "weightedMeanNetWorth": 2354330.438385166
       },
       {
         "mediumWeight": 0.8,
         "privateSchoolProbability": 0.4,
-        "strategyId": "S80",
-        "compositeRobustScore": 41.569688909085535,
-        "weightedFeasibilityProbability": 0.4524666666666679,
-        "weightedMeanNetWorth": 2109526.6747956118
+        "strategyId": "S77",
+        "compositeRobustScore": 45.76325809191693,
+        "weightedFeasibilityProbability": 0.523989999999951,
+        "weightedMeanNetWorth": 2312581.4416538016
       },
       {
         "mediumWeight": 0.8,
         "privateSchoolProbability": 0.5,
-        "strategyId": "S80",
-        "compositeRobustScore": 36.783754639661566,
-        "weightedFeasibilityProbability": 0.3819166666666632,
-        "weightedMeanNetWorth": 2037634.7806315466
+        "strategyId": "S77",
+        "compositeRobustScore": 41.58628008537928,
+        "weightedFeasibilityProbability": 0.4367866666665761,
+        "weightedMeanNetWorth": 2270832.444923544
       }
     ]
   },
