@@ -814,6 +814,7 @@ body {
 
 .robustness-summary-grid {
   max-width: none;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .robustness-explainer-grid {
@@ -850,6 +851,10 @@ body {
   gap: 8px;
 }
 
+.robustness-path-tabs {
+  margin-top: 4px;
+}
+
 .robustness-table-wrap {
   overflow-x: auto;
 }
@@ -857,7 +862,7 @@ body {
 .robustness-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 980px;
+  min-width: 1140px;
 }
 
 .robustness-table th,
