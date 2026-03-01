@@ -114,7 +114,7 @@ body {
   margin: 0;
 }
 
-/* -------- Preset row -------- */
+/* -------- Scenario share row -------- */
 
 .preset-row {
   display: flex;
@@ -124,8 +124,7 @@ body {
   margin-top: 4px;
 }
 
-.preset-name-input,
-.preset-select {
+.preset-name-input {
   min-width: 160px;
   padding: 4px 8px;
   font-size: 0.8rem;
@@ -135,8 +134,7 @@ body {
   color: #111827;
 }
 
-.preset-name-input:focus,
-.preset-select:focus {
+.preset-name-input:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);

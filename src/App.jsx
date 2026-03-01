@@ -88,16 +88,9 @@ const loadFiltersFromURL = () => {
   return filters ? JSON.parse(decodeURIComponent(filters)) : null;
 };
 
-const loadSavedPresets = () => {
-  if (typeof window === 'undefined') return [];
-  const storedPresets = localStorage.getItem('savedPresets');
-  return storedPresets ? JSON.parse(storedPresets) : [];
-};
-
 const loadStoredScenario = () => {
   if (typeof window === 'undefined') return null;
-  return loadFiltersFromURL()
-    || JSON.parse(localStorage.getItem('currentScenario') || 'null');
+  return loadFiltersFromURL();
 };
 
 const BASE_BIRTH_YEAR = 1998;
@@ -642,8 +635,6 @@ const App = () => {
   const [showAssumptions, setShowAssumptions] = useState(initialScenario?.showAssumptions ?? false);
 
   const [presetName, setPresetName] = useState(initialScenario?.presetName ?? '');
-  const [savedPresets, setSavedPresets] = useState(loadSavedPresets);
-  const [selectedPreset, setSelectedPreset] = useState('');
   const [linkCopyStatus, setLinkCopyStatus] = useState('');
 
   const [startYear, setStartYear] = useState(initialScenario?.startYear ?? 2027);
@@ -879,109 +870,6 @@ const App = () => {
     showAdvanced,
   ]);
 
-  const handleSavePreset = () => {
-    const name = presetName.trim();
-    if (!name) return;
-
-    const preset = {
-      name,
-      ...currentScenario,
-    };
-
-    setSavedPresets(prev => {
-      const others = prev.filter(p => p.name !== name);
-      return [...others, preset];
-    });
-    setSelectedPreset(name);
-  };
-
-  const applyPreset = (p) => {
-    const nextStartYear = p.startYear ?? 2027;
-    const nextFirstHouseYear = Math.max(
-      nextStartYear,
-      p.firstHousePurchaseYear ?? p.startYear ?? 2027,
-    );
-    const nextSecondHouseYear = Math.max(
-      nextFirstHouseYear + 1,
-      p.secondHouseYear ?? 2037,
-    );
-
-    setMortgageRate(p.mortgageRate);
-    setSalaryMortgageEarly(p.salaryMortgageEarly);
-    setSalaryMortgageLater(p.salaryMortgageLater);
-    setRealGrowthCosts(p.realGrowthCosts);
-    setRealGrowthProperty(p.realGrowthProperty);
-    setIsaGrowth(p.isaGrowth);
-
-    setInitialMortgage(p.initialMortgage);
-    setSecondMortgage(p.secondMortgage);
-    setInitialDeposit(p.initialDeposit);
-    setIsaSeed(p.isaSeed);
-    const initialCashVal =
-      p.initialCash != null ? p.initialCash : p.initialDeposit + p.isaSeed;
-    setInitialCash(initialCashVal);
-
-    setSecondHouseYear(nextSecondHouseYear);
-    setSecondHouseDeposit(p.secondHouseDeposit);
-
-    setIncome1Start(p.income1Start);
-    setIncome2Start(p.income2Start);
-    setIncomeGrowth(p.incomeGrowth);
-
-    setChild1BirthYear(p.child1BirthYear);
-    setChild2BirthYear(p.child2BirthYear);
-
-    setRecessionYear(p.recessionYear);
-    setSecondRecessionYear(p.secondRecessionYear);
-    setThirdRecessionYear(p.thirdRecessionYear ?? thirdRecessionYear);
-
-    setBaseLivingCost(p.baseLivingCost);
-    setChild1AnnualCost(p.child1AnnualCost);
-    setChild2AnnualCost(p.child2AnnualCost);
-    setEmergencyFundAnnual(p.emergencyFundAnnual);
-    setPensionContributionRate(p.pensionContributionRate ?? 5);
-
-    setVisaCostPreSecondHouse(p.visaCostPreSecondHouse);
-    setVisaCostAtSecondHouse(p.visaCostAtSecondHouse);
-
-    setCarCost(p.carCost);
-    setKid1GiftAmount(p.kid1GiftAmount);
-    setKid2GiftAmount(p.kid2GiftAmount);
-    setCombinedGiftAmount((p.kid1GiftAmount ?? 0) + (p.kid2GiftAmount ?? 0));
-
-    setIsaContributionCap(p.isaContributionCap);
-    setRecessionHitPct(p.recessionHitPct);
-    setCgtRatePct(p.cgtRatePct);
-
-    setUsePrivateSchool(!!p.usePrivateSchool);
-
-    const depositPoolVal = p.initialDeposit + p.secondHouseDeposit;
-    const mortgagePoolVal = p.initialMortgage + p.secondMortgage;
-    setDepositPool(depositPoolVal);
-    setMortgagePool(mortgagePoolVal);
-    setLockHouseLink(!!p.lockHouseLink);
-
-    setShowIncomeLine(p.showIncomeLine ?? true);
-    setShowSurplusLine(p.showSurplusLine ?? true);
-    setShowIsaLine(p.showIsaLine ?? true);
-    setShowMortgageBalanceLine(p.showMortgageBalanceLine ?? true);
-    setShowPieChart(p.showPieChart ?? false);
-    setShowAssumptions(p.showAssumptions ?? false);
-    setShowAdvanced(p.showAdvanced ?? false);
-
-    setStartYear(nextStartYear);
-    setFirstHousePurchaseYear(nextFirstHouseYear);
-    setEnableSecondHouse(p.enableSecondHouse ?? true);
-    setPresetName(p.presetName ?? p.name ?? '');
-  };
-
-  const handleLoadPreset = () => {
-    if (!selectedPreset) return;
-    const preset = savedPresets.find(p => p.name === selectedPreset);
-    if (!preset) return;
-    applyPreset(preset);
-  };
-
   const handleCopyScenarioLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -990,18 +878,6 @@ const App = () => {
       setLinkCopyStatus('Copy failed');
     }
   };
-
-  const handleEditPreset = (presetNameParam) => {
-    const preset = savedPresets.find(p => p.name === presetNameParam);
-    if (preset) {
-      applyPreset(preset);
-      setPresetName(preset.name);
-    }
-  };
-
-  useEffect(() => {
-    localStorage.setItem('savedPresets', JSON.stringify(savedPresets));
-  }, [savedPresets]);
 
   useEffect(() => {
     if (!linkCopyStatus) return undefined;
@@ -1014,20 +890,8 @@ const App = () => {
   }, [linkCopyStatus]);
 
   useEffect(() => {
-    localStorage.setItem('currentScenario', JSON.stringify(currentScenario));
     saveFiltersToURL(currentScenario);
   }, [currentScenario]);
-
-  const handleDeletePreset = (presetNameParam) => {
-    setSavedPresets(prev => {
-      const updatedPresets = prev.filter(p => p.name !== presetNameParam);
-      localStorage.setItem('savedPresets', JSON.stringify(updatedPresets));
-      return updatedPresets;
-    });
-    if (selectedPreset === presetNameParam) {
-      setSelectedPreset('');
-    }
-  };
 
   const handleSecondHouseYearChange = (value) => {
     const adjusted = Math.max(value, firstHousePurchaseYear + 1);
@@ -1291,57 +1155,14 @@ const App = () => {
             type="text"
             value={presetName}
             onChange={e => setPresetName(e.target.value)}
-            placeholder="Preset name"
+            placeholder="Scenario name"
           />
-          <button
-            type="button"
-            className="preset-button"
-            onClick={handleSavePreset}
-          >
-            Save preset
-          </button>
-          <select
-            className="preset-select"
-            value={selectedPreset}
-            onChange={e => setSelectedPreset(e.target.value)}
-          >
-            <option value="">Load preset…</option>
-            {savedPresets.map(p => (
-              <option key={p.name} value={p.name}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            className="preset-button"
-            onClick={handleLoadPreset}
-            disabled={!selectedPreset}
-          >
-            Load
-          </button>
-          <button
-            type="button"
-            className="preset-button"
-            onClick={() => handleEditPreset(selectedPreset)}
-            disabled={!selectedPreset}
-          >
-            Edit
-          </button>
-          <button
-            type="button"
-            className="preset-button"
-            onClick={() => handleDeletePreset(selectedPreset)}
-            disabled={!selectedPreset}
-          >
-            Delete
-          </button>
           <button
             type="button"
             className="preset-button preset-button-secondary"
             onClick={handleCopyScenarioLink}
           >
-            Copy current link
+            Copy share link
           </button>
           {linkCopyStatus && (
             <span className="helper-text helper-text-inline">{linkCopyStatus}</span>
@@ -1349,7 +1170,7 @@ const App = () => {
         </div>
 
         <p className="helper-text">
-          Save preset stores a named version only in this browser. The page URL stores the live scenario itself, so bookmarking or copying the current link will reopen the same setup on any browser, even without loading a local preset.
+          The page URL is now the only save/share method. Your scenario name and all current settings are encoded in the link, so bookmarking or copying the share link will reopen the same setup on any browser.
         </p>
 
         <div className="advanced-box">
