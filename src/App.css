@@ -348,6 +348,15 @@ body {
   gap: 6px;
 }
 
+.optimizer-feasible-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
 .optimizer-empty {
   font-size: 0.8rem;
   color: #64748b;

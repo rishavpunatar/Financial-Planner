@@ -100,7 +100,6 @@ const CAREER_GROWTH_END_AGE = 55;
 const OPTIMIZER_STARTING_INCOME_1 = 70000;
 const OPTIMIZER_STARTING_INCOME_2 = 90000;
 const OPTIMIZER_SAMPLE_COUNT = 3;
-const OPTIMIZER_FULL_SEARCH_LIMIT = 60000;
 const OPTIMIZER_MIN_FIRST_PROPERTY_VALUE = 500000;
 const OPTIMIZER_MIN_UPGRADE_VALUE = 200000;
 const OPTIMIZER_MIN_END_PROPERTY_VALUE = 1000000;
@@ -331,7 +330,7 @@ const buildOptimizerSearchPlan = (searchConfig) => {
     count + (propertyMode === 'one' ? exactOnePropertyCount : exactTwoPropertyCount)
   ), 0);
   const totalScenarioCount = exactScenarioCount * OPTIMIZER_ASSUMPTION_CASES.length;
-  const isExhaustive = totalScenarioCount <= OPTIMIZER_FULL_SEARCH_LIMIT;
+  const isExhaustive = true;
 
   return {
     propertyModes,
@@ -1058,14 +1057,14 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
       }
     }
 
-    const sortedResults = results.sort(compareOptimizerResults).slice(0, 3);
+    const sortedResults = results.sort(compareOptimizerResults);
 
     return {
       assumptionCase,
       scenariosTested,
       feasibleCount: results.length,
       bestResult: sortedResults[0] ?? null,
-      topResults: sortedResults,
+      feasibleResults: sortedResults,
     };
   });
 
@@ -1791,6 +1790,12 @@ const App = () => {
       .sort(compareOptimizerResults)
   ), [optimizerResults]);
 
+  const optimizerAllFeasibleResults = useMemo(() => (
+    optimizerResults
+      .flatMap(({ feasibleResults }) => feasibleResults)
+      .sort(compareOptimizerResults)
+  ), [optimizerResults]);
+
   const optimizerResultsByIncome = useMemo(() => (
     OPTIMIZER_INCOME_CASES.map((incomeCase) => ({
       incomeCase,
@@ -1803,12 +1808,12 @@ const App = () => {
   ), [optimizerResults]);
 
   const selectedOptimizerResult = useMemo(() => {
-    if (!optimizerRecommendedResults.length) return null;
+    if (!optimizerAllFeasibleResults.length) return null;
 
-    return optimizerRecommendedResults.find(
+    return optimizerAllFeasibleResults.find(
       result => getOptimizerResultKey(result) === selectedOptimizerResultKey,
-    ) || optimizerRecommendedResults[0];
-  }, [optimizerRecommendedResults, selectedOptimizerResultKey]);
+    ) || optimizerAllFeasibleResults[0];
+  }, [optimizerAllFeasibleResults, selectedOptimizerResultKey]);
 
   const handleApplyOptimizerResult = (result) => {
     setIncome1Start(OPTIMIZER_STARTING_INCOME_1);
@@ -2840,9 +2845,9 @@ const App = () => {
             Mode selected: {optimizerModeLabel}. {optimizerModeDescription}
           </p>
           <p className="helper-text">
-            Search type: {optimizerSearchMeta?.isExhaustive ? 'full stepped search across every value in the active ranges' : 'sampled search across the active ranges'}.
-            {!optimizerSearchMeta?.isExhaustive && optimizerSearchMeta
-              ? ` The full stepped grid would require ${optimizerSearchMeta.exactScenarioCount.toLocaleString()} scenarios, so the optimizer is using a faster sampled search. Narrow the ranges if you want a true full-grid answer.`
+            Search type: full stepped search across every active value in the current ranges.
+            {optimizerSearchMeta
+              ? ` The current full grid contains ${optimizerSearchMeta.exactScenarioCount.toLocaleString()} assumption-path combinations, and the optimizer now tests all of them.`
               : ''}
           </p>
           <p className="helper-text">
@@ -3083,13 +3088,13 @@ const App = () => {
             <div className="optimizer-selected-card">
               <div className="optimizer-result-header">
                 <div>
-                  <div className="optimizer-result-title">Best combinations found</div>
+                  <div className="optimizer-result-title">Selected feasible combination</div>
                   <div className="optimizer-result-sub">
-                    One best combination for each income-growth and correlated market-growth case in the active search ranges.
+                    The buttons below switch between the best feasible result from each income-growth and market-growth case. All feasible combinations are listed further down the page.
                   </div>
                 </div>
                 <div className="optimizer-result-meta">
-                  {optimizerSearchMeta ? optimizerSearchMeta.testedScenarioCount.toLocaleString() : '0'} tested
+                  {optimizerAllFeasibleResults.length.toLocaleString()} feasible / {optimizerSearchMeta ? optimizerSearchMeta.testedScenarioCount.toLocaleString() : '0'} tested
                 </div>
               </div>
 
@@ -3166,7 +3171,7 @@ const App = () => {
               </div>
 
               <div className="optimizer-results-grid">
-                {caseResults.map(({ assumptionCase, scenariosTested, feasibleCount, bestResult, topResults }) => (
+                {caseResults.map(({ assumptionCase, scenariosTested, feasibleCount, bestResult, feasibleResults }) => (
                   <div key={assumptionCase.id} className="optimizer-result-card">
                     <div className="optimizer-result-header">
                       <div>
@@ -3207,8 +3212,12 @@ const App = () => {
                           </div>
                         </div>
 
-                        <div className="optimizer-top-list">
-                          {topResults.map((result, index) => {
+                        <div className="optimizer-detail-list">
+                          <div>All feasible combinations in this case: {feasibleResults.length}</div>
+                        </div>
+
+                        <div className="optimizer-feasible-list">
+                          {feasibleResults.map((result, index) => {
                             const resultKey = getOptimizerResultKey(result);
                             const isSelected = resultKey === getOptimizerResultKey(selectedOptimizerResult || bestResult);
 
@@ -3219,7 +3228,7 @@ const App = () => {
                                 className={`optimizer-top-item${isSelected ? ' optimizer-choice-active' : ''}`}
                                 onClick={() => setSelectedOptimizerResultKey(resultKey)}
                               >
-                                Option {index + 1}: {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | net worth {formatCurrency(getOptimizerNetWorth(result))} | cash {formatCurrency(result.cashEnd)} | equity {formatCurrency(result.equityEnd)} | interest {formatCurrency(result.lifetimeInterestPaid)}
+                                Feasible {index + 1}: {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | net worth {formatCurrency(getOptimizerNetWorth(result))} | cash {formatCurrency(result.cashEnd)} | equity {formatCurrency(result.equityEnd)} | interest {formatCurrency(result.lifetimeInterestPaid)}
                               </button>
                             );
                           })}
@@ -3230,7 +3239,7 @@ const App = () => {
                           className="preset-button preset-button-secondary"
                           onClick={() => setSelectedOptimizerResultKey(getOptimizerResultKey(bestResult))}
                         >
-                          View this case&apos;s best combination
+                          Select this case&apos;s best combination
                         </button>
                       </>
                     ) : (
