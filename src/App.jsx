@@ -139,7 +139,7 @@ const OPTIMIZER_FAILURE_REASON_DEFINITIONS = [
   },
   {
     key: 'mortgageCap',
-    label: 'Peak total mortgage exceeds the £700k cap.',
+    label: `Peak total mortgage exceeds the ${`£${(OPTIMIZER_MAX_TOTAL_MORTGAGE / 1000000).toFixed(1)}m`} cap.`,
   },
 ];
 const FIRST_HOUSE_LEGAL_FEES = 3000;
@@ -221,6 +221,30 @@ const getDraggedThreshold = (threshold, yearsFromStart) =>
 const clampValue = (value, min, max) => Math.min(Math.max(value, min), max);
 
 const roundToStep = (value, step) => Math.round(value / step) * step;
+
+const getYearPathValue = (pathValues, year, fallbackValue) => {
+  if (!pathValues) {
+    return fallbackValue;
+  }
+
+  if (Array.isArray(pathValues)) {
+    const matchingEntry = pathValues.find((entry) => (
+      entry && typeof entry === 'object' && entry.year === year
+    ));
+    if (matchingEntry && typeof matchingEntry.value === 'number') {
+      return matchingEntry.value;
+    }
+  }
+
+  if (typeof pathValues === 'object') {
+    const directValue = pathValues[year];
+    if (typeof directValue === 'number') {
+      return directValue;
+    }
+  }
+
+  return fallbackValue;
+};
 
 const buildSamplePoints = (min, max, step, count = OPTIMIZER_SAMPLE_COUNT) => {
   const lower = Math.min(min, max);
@@ -659,6 +683,11 @@ const simulateFinancialPlan = (params) => {
     cgtRatePct,
     usePrivateSchool,
     enableSecondHouse,
+    mortgageRatePath,
+    isaGrowthPath,
+    propertyGrowthPath,
+    income1Path,
+    income2Path,
     calculateTakeHomePayFn = calculateRealTermsTakeHomePay,
     returnFullData = true,
   } = params;
@@ -692,6 +721,9 @@ const simulateFinancialPlan = (params) => {
   let negativeAmortizationYears = 0;
   let capitalizedInterestTotal = 0;
   let peakMortgageBalance = 0;
+  let minLiquidBuffer = isaSeed || 0;
+  let cashBufferOk = true;
+  let privateSchoolAffordable = true;
   let finalSnapshot = null;
 
   for (let year = startYear; year <= maxYear; year++) {
@@ -702,23 +734,36 @@ const simulateFinancialPlan = (params) => {
     }
 
     if (hasFirstHouse) {
-      propertyValue *= 1 + realGrowthProperty / 100;
+      const propertyGrowthRate = getYearPathValue(
+        propertyGrowthPath,
+        year,
+        realGrowthProperty,
+      );
+      propertyValue *= 1 + propertyGrowthRate / 100;
     }
 
     const yearsFromStart = year - startYear;
     const age = startAge + yearsFromStart;
 
-    let income1 = calculateCareerIncome(
-      income1Start,
-      incomeGrowth,
-      startAge,
-      age,
+    let income1 = getYearPathValue(
+      income1Path,
+      year,
+      calculateCareerIncome(
+        income1Start,
+        incomeGrowth,
+        startAge,
+        age,
+      ),
     );
-    let income2 = calculateCareerIncome(
-      income2Start,
-      incomeGrowth,
-      startAge,
-      age,
+    let income2 = getYearPathValue(
+      income2Path,
+      year,
+      calculateCareerIncome(
+        income2Start,
+        incomeGrowth,
+        startAge,
+        age,
+      ),
     );
 
     const isRedundancyYear = enableRedundancy
@@ -792,7 +837,12 @@ const simulateFinancialPlan = (params) => {
       visaCost = visaCostAtSecondHouse;
     }
 
-    const yearlyRate = mortgageRate / 100;
+    const yearlyMortgageRate = getYearPathValue(
+      mortgageRatePath,
+      year,
+      mortgageRate,
+    );
+    const yearlyRate = yearlyMortgageRate / 100;
     const openingMortgageBalance = firstMortgageBalance + secondMortgageBalance;
     peakMortgageBalance = Math.max(peakMortgageBalance, openingMortgageBalance);
     const mortgageInterest = openingMortgageBalance * yearlyRate;
@@ -917,19 +967,28 @@ const simulateFinancialPlan = (params) => {
       isaTotal -= isaDeduction;
 
       cumulativeShortfall += remainingShortfall - isaDeduction;
+
+      if (remainingShortfall - isaDeduction > 0.01) {
+        cashBufferOk = false;
+        if (privateSchoolCost > 0.01) {
+          privateSchoolAffordable = false;
+        }
+      }
     }
 
     const isaContribution = Math.min(Math.max(0, totalLeft), isaContributionCap);
-    isaTotal = isaTotal * (1 + isaGrowth / 100) + isaContribution;
+    const currentIsaGrowth = getYearPathValue(isaGrowthPath, year, isaGrowth);
+    isaTotal = isaTotal * (1 + currentIsaGrowth / 100) + isaContribution;
 
     const surplusContribution = Math.max(0, totalLeft - isaContribution);
-    const growthRate = isaGrowth / 100;
+    const growthRate = currentIsaGrowth / 100;
     const grossGrowth = surplusPot * growthRate;
     const afterTaxGrowth = grossGrowth * (1 - cgtRate);
     surplusPot = surplusPot + afterTaxGrowth + surplusContribution;
 
     const isaBelowThreshold = isaTotal < 60000;
     minIsaBalance = Math.min(minIsaBalance, isaTotal);
+    minLiquidBuffer = Math.min(minLiquidBuffer, isaTotal + surplusPot);
 
     let displayMortgagePayments = cumulativeMortgageRepayment;
     let displayInterestPaid = cumulativeMortgageInterest;
@@ -1016,6 +1075,7 @@ const simulateFinancialPlan = (params) => {
     firstHouseSaleCosts: firstHouseSaleCostsLocal,
     firstMortgagePaidOffYear: firstMortgagePaidOffYearLocal,
     minIsaBalance,
+    minLiquidBuffer,
     finalLiquidNet,
     cashBeforeTerminalMortgagePayoff: terminalPayoff.cashBeforeTerminalMortgagePayoff,
     terminalMortgagePaydown: terminalPayoff.terminalMortgagePaydown,
@@ -1027,6 +1087,9 @@ const simulateFinancialPlan = (params) => {
     totalMortgagePayments: finalSnapshot?.totalMortgagePayments ?? 0,
     lifetimeInterestPaid: finalSnapshot?.totalInterestPaid ?? 0,
     cumulativeShortfall: finalSnapshot?.cumulativeShortfall ?? 0,
+    cashBufferOk: cashBufferOk && (finalSnapshot?.cumulativeShortfall ?? 0) <= 0.01,
+    canBuyHouse2IfChosen: secondHouseFundingGapLocal <= 0.01,
+    privateSchoolAffordable: usePrivateSchool ? privateSchoolAffordable : true,
     negativeAmortizationYears,
     capitalizedInterestTotal,
     peakMortgageBalance: finalSnapshot?.peakMortgageBalance ?? 0,
@@ -1497,6 +1560,8 @@ const App = () => {
   const [expandedOptimizerIncomeId, setExpandedOptimizerIncomeId] = useState(
     initialScenario?.expandedOptimizerIncomeId ?? OPTIMIZER_INCOME_CASES[0].id,
   );
+  const [robustnessReport, setRobustnessReport] = useState(null);
+  const [robustnessError, setRobustnessError] = useState('');
 
   const kid1GiftYear = child1BirthYear + 27;
   const kid2GiftYear = child2BirthYear + 27;
@@ -1818,6 +1883,38 @@ const App = () => {
     };
   }, [activeTab, precomputedOptimizerPayload, precomputedOptimizerError]);
 
+  useEffect(() => {
+    if (activeTab !== 'robustness' || robustnessReport || robustnessError) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const loadRobustnessReport = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.BASE_URL}robustness-analysis/report.json`);
+        if (!response.ok) {
+          throw new Error(`Request failed with ${response.status}`);
+        }
+
+        const payload = await response.json();
+        if (!cancelled) {
+          setRobustnessReport(payload);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setRobustnessError(error instanceof Error ? error.message : 'Failed to load robustness report');
+        }
+      }
+    };
+
+    loadRobustnessReport();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, robustnessReport, robustnessError]);
+
   const handleSecondHouseYearChange = (value) => {
     const adjusted = Math.min(
       Math.max(value, firstHousePurchaseYear + 1),
@@ -2117,9 +2214,7 @@ const App = () => {
     ) || displayOptimizerResults[0];
   }, [displayOptimizerResults, selectedOptimizerResultKey]);
 
-  const handleApplyOptimizerResult = (result) => {
-    const appliedBaseParams = selectedPrecomputedOptimizerPayload?.baseParams ?? null;
-
+  const applyPlannerBaseParams = useCallback((appliedBaseParams, fallbackPrivateSchool = false) => {
     if (appliedBaseParams) {
       setStartYear(appliedBaseParams.startYear);
       setMortgageRate(appliedBaseParams.mortgageRate);
@@ -2148,8 +2243,14 @@ const App = () => {
       setSecondRedundancyYear(appliedBaseParams.secondRedundancyYear);
       setUsePrivateSchool(appliedBaseParams.usePrivateSchool);
     } else {
-      setUsePrivateSchool(optimizerUsePrivateSchool);
+      setUsePrivateSchool(fallbackPrivateSchool);
     }
+  }, []);
+
+  const handleApplyOptimizerResult = (result) => {
+    const appliedBaseParams = selectedPrecomputedOptimizerPayload?.baseParams ?? null;
+
+    applyPlannerBaseParams(appliedBaseParams, optimizerUsePrivateSchool);
 
     setIncome1Start(OPTIMIZER_STARTING_INCOME_1);
     setIncome2Start(OPTIMIZER_STARTING_INCOME_2);
@@ -2179,6 +2280,46 @@ const App = () => {
     setActiveTab('planner');
   };
 
+  const handleApplyRobustnessStrategy = (robustStrategy) => {
+    if (!robustnessReport) return;
+
+    applyPlannerBaseParams(
+      robustnessReport.baseParams ?? null,
+      robustnessReport.meta?.defaultApplyScenario?.usePrivateSchool ?? false,
+    );
+
+    setIncome1Start(OPTIMIZER_STARTING_INCOME_1);
+    setIncome2Start(OPTIMIZER_STARTING_INCOME_2);
+    setIncomeGrowth(robustnessReport.meta?.defaultApplyScenario?.incomeGrowth ?? incomeGrowth);
+    setIsaGrowth(robustnessReport.meta?.defaultApplyScenario?.isaGrowth ?? isaGrowth);
+    setRealGrowthProperty(
+      robustnessReport.meta?.defaultApplyScenario?.propertyGrowth ?? realGrowthProperty,
+    );
+    setInitialCash(
+      robustStrategy.decisionVector.deposit1 + (robustStrategy.decisionVector.optimizerIsaSeed ?? 0),
+    );
+    setInitialDeposit(robustStrategy.decisionVector.deposit1);
+    setInitialMortgage(robustStrategy.decisionVector.mortgage1);
+    setIsaSeed(robustStrategy.decisionVector.optimizerIsaSeed ?? 0);
+    setFirstHousePurchaseYear(robustStrategy.decisionVector.buyYear1);
+    setSalaryMortgageEarly(robustStrategy.decisionVector.salaryMortgageEarly);
+    setSalaryMortgageLater(robustStrategy.decisionVector.salaryMortgageLater);
+    setEnableSecondHouse(Boolean(robustStrategy.decisionVector.buyYear2));
+    setLockHouseLink(false);
+
+    if (robustStrategy.decisionVector.buyYear2) {
+      setSecondHouseDeposit(robustStrategy.decisionVector.deposit2);
+      setSecondMortgage(robustStrategy.decisionVector.mortgage2);
+      setSecondHouseYear(robustStrategy.decisionVector.buyYear2);
+    } else {
+      setSecondHouseDeposit(0);
+      setSecondMortgage(0);
+    }
+
+    setPresetName(`Robust ${robustStrategy.strategyId}`);
+    setActiveTab('planner');
+  };
+
   const pieData = [
     { name: 'Mortgage Paid', value: totalMortgagePayments, color: '#f97316' },
     { name: 'Total Cash', value: Math.max(0, finalLiquidNet), color: '#8b5cf6' },
@@ -2197,6 +2338,12 @@ const App = () => {
     if (abs >= 1000) return `£${(value / 1000).toFixed(0)}k`;
     return `£${value.toFixed(0)}`;
   };
+  const formatProbability = (value) => `${(value * 100).toFixed(1)}%`;
+
+  const robustnessTopStrategies = robustnessReport?.topStrategies ?? [];
+  const robustnessRecommendation = robustnessReport?.recommendation ?? null;
+  const robustnessMeta = robustnessReport?.meta ?? null;
+  const robustnessCharts = robustnessReport?.charts ?? null;
 
   const renderEndLabel = (color) => (props) => {
     const { x, y, index, value } = props;
@@ -2331,6 +2478,13 @@ const App = () => {
           onClick={() => setActiveTab('optimizer')}
         >
           Housing Optimizer
+        </button>
+        <button
+          type="button"
+          className={`view-tab${activeTab === 'robustness' ? ' view-tab-active' : ''}`}
+          onClick={() => setActiveTab('robustness')}
+        >
+          Robustness
         </button>
       </div>
 
@@ -3166,7 +3320,7 @@ const App = () => {
         </div>
       </div>
         </>
-      ) : (
+      ) : activeTab === 'optimizer' ? (
         <div className="chart-card">
           <h2 className="panel-title">Housing Optimizer</h2>
           <div className="advanced-box">
@@ -3767,6 +3921,205 @@ const App = () => {
               )}
             </div>
           ))}
+        </div>
+      ) : (
+        <div className="chart-card">
+          <h2 className="panel-title">Robustness Analysis</h2>
+          <p className="helper-text">
+            This tab reads a precomputed weighted Monte Carlo report from the terminal-side run. It keeps the browser fast and focuses on robust starting regions rather than one exact point.
+          </p>
+
+          {robustnessError && !robustnessReport && (
+            <div className="optimizer-empty">
+              Robustness report could not be loaded: {robustnessError}
+            </div>
+          )}
+
+          {!robustnessReport && !robustnessError && (
+            <div className="optimizer-empty">
+              Loading robustness report...
+            </div>
+          )}
+
+          {robustnessReport && (
+            <>
+              <div className="summary-grid robustness-summary-grid">
+                <div className="summary-card summary-accent-cyan">
+                  <div className="summary-label">Scenario Sample</div>
+                  <div className="summary-value">{robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'}</div>
+                  <div className="summary-sub">
+                    {robustnessMeta?.sampleMethod ?? 'Weighted stratified Monte Carlo'}
+                  </div>
+                </div>
+                <div className="summary-card summary-accent-blue">
+                  <div className="summary-label">Candidate Strategies</div>
+                  <div className="summary-value">{robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'}</div>
+                  <div className="summary-sub">
+                    Housing decision vectors tested across the scenario grid
+                  </div>
+                </div>
+                <div className="summary-card summary-accent-green">
+                  <div className="summary-label">Robust Region</div>
+                  <div className="summary-value">
+                    {robustnessRecommendation
+                      ? `${formatCurrency(robustnessRecommendation.plateauRegion.deposit1Min)} / ${formatCurrency(robustnessRecommendation.plateauRegion.mortgage1Min)}`
+                      : '—'}
+                  </div>
+                  <div className="summary-sub">
+                    First deposit / first mortgage at the strongest plateau start
+                  </div>
+                </div>
+              </div>
+
+              <div className="robustness-card">
+                <div className="optimizer-result-title">Recommended robust starting region</div>
+                <div className="optimizer-result-sub">
+                  {robustnessRecommendation?.headline}
+                </div>
+                <div className="optimizer-detail-list">
+                  {robustnessRecommendation?.notes?.map((note) => (
+                    <div key={note}>{note}</div>
+                  ))}
+                </div>
+                <div className="optimizer-detail-list">
+                  <div>
+                    Default weighting: medium cases {formatProbability(robustnessMeta?.defaultMediumWeight ?? 0)}
+                    {' '}and private school probability {formatProbability(robustnessMeta?.defaultPrivateSchoolProbability ?? 0)}.
+                  </div>
+                  <div>
+                    Starting incomes baked into this robustness run: {formatCurrency(robustnessMeta?.optimizerStartingIncomes?.person1 ?? 0)}
+                    {' '}and {formatCurrency(robustnessMeta?.optimizerStartingIncomes?.person2 ?? 0)}.
+                  </div>
+                  <div>
+                    Apply-to-planner default view: {robustnessMeta?.defaultApplyScenario?.incomeLabel ?? 'Medium income'} / {robustnessMeta?.defaultApplyScenario?.marketLabel ?? 'Medium market'}
+                    {' '}with income growth {robustnessMeta?.defaultApplyScenario?.incomeGrowth ?? 0}%,
+                    {' '}ISA growth {robustnessMeta?.defaultApplyScenario?.isaGrowth ?? 0}%,
+                    {' '}property growth {robustnessMeta?.defaultApplyScenario?.propertyGrowth ?? 0}%.
+                  </div>
+                </div>
+                <div className="robustness-links">
+                  {robustnessCharts?.markdown && (
+                    <a
+                      className="preset-button preset-button-secondary"
+                      href={`${import.meta.env.BASE_URL}${robustnessCharts.markdown}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Open markdown report
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              <div className="robustness-card">
+                <div className="optimizer-result-title">Top 10 robust strategies</div>
+                <div className="optimizer-result-sub">
+                  Ranked by composite robust score: feasibility first, then regret CVaR, then expected end net worth.
+                </div>
+                <div className="robustness-table-wrap">
+                  <table className="robustness-table">
+                    <thead>
+                      <tr>
+                        <th>Rank</th>
+                        <th>Strategy</th>
+                        <th>Path</th>
+                        <th>Deposit 1</th>
+                        <th>Mortgage 1</th>
+                        <th>Deposit 2</th>
+                        <th>Mortgage 2</th>
+                        <th>Expected Net Worth</th>
+                        <th>Regret CVaR 10%</th>
+                        <th>Feasibility</th>
+                        <th>Private School</th>
+                        <th>Apply</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {robustnessTopStrategies.map((result) => (
+                        <tr key={result.strategyId}>
+                          <td>{result.rank}</td>
+                          <td>{result.strategyId}</td>
+                          <td>{result.pathType}</td>
+                          <td>{formatCurrency(result.decisionVector.deposit1)}</td>
+                          <td>{formatCurrency(result.decisionVector.mortgage1)}</td>
+                          <td>{result.decisionVector.buyYear2 ? formatCurrency(result.decisionVector.deposit2) : '—'}</td>
+                          <td>{result.decisionVector.buyYear2 ? formatCurrency(result.decisionVector.mortgage2) : '—'}</td>
+                          <td>{formatCurrency(result.metrics.expectedEndNetWorth)}</td>
+                          <td>{formatCurrency(result.metrics.regretCvar10)}</td>
+                          <td>{formatProbability(result.metrics.feasibilityProbability)}</td>
+                          <td>{formatProbability(result.metrics.privateSchoolFeasibilityProbability)}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="preset-button preset-button-secondary"
+                              onClick={() => handleApplyRobustnessStrategy(result)}
+                            >
+                              Apply
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="robustness-chart-grid">
+                <div className="robustness-chart-card">
+                  <div className="optimizer-result-title">Expected Net Worth vs Regret</div>
+                  <div className="optimizer-result-sub">
+                    Pareto frontier and the current top robust strategies.
+                  </div>
+                  {robustnessCharts?.scatter && (
+                    <img
+                      className="robustness-chart-image"
+                      src={`${import.meta.env.BASE_URL}${robustnessCharts.scatter}`}
+                      alt="Scatter plot of expected net worth vs regret CVaR"
+                    />
+                  )}
+                </div>
+                <div className="robustness-chart-card">
+                  <div className="optimizer-result-title">CDF of Top 5 Strategies</div>
+                  <div className="optimizer-result-sub">
+                    Weighted end-net-worth distributions for the most robust candidates.
+                  </div>
+                  {robustnessCharts?.cdf && (
+                    <img
+                      className="robustness-chart-image"
+                      src={`${import.meta.env.BASE_URL}${robustnessCharts.cdf}`}
+                      alt="CDF of top robust strategies"
+                    />
+                  )}
+                </div>
+                <div className="robustness-chart-card">
+                  <div className="optimizer-result-title">Deposit vs Mortgage Plateau</div>
+                  <div className="optimizer-result-sub">
+                    The strong starting region for first-house deposit and first mortgage.
+                  </div>
+                  {robustnessCharts?.heatmap && (
+                    <img
+                      className="robustness-chart-image"
+                      src={`${import.meta.env.BASE_URL}${robustnessCharts.heatmap}`}
+                      alt="Heatmap of robust score by first deposit and first mortgage"
+                    />
+                  )}
+                </div>
+                <div className="robustness-chart-card">
+                  <div className="optimizer-result-title">Sensitivity</div>
+                  <div className="optimizer-result-sub">
+                    Which strategy wins as medium-case weighting and private-school probability move.
+                  </div>
+                  {robustnessCharts?.sensitivity && (
+                    <img
+                      className="robustness-chart-image"
+                      src={`${import.meta.env.BASE_URL}${robustnessCharts.sensitivity}`}
+                      alt="Sensitivity of the top robust strategy to medium-weight and private-school probability"
+                    />
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

@@ -810,6 +810,82 @@ body {
   color: #111827;
 }
 
+/* -------- Robustness Tab -------- */
+
+.robustness-summary-grid {
+  max-width: none;
+}
+
+.robustness-card {
+  margin-top: 14px;
+  background: #f8fafc;
+  border: 1px solid #dbe4ee;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.robustness-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.robustness-table-wrap {
+  overflow-x: auto;
+}
+
+.robustness-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+
+.robustness-table th,
+.robustness-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  font-size: 0.75rem;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.robustness-table th {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+.robustness-chart-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.robustness-chart-card {
+  background: #ffffff;
+  border: 1px solid #dbe4ee;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.robustness-chart-image {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
 /* -------- Responsive tweaks -------- */
 
 @media (max-width: 1200px) {
@@ -823,6 +899,10 @@ body {
 
   .optimizer-range-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .robustness-chart-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .chart-top-row {
@@ -880,6 +960,10 @@ body {
   }
 
   .optimizer-range-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .robustness-chart-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
