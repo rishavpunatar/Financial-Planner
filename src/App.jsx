@@ -114,6 +114,8 @@ const OPTIMIZER_FAST_UPGRADE_YEAR_MAX = 2036;
 const OPTIMIZER_LATE_UPGRADE_YEAR_MAX = 2045;
 const OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE = 700000;
 const OPTIMIZER_MAX_TOTAL_MORTGAGE = 1000000;
+const POST_2032_SAVINGS_FLOOR_START_YEAR = 2033;
+const POST_2032_MIN_TOTAL_SAVINGS = 50000;
 const OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX = 600000;
 const FIRST_HOME_SALE_AGENT_FEE_PCT = 1.5;
 const FIRST_HOME_SALE_LEGAL_FEES = 2000;
@@ -141,6 +143,10 @@ const OPTIMIZER_FAILURE_REASON_DEFINITIONS = [
   {
     key: 'mortgageCap',
     label: `Peak total mortgage exceeds the ${`£${(OPTIMIZER_MAX_TOTAL_MORTGAGE / 1000000).toFixed(1)}m`} cap.`,
+  },
+  {
+    key: 'post2032SavingsFloor',
+    label: `Combined liquid savings (ISA + surplus) fall below ${`£${(POST_2032_MIN_TOTAL_SAVINGS / 1000).toFixed(0)}k`} at some point after 2032.`,
   },
 ];
 const FIRST_HOUSE_LEGAL_FEES = 3000;
@@ -345,6 +351,9 @@ const getOptimizerFailureKeys = (simulation) => {
   }
   if (simulation.peakMortgageBalance > OPTIMIZER_MAX_TOTAL_MORTGAGE) {
     failedKeys.push('mortgageCap');
+  }
+  if (!simulation.post2032SavingsFloorOk) {
+    failedKeys.push('post2032SavingsFloor');
   }
 
   return failedKeys;
@@ -733,6 +742,7 @@ const simulateFinancialPlan = (params) => {
   let capitalizedInterestTotal = 0;
   let peakMortgageBalance = 0;
   let minLiquidBuffer = isaSeed || 0;
+  let minLiquidBufferPost2032 = Number.POSITIVE_INFINITY;
   let cashBufferOk = true;
   let privateSchoolAffordable = true;
   let finalSnapshot = null;
@@ -1000,6 +1010,9 @@ const simulateFinancialPlan = (params) => {
     const isaBelowThreshold = isaTotal < 60000;
     minIsaBalance = Math.min(minIsaBalance, isaTotal);
     minLiquidBuffer = Math.min(minLiquidBuffer, isaTotal + surplusPot);
+    if (year >= POST_2032_SAVINGS_FLOOR_START_YEAR) {
+      minLiquidBufferPost2032 = Math.min(minLiquidBufferPost2032, isaTotal + surplusPot);
+    }
 
     let displayMortgagePayments = cumulativeMortgageRepayment;
     let displayInterestPaid = cumulativeMortgageInterest;
@@ -1069,6 +1082,16 @@ const simulateFinancialPlan = (params) => {
   }
 
   minIsaBalance = Math.min(minIsaBalance, terminalPayoff.isaEnd);
+  if (maxYear >= POST_2032_SAVINGS_FLOOR_START_YEAR) {
+    minLiquidBufferPost2032 = Math.min(
+      minLiquidBufferPost2032,
+      terminalPayoff.cashEnd,
+    );
+  }
+
+  const normalizedMinLiquidBufferPost2032 = Number.isFinite(minLiquidBufferPost2032)
+    ? minLiquidBufferPost2032
+    : minLiquidBuffer;
 
   const finalLiquidNet = terminalPayoff.cashEnd - (finalSnapshot?.cumulativeShortfall ?? 0);
   const cashEnd = terminalPayoff.cashEnd;
@@ -1089,6 +1112,7 @@ const simulateFinancialPlan = (params) => {
     firstMortgagePaidOffYear: firstMortgagePaidOffYearLocal,
     minIsaBalance,
     minLiquidBuffer,
+    minLiquidBufferPost2032: normalizedMinLiquidBufferPost2032,
     finalLiquidNet,
     cashBeforeTerminalMortgagePayoff: terminalPayoff.cashBeforeTerminalMortgagePayoff,
     terminalMortgagePaydown: terminalPayoff.terminalMortgagePaydown,
@@ -1106,6 +1130,7 @@ const simulateFinancialPlan = (params) => {
     negativeAmortizationYears,
     capitalizedInterestTotal,
     peakMortgageBalance: finalSnapshot?.peakMortgageBalance ?? 0,
+    post2032SavingsFloorOk: normalizedMinLiquidBufferPost2032 >= POST_2032_MIN_TOTAL_SAVINGS,
   };
 };
 
@@ -2042,6 +2067,7 @@ const App = () => {
     firstHouseSaleCosts,
     firstMortgagePaidOffYear,
     minIsaBalance,
+    minLiquidBufferPost2032,
     finalLiquidNet: simulatedFinalLiquidNet,
     terminalMortgagePaydown,
     finalMortgageBalance: simulatedFinalMortgageBalance,
@@ -2342,6 +2368,7 @@ const App = () => {
     : null;
 
   const minIsaSafe = minIsaBalance >= 60000;
+  const post2032SavingsFloorSafe = minLiquidBufferPost2032 >= POST_2032_MIN_TOTAL_SAVINGS;
 
   const formatCurrency = (value) => {
     const abs = Math.abs(value);
@@ -2453,6 +2480,7 @@ const App = () => {
       ? 'Private school fees are applied in real terms between ages 11 and 18.'
       : 'Private school fees are excluded unless the toggle is turned on.',
     `Shortfalls are met from surplus savings first, then ISA, with any remaining gap tracked as a cumulative shortfall.`,
+    `Combined liquid savings (ISA plus surplus savings) are now expected to stay above ${formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} from ${POST_2032_SAVINGS_FLOOR_START_YEAR} onward. The current plan bottoms at ${formatCurrency(minLiquidBufferPost2032)}${post2032SavingsFloorSafe ? '.' : ' and fails that floor.'}`,
     `Surplus savings grow at the ISA real growth rate less ${cgtRatePct}% CGT on gains.`,
     `At age ${END_AGE}, surplus savings and then ISA are used to pay down any remaining mortgage before the final cash and equity figures are reported. The current plan applies ${formatCurrency(terminalMortgagePaydown)} and leaves ${formatCurrency(finalMortgageBalance)} of mortgage outstanding.`,
     `A car purchase is assumed in 2028, and gifts are assumed at age 27 (currently ${formatCurrency(kid1GiftAmount)} and ${formatCurrency(kid2GiftAmount)}).`,
@@ -2502,6 +2530,7 @@ const App = () => {
     `The first-house mortgage cannot exceed ${formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}, and total mortgage outstanding can never exceed ${formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)} at any point in the path.`,
     `If the first house total is below ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the latest upgrade year is ${OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. If it is ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)} or above, the latest upgrade year is ${OPTIMIZER_LATE_UPGRADE_YEAR_MAX}.`,
     `A one-home path is only feasible if the first house bought in ${OPTIMIZER_FIXED_FIRST_HOUSE_YEAR} is at least ${formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)}. A two-home path is only feasible if the second house purchase value reaches at least ${formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)} at the move year.`,
+    `From ${POST_2032_SAVINGS_FLOOR_START_YEAR} onward, combined liquid savings (ISA plus surplus savings) must stay above ${formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} throughout the path.`,
     `At age ${END_AGE}, surplus savings and then ISA are used to pay down any remaining mortgage before end cash and end equity are measured.`,
     'The optimizer ranks plans by end net worth, defined as liquid cash after that payoff plus home equity. Lifetime interest is shown separately and does not drive the ranking directly.',
     `The optimizer now tests a 9-case matrix across income growth and correlated market growth. Each market case couples ISA and property growth together. Other planner assumptions stay frozen, including mortgage real rate ${mortgageRate}% and living-cost growth ${realGrowthCosts}%.`,
@@ -3102,6 +3131,11 @@ const App = () => {
           Min ISA balance:{' '}
           <span className={`derived-highlight${minIsaSafe ? '' : ' derived-warning'}`}>
             {formatCurrency(minIsaBalance)} {minIsaSafe ? '' : '⚠️'}
+          </span>
+          {'  •  '}
+          Min liquid savings after 2032:{' '}
+          <span className={`derived-highlight${post2032SavingsFloorSafe ? '' : ' derived-warning'}`}>
+            {formatCurrency(minLiquidBufferPost2032)} {post2032SavingsFloorSafe ? '' : '⚠️'}
           </span>
           {'  •  '}
           Total House Costs:{' '}
@@ -4240,7 +4274,7 @@ const App = () => {
                   <div className="robustness-explainer-card">
                     <div className="optimizer-result-title">Feasibility %</div>
                     <div className="optimizer-result-sub">
-                      This is the weighted share of the model’s full future probability where the plan stays valid overall: cash does not break, mortgage rules hold, and the one-home or two-home house-value rule is met. Higher is better.
+                      This is the weighted share of the model’s full future probability where the plan stays valid overall: cash does not break, mortgage rules hold, the post-2032 liquid-savings floor is preserved, and the one-home or two-home house-value rule is met. Higher is better.
                     </div>
                   </div>
                   <div className="robustness-explainer-card">

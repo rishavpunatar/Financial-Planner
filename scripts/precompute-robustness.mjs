@@ -487,6 +487,7 @@ const getOverallFeasible = (evaluation) => (
   evaluation.cashBufferOk
   && evaluation.canBuyHouse2IfChosen
   && evaluation.privateSchoolAffordable
+  && evaluation.post2032SavingsFloorOk
   && passesOptimizerHouseValueRule(evaluation)
   && evaluation.negativeAmortizationYears === 0
   && evaluation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE
@@ -534,6 +535,7 @@ const simulateStrategyScenario = (strategy, scenario) => {
     privateSchoolAffordable: scenario.privateSchool
       ? simulation.privateSchoolAffordable
       : true,
+    post2032SavingsFloorOk: simulation.post2032SavingsFloorOk,
     negativeAmortizationYears: simulation.negativeAmortizationYears,
     peakMortgageBalance: simulation.peakMortgageBalance,
   };
