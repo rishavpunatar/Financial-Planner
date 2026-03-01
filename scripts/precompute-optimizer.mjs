@@ -89,7 +89,7 @@ const {
 const defaultScenario = {
   startYear: 2027,
   firstHousePurchaseYear: 2027,
-  mortgageRate: 6,
+  mortgageRate: 2.3,
   salaryMortgageEarly: 18,
   salaryMortgageLater: 10,
   realGrowthCosts: 2,

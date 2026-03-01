@@ -1290,7 +1290,7 @@ const compareOptimizerResults = (left, right) => {
 const App = () => {
   const initialScenario = useMemo(() => loadStoredScenario(), []);
 
-  const [mortgageRate, setMortgageRate] = useState(initialScenario?.mortgageRate ?? 6);
+  const [mortgageRate, setMortgageRate] = useState(initialScenario?.mortgageRate ?? 2.3);
   const [salaryMortgageEarly, setSalaryMortgageEarly] = useState(initialScenario?.salaryMortgageEarly ?? 18);
   const [salaryMortgageLater, setSalaryMortgageLater] = useState(initialScenario?.salaryMortgageLater ?? 10);
 
