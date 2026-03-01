@@ -1,20 +1,35 @@
 {
-  "generatedAt": "2026-03-01T19:55:41.139Z",
+  "generatedAt": "2026-03-01T19:59:27.897Z",
   "variants": {
     "standard": {
-      "generatedAt": "2026-03-01T19:55:30.570Z",
+      "generatedAt": "2026-03-01T19:59:17.252Z",
       "baseParams": {
         "startYear": 2027,
         "firstHousePurchaseYear": 2027,
         "mortgageRate": 2.3,
         "realGrowthCosts": 2,
+        "child1BirthYear": 2032,
+        "child2BirthYear": 2034,
         "baseLivingCost": 40000,
         "child1AnnualCost": 30000,
         "child2AnnualCost": 20000,
+        "emergencyFundAnnual": 5000,
+        "pensionContributionRate": 5,
+        "visaCostPreSecondHouse": 2200,
+        "visaCostAtSecondHouse": 2500,
+        "carCost": 20000,
+        "kid1GiftAmount": 100000,
+        "kid2GiftAmount": 100000,
+        "isaContributionCap": 40000,
+        "recessionHitPct": 20,
+        "cgtRatePct": 20,
         "recessionYear": 2035,
         "secondRecessionYear": 2042,
         "thirdRecessionYear": 2050,
-        "enableRedundancy": false
+        "enableRedundancy": false,
+        "redundancyYear": 2031,
+        "secondRedundancyYear": 2039,
+        "usePrivateSchool": false
       },
       "searchConfig": {
         "propertyMode": "both",
@@ -5322,19 +5337,34 @@
       }
     },
     "privateSchool": {
-      "generatedAt": "2026-03-01T19:55:41.139Z",
+      "generatedAt": "2026-03-01T19:59:27.897Z",
       "baseParams": {
         "startYear": 2027,
         "firstHousePurchaseYear": 2027,
         "mortgageRate": 2.3,
         "realGrowthCosts": 2,
+        "child1BirthYear": 2032,
+        "child2BirthYear": 2034,
         "baseLivingCost": 40000,
         "child1AnnualCost": 30000,
         "child2AnnualCost": 20000,
+        "emergencyFundAnnual": 5000,
+        "pensionContributionRate": 5,
+        "visaCostPreSecondHouse": 2200,
+        "visaCostAtSecondHouse": 2500,
+        "carCost": 20000,
+        "kid1GiftAmount": 100000,
+        "kid2GiftAmount": 100000,
+        "isaContributionCap": 40000,
+        "recessionHitPct": 20,
+        "cgtRatePct": 20,
         "recessionYear": 2035,
         "secondRecessionYear": 2042,
         "thirdRecessionYear": 2050,
-        "enableRedundancy": false
+        "enableRedundancy": false,
+        "redundancyYear": 2031,
+        "secondRedundancyYear": 2039,
+        "usePrivateSchool": true
       },
       "searchConfig": {
         "propertyMode": "both",
