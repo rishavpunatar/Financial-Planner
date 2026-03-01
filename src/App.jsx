@@ -104,6 +104,7 @@ const OPTIMIZER_FULL_SEARCH_LIMIT = 60000;
 const OPTIMIZER_MIN_FIRST_PROPERTY_VALUE = 500000;
 const OPTIMIZER_MIN_UPGRADE_VALUE = 200000;
 const OPTIMIZER_MIN_END_PROPERTY_VALUE = 1000000;
+const OPTIMIZER_FIXED_FIRST_HOUSE_YEAR = 2027;
 const OPTIMIZER_ASSUMPTION_PROFILES = [
   {
     id: 'conservative',
@@ -1116,12 +1117,6 @@ const App = () => {
         roundToStep(Math.max(initialMortgage, 100000) * 1.25, 50000),
       ),
   );
-  const [optimizerFirstHouseYearMin, setOptimizerFirstHouseYearMin] = useState(
-    initialScenario?.optimizerFirstHouseYearMin ?? startYear,
-  );
-  const [optimizerFirstHouseYearMax, setOptimizerFirstHouseYearMax] = useState(
-    initialScenario?.optimizerFirstHouseYearMax ?? Math.min(startYear + 10, BASE_BIRTH_YEAR + END_AGE),
-  );
   const [optimizerSecondHouseDepositMin, setOptimizerSecondHouseDepositMin] = useState(
     initialScenario?.optimizerSecondHouseDepositMin
       ?? Math.max(0, roundToStep(Math.max(secondHouseDeposit, 100000) * 0.75, 50000)),
@@ -1342,8 +1337,6 @@ const App = () => {
     optimizerFirstHouseDepositMax,
     optimizerFirstHouseMortgageMin,
     optimizerFirstHouseMortgageMax,
-    optimizerFirstHouseYearMin,
-    optimizerFirstHouseYearMax,
     optimizerSecondHouseDepositMin,
     optimizerSecondHouseDepositMax,
     optimizerSecondHouseMortgageMin,
@@ -1411,8 +1404,6 @@ const App = () => {
     optimizerFirstHouseDepositMax,
     optimizerFirstHouseMortgageMin,
     optimizerFirstHouseMortgageMax,
-    optimizerFirstHouseYearMin,
-    optimizerFirstHouseYearMax,
     optimizerSecondHouseDepositMin,
     optimizerSecondHouseDepositMax,
     optimizerSecondHouseMortgageMin,
@@ -1601,8 +1592,8 @@ const App = () => {
         firstHouseDepositMax: optimizerFirstHouseDepositMax,
         firstHouseMortgageMin: optimizerFirstHouseMortgageMin,
         firstHouseMortgageMax: optimizerFirstHouseMortgageMax,
-        firstHouseYearMin: optimizerFirstHouseYearMin,
-        firstHouseYearMax: optimizerFirstHouseYearMax,
+        firstHouseYearMin: OPTIMIZER_FIXED_FIRST_HOUSE_YEAR,
+        firstHouseYearMax: OPTIMIZER_FIXED_FIRST_HOUSE_YEAR,
         secondHouseDepositMin: optimizerSecondHouseDepositMin,
         secondHouseDepositMax: optimizerSecondHouseDepositMax,
         secondHouseMortgageMin: optimizerSecondHouseMortgageMin,
@@ -1623,8 +1614,6 @@ const App = () => {
     optimizerFirstHouseDepositMax,
     optimizerFirstHouseMortgageMin,
     optimizerFirstHouseMortgageMax,
-    optimizerFirstHouseYearMin,
-    optimizerFirstHouseYearMax,
     optimizerSecondHouseDepositMin,
     optimizerSecondHouseDepositMax,
     optimizerSecondHouseMortgageMin,
@@ -1794,6 +1783,7 @@ const App = () => {
   const optimizerUpgradeTotalMax = optimizerSecondHouseDepositMax + optimizerSecondHouseMortgageMax;
   const optimizerFrozenAssumptions = [
     `Starting incomes are fixed at ${formatCurrency(OPTIMIZER_STARTING_INCOME_1)} and ${formatCurrency(OPTIMIZER_STARTING_INCOME_2)}.`,
+    `The first house purchase year is fixed at ${OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}.`,
     `The first-house deposit and starting ISA seed share one fixed starting cash pool of ${formatCurrency(optimizerSearchMeta?.startingCashPool ?? (initialDeposit + isaSeed))}.`,
     `The first property must be at least ${formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}, and any upgrade step must add at least ${formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} of extra property value from deposit plus mortgage.`,
     `Every feasible result must end with property value above ${formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)} in today's money after applying the chosen real property-growth case.`,
@@ -2669,7 +2659,7 @@ const App = () => {
             Low / medium / high growth cases used here are: income 0.5% / 1.5% / 2.5%, ISA 2.5% / 4.0% / 5.5%, and property 0.5% / 1.5% / 2.5%, all in real terms.
           </p>
           <p className="helper-text">
-            Housing inputs searched here are explicit deposit and mortgage ranges. House 1 value is deposit plus mortgage and must be at least {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}. In the upgrade path, the extra deposit plus extra mortgage must be at least {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)}.
+            The first house is fixed to {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}. Housing inputs searched here are explicit deposit and mortgage ranges. House 1 value is deposit plus mortgage and must be at least {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}. In the upgrade path, the extra deposit plus extra mortgage must be at least {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)}.
           </p>
           <p className="helper-text">
             Results are only kept if final cash stays positive, end property value stays above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, and there is no funding gap, cumulative shortfall, or capitalised interest. The optimizer then ranks by final cash first.
@@ -2720,6 +2710,13 @@ const App = () => {
           </div>
 
           <div className="optimizer-range-summary">
+            <div className="summary-card summary-accent-blue">
+              <div className="summary-label">First House Year</div>
+              <div className="summary-value">{OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}</div>
+              <div className="summary-sub">
+                Fixed requirement for every optimizer result
+              </div>
+            </div>
             <div className="summary-card summary-accent-blue">
               <div className="summary-label">First House Total Range</div>
               <div className="summary-value">
@@ -2785,24 +2782,6 @@ const App = () => {
               step={50000}
               onChange={setOptimizerFirstHouseMortgageMax}
               formatValue={formatCurrency}
-            />
-            <RangeSlider
-              label="First House Year Min"
-              value={optimizerFirstHouseYearMin}
-              min={startYear}
-              max={BASE_BIRTH_YEAR + END_AGE}
-              step={1}
-              onChange={setOptimizerFirstHouseYearMin}
-              formatValue={v => v}
-            />
-            <RangeSlider
-              label="First House Year Max"
-              value={optimizerFirstHouseYearMax}
-              min={startYear}
-              max={BASE_BIRTH_YEAR + END_AGE}
-              step={1}
-              onChange={setOptimizerFirstHouseYearMax}
-              formatValue={v => v}
             />
             <RangeSlider
               label="Mortgage % Early Range Start"
