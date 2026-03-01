@@ -116,6 +116,7 @@ const OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE = 700000;
 const OPTIMIZER_MAX_TOTAL_MORTGAGE = 1000000;
 const POST_2032_SAVINGS_FLOOR_START_YEAR = 2033;
 const POST_2032_MIN_TOTAL_SAVINGS = 50000;
+const OPTIMIZER_BIG_FIRST_HOUSE_TARGET = 800000;
 const OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX = 600000;
 const FIRST_HOME_SALE_AGENT_FEE_PCT = 1.5;
 const FIRST_HOME_SALE_LEGAL_FEES = 2000;
@@ -213,6 +214,32 @@ const OPTIMIZER_ASSUMPTION_CASES = OPTIMIZER_INCOME_CASES.flatMap((incomeCase, i
       propertyGrowth: marketCase.propertyGrowth,
     })),
 );
+const OPTIMIZER_OBJECTIVE_DEFINITIONS = [
+  {
+    id: 'netWorth',
+    label: 'Balanced',
+    shortLabel: 'Balanced',
+    description: 'Highest end net worth after the age-70 mortgage payoff.',
+  },
+  {
+    id: 'cashEnd',
+    label: 'Cash savings at end',
+    shortLabel: 'Cash end',
+    description: 'Highest liquid cash left after the age-70 mortgage payoff.',
+  },
+  {
+    id: 'propertyValue',
+    label: 'Highest property value',
+    shortLabel: 'Property',
+    description: 'Highest end property value, using the second home value where there is an upgrade path.',
+  },
+  {
+    id: 'bigFirstHouse',
+    label: 'Big first house',
+    shortLabel: 'Big first house',
+    description: `First house value as close as possible to about ${`£${(OPTIMIZER_BIG_FIRST_HOUSE_TARGET / 1000).toFixed(0)}k`}, with larger first houses preferred on ties.`,
+  },
+];
 const TAX_YEAR_LABEL = '2025/26';
 // Smoothed real-terms threshold tightening assumption for long-run UK fiscal drag.
 const TAX_THRESHOLD_DRAG_PCT = 1.85;
@@ -1299,14 +1326,16 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
       }
     }
 
-    const sortedResults = results.sort(compareOptimizerResults).slice(0, 3);
+    const sortedResults = [...results].sort(compareOptimizerResults);
+    const objectiveResults = buildOptimizerObjectiveResults(sortedResults, 3);
 
     return {
       assumptionCase,
       scenariosTested,
       feasibleCount: results.length,
-      bestResult: sortedResults[0] ?? null,
-      topResults: sortedResults,
+      bestResult: objectiveResults.netWorth?.bestResult ?? sortedResults[0] ?? null,
+      topResults: objectiveResults.netWorth?.topResults ?? sortedResults.slice(0, 3),
+      objectiveResults,
       failureCounts,
       failureSummary: summarizeOptimizerFailureCounts(failureCounts, scenariosTested),
     };
@@ -1342,6 +1371,10 @@ const getOptimizerResultKey = (result) => [
 ].join('|');
 
 const getOptimizerNetWorth = (result) => result.netWorthEnd;
+const getOptimizerObjectiveDefinition = (objectiveId) => (
+  OPTIMIZER_OBJECTIVE_DEFINITIONS.find((objective) => objective.id === objectiveId)
+  ?? OPTIMIZER_OBJECTIVE_DEFINITIONS[0]
+);
 const hasRemainingMortgageAfterPayoff = (result) => (result?.finalMortgageBalance ?? 0) > 0.01;
 const getOptimizerHousingEndLabel = (result) => (
   hasRemainingMortgageAfterPayoff(result)
@@ -1362,7 +1395,7 @@ const getOptimizerHousingEndInlineLabel = (result) => (
   hasRemainingMortgageAfterPayoff(result) ? 'equity' : 'property'
 );
 
-const compareOptimizerResults = (left, right) => {
+const compareOptimizerResultsByNetWorth = (left, right) => {
   const leftNetWorth = getOptimizerNetWorth(left);
   const rightNetWorth = getOptimizerNetWorth(right);
 
@@ -1384,6 +1417,61 @@ const compareOptimizerResults = (left, right) => {
 
   return 0;
 };
+
+const compareOptimizerResultsForObjective = (objectiveId, left, right) => {
+  if (objectiveId === 'cashEnd') {
+    if (right.cashEnd !== left.cashEnd) {
+      return right.cashEnd - left.cashEnd;
+    }
+    return compareOptimizerResultsByNetWorth(left, right);
+  }
+
+  if (objectiveId === 'propertyValue') {
+    if (right.finalPropertyValue !== left.finalPropertyValue) {
+      return right.finalPropertyValue - left.finalPropertyValue;
+    }
+    if (right.equityEnd !== left.equityEnd) {
+      return right.equityEnd - left.equityEnd;
+    }
+    return compareOptimizerResultsByNetWorth(left, right);
+  }
+
+  if (objectiveId === 'bigFirstHouse') {
+    const leftDistance = Math.abs(left.firstHouseValue - OPTIMIZER_BIG_FIRST_HOUSE_TARGET);
+    const rightDistance = Math.abs(right.firstHouseValue - OPTIMIZER_BIG_FIRST_HOUSE_TARGET);
+
+    if (leftDistance !== rightDistance) {
+      return leftDistance - rightDistance;
+    }
+    if (right.firstHouseValue !== left.firstHouseValue) {
+      return right.firstHouseValue - left.firstHouseValue;
+    }
+    return compareOptimizerResultsByNetWorth(left, right);
+  }
+
+  return compareOptimizerResultsByNetWorth(left, right);
+};
+
+const compareOptimizerResults = (left, right) => (
+  compareOptimizerResultsForObjective('netWorth', left, right)
+);
+
+const buildOptimizerObjectiveResults = (results, topCount = 3) => Object.fromEntries(
+  OPTIMIZER_OBJECTIVE_DEFINITIONS.map((objective) => {
+    const sortedResults = [...results].sort((left, right) => (
+      compareOptimizerResultsForObjective(objective.id, left, right)
+    ));
+
+    return [
+      objective.id,
+      {
+        objective,
+        bestResult: sortedResults[0] ?? null,
+        topResults: sortedResults.slice(0, topCount),
+      },
+    ];
+  }),
+);
 
 const App = () => {
   const initialScenario = useMemo(() => loadStoredScenario(), []);
@@ -1595,6 +1683,9 @@ const App = () => {
   const [expandedOptimizerIncomeId, setExpandedOptimizerIncomeId] = useState(
     initialScenario?.expandedOptimizerIncomeId ?? OPTIMIZER_INCOME_CASES[0].id,
   );
+  const [selectedOptimizerObjective, setSelectedOptimizerObjective] = useState(
+    initialScenario?.selectedOptimizerObjective ?? 'netWorth',
+  );
   const [robustnessReport, setRobustnessReport] = useState(null);
   const [robustnessError, setRobustnessError] = useState('');
   const [robustnessPathView, setRobustnessPathView] = useState('all');
@@ -1777,6 +1868,7 @@ const App = () => {
     showOptimizerIntro,
     showOptimizerAssumptions,
     expandedOptimizerIncomeId,
+    selectedOptimizerObjective,
     optimizerFirstHouseDepositMin,
     optimizerFirstHouseDepositMax,
     optimizerFirstHouseMortgageMin,
@@ -1848,6 +1940,7 @@ const App = () => {
     showOptimizerIntro,
     showOptimizerAssumptions,
     expandedOptimizerIncomeId,
+    selectedOptimizerObjective,
     optimizerFirstHouseDepositMin,
     optimizerFirstHouseDepositMax,
     optimizerFirstHouseMortgageMin,
@@ -2154,12 +2247,27 @@ const App = () => {
     optimizerLaterMortgagePctMax,
   ]);
 
+  const selectedOptimizerObjectiveDefinition = useMemo(
+    () => getOptimizerObjectiveDefinition(selectedOptimizerObjective),
+    [selectedOptimizerObjective],
+  );
+  const getOptimizerCaseObjectiveBundle = useCallback((caseResult) => (
+    caseResult?.objectiveResults?.[selectedOptimizerObjective] ?? {
+      bestResult: caseResult?.bestResult ?? null,
+      topResults: caseResult?.topResults ?? [],
+    }
+  ), [selectedOptimizerObjective]);
+
   const optimizerRecommendedResults = useMemo(() => (
     optimizerResults
-      .map(({ bestResult }) => bestResult)
+      .map((caseResult) => getOptimizerCaseObjectiveBundle(caseResult).bestResult)
       .filter(Boolean)
-      .sort(compareOptimizerResults)
-  ), [optimizerResults]);
+      .sort((left, right) => compareOptimizerResultsForObjective(
+        selectedOptimizerObjective,
+        left,
+        right,
+      ))
+  ), [getOptimizerCaseObjectiveBundle, optimizerResults, selectedOptimizerObjective]);
 
   const selectedPrecomputedOptimizerPayload = useMemo(() => {
     if (!precomputedOptimizerPayload) return null;
@@ -2181,15 +2289,23 @@ const App = () => {
   const hasPrecomputedOptimizerResults = selectedPrecomputedOptimizerPayload !== null;
   const precomputedRecommendedResults = useMemo(() => (
     precomputedOptimizerResults
-      .map(({ bestResult }) => bestResult)
+      .map((caseResult) => getOptimizerCaseObjectiveBundle(caseResult).bestResult)
       .filter(Boolean)
-      .sort(compareOptimizerResults)
-  ), [precomputedOptimizerResults]);
+      .sort((left, right) => compareOptimizerResultsForObjective(
+        selectedOptimizerObjective,
+        left,
+        right,
+      ))
+  ), [getOptimizerCaseObjectiveBundle, precomputedOptimizerResults, selectedOptimizerObjective]);
   const precomputedStoredResults = useMemo(() => (
     precomputedOptimizerResults
-      .flatMap(({ topResults = [] }) => topResults)
-      .sort(compareOptimizerResults)
-  ), [precomputedOptimizerResults]);
+      .flatMap((caseResult) => getOptimizerCaseObjectiveBundle(caseResult).topResults)
+      .sort((left, right) => compareOptimizerResultsForObjective(
+        selectedOptimizerObjective,
+        left,
+        right,
+      ))
+  ), [getOptimizerCaseObjectiveBundle, precomputedOptimizerResults, selectedOptimizerObjective]);
   const displayOptimizerSearchMeta = hasPrecomputedOptimizerResults
     ? precomputedOptimizerSearchMeta
     : optimizerSearchMeta;
@@ -2210,7 +2326,7 @@ const App = () => {
   useEffect(() => {
     setSelectedOptimizerResultKey('');
     setAllFeasiblePage(1);
-  }, [optimizerUsePrivateSchool]);
+  }, [optimizerUsePrivateSchool, selectedOptimizerObjective]);
 
   const optimizerResultsByIncome = useMemo(() => (
     OPTIMIZER_INCOME_CASES.map((incomeCase) => ({
@@ -3441,7 +3557,7 @@ const App = () => {
                 </p>
                 <p className="helper-text">
                   {`Results are only kept if liquid cash before the age-${END_AGE} mortgage payoff stays positive, `}
-                  one-home plans buy at least {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} in {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}, two-home plans reach at least {formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)} on the second purchase value, there is no funding gap, cumulative shortfall, or capitalised interest, and total mortgage outstanding never goes above {formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)}. The optimizer then ranks by end net worth, defined as post-payoff liquid cash plus home equity.
+                  one-home plans buy at least {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} in {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}, two-home plans reach at least {formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)} on the second purchase value, there is no funding gap, cumulative shortfall, or capitalised interest, and total mortgage outstanding never goes above {formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)}. The default objective is balanced end net worth, but you can switch the objective buttons below to optimize for cash end, property value, or a big first house.
                 </p>
                 <p className="helper-text">
                   Mode selected: {optimizerModeLabel}. {optimizerModeDescription}
@@ -3455,7 +3571,7 @@ const App = () => {
                       : ''}
                 </p>
                 <p className="helper-text">
-                  {`"Tested" means the number of housing combinations the optimizer actually ran for that assumption case. "Feasible" means the subset that passed every hard rule: positive liquid cash before the age-${END_AGE} mortgage payoff, `}
+                  {`"Tested" means the number of housing combinations the optimizer actually ran for that assumption case. "Success rate" means the share that passed every hard rule: positive liquid cash before the age-${END_AGE} mortgage payoff, `}
                   one-home plans needing at least {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} on the first house, two-home plans needing at least {formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)} on the second purchase value, no funding gap, no cumulative shortfall, no capitalised interest, and mortgage balances within the caps.
                 </p>
               </div>
@@ -3484,6 +3600,23 @@ const App = () => {
             >
               Buy then upgrade
             </button>
+          </div>
+
+          <div className="optimizer-mode-row">
+            {OPTIMIZER_OBJECTIVE_DEFINITIONS.map((objective) => (
+              <button
+                key={objective.id}
+                type="button"
+                className={`view-tab${selectedOptimizerObjective === objective.id ? ' view-tab-active' : ''}`}
+                onClick={() => setSelectedOptimizerObjective(objective.id)}
+              >
+                {objective.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="helper-text">
+            Optimize for: {selectedOptimizerObjectiveDefinition.label}. {selectedOptimizerObjectiveDefinition.description} Use the private school buttons below to rerun the same objective under school-off or school-on assumptions.
           </div>
 
           <div className="optimizer-mode-row">
@@ -3733,8 +3866,8 @@ const App = () => {
                   </div>
                   <div className="optimizer-result-sub">
                     {precomputedStoredResults.length
-                      ? 'The buttons below switch between the best combination from each income-growth and market-growth case using the terminal-side full search.'
-                      : 'The buttons below switch between the best combinations from the browser-side preview for each income-growth and market-growth case.'}
+                      ? `The buttons below switch between the best combination from each income-growth and market-growth case for the "${selectedOptimizerObjectiveDefinition.label}" objective using the terminal-side full search.`
+                      : `The buttons below switch between the best combinations from the browser-side preview for the "${selectedOptimizerObjectiveDefinition.label}" objective.`}
                   </div>
                 </div>
                 <div className="optimizer-result-meta">
@@ -3818,11 +3951,11 @@ const App = () => {
                 <div>
                   <div className="optimizer-result-title">Top combinations from terminal run</div>
                   <div className="optimizer-result-sub">
-                    A curated stored set from the last terminal-side full search. This keeps the page light while preserving the best and strongest scenarios across the tested cases.
+                    {`A curated stored set from the last terminal-side full search for the "${selectedOptimizerObjectiveDefinition.label}" objective. This keeps the page light while preserving the strongest scenarios across the tested cases.`}
                   </div>
                 </div>
                 <div className="optimizer-result-meta">
-                  {precomputedStoredResults.length.toLocaleString()} stored / {precomputedOptimizerSearchMeta ? precomputedOptimizerSearchMeta.feasibleScenarioCount.toLocaleString() : '0'} feasible total
+                  {precomputedStoredResults.length.toLocaleString()} stored / {precomputedOptimizerSearchMeta ? precomputedOptimizerSearchMeta.feasibleScenarioCount.toLocaleString() : '0'} passing total
                 </div>
               </div>
 
@@ -3915,14 +4048,19 @@ const App = () => {
 
               {expandedOptimizerIncomeId === incomeCase.id && (
                 <div className="optimizer-results-grid">
-                  {caseResults.map(({
-                  assumptionCase,
-                  scenariosTested,
-                  feasibleCount,
-                  bestResult,
-                  topResults = [],
-                  failureSummary = [],
-                }) => (
+                  {caseResults.map((caseResult) => {
+                    const {
+                      assumptionCase,
+                      scenariosTested,
+                      feasibleCount,
+                      failureSummary = [],
+                    } = caseResult;
+                    const {
+                      bestResult,
+                      topResults = [],
+                    } = getOptimizerCaseObjectiveBundle(caseResult);
+
+                    return (
                   <div key={assumptionCase.id} className="optimizer-result-card">
                     <div className="optimizer-result-header">
                       <div>
@@ -3934,7 +4072,7 @@ const App = () => {
                         </div>
                       </div>
                       <div className="optimizer-result-meta">
-                        {feasibleCount} feasible / {scenariosTested} tested
+                        {`${((feasibleCount / Math.max(1, scenariosTested)) * 100).toFixed(1)}% success rate`}
                       </div>
                     </div>
 
@@ -4008,7 +4146,8 @@ const App = () => {
                       </div>
                     )}
                   </div>
-                ))}
+                );
+                  })}
                 </div>
               )}
             </div>
@@ -4052,7 +4191,7 @@ const App = () => {
                 <div className="robustness-explainer-card">
                   <div className="optimizer-result-title">What weighted share means</div>
                   <div className="optimizer-result-sub">
-                    A “weighted share” is not just raw row-count percentage. Medium futures count more than low/high by design, and private-school futures only count by the private-school probability you set. So 60% feasibility means the plan survives 60% of the model’s total probability mass, not necessarily 60% of raw rows.
+                    A “weighted share” is not just raw row-count percentage. Medium futures count more than low/high by design, and private-school futures only count by the private-school probability you set. So 60% success rate means the plan survives 60% of the model’s total probability mass, not necessarily 60% of raw rows.
                   </div>
                 </div>
                 <div className="robustness-explainer-card">
@@ -4182,7 +4321,7 @@ const App = () => {
                   <div className="robustness-explainer-card">
                     <div className="optimizer-result-title">How to read percentages</div>
                     <div className="optimizer-result-sub">
-                      Feasibility and private-school percentages are weighted shares of probability, not plain row counts. If medium futures are weighted more heavily, a strategy can have a high weighted feasibility even if its raw success count is lower in some lighter-weight buckets.
+                      Success-rate and private-school percentages are weighted shares of probability, not plain row counts. If medium futures are weighted more heavily, a strategy can have a high weighted success rate even if its raw success count is lower in some lighter-weight buckets.
                     </div>
                     <div className="optimizer-detail-list">
                       <div>{robustnessMeta?.weightingExplanation ?? 'Weighting explanation unavailable.'}</div>
@@ -4219,7 +4358,7 @@ const App = () => {
                               Regret CVaR 10%: {formatCurrency(strategy.metrics.regretCvar10)}
                             </div>
                             <div>
-                              Feasibility: {formatProbability(strategy.metrics.feasibilityProbability)}
+                              Success rate: {formatProbability(strategy.metrics.feasibilityProbability)}
                             </div>
                           </div>
                           <button
@@ -4272,13 +4411,13 @@ const App = () => {
                     </div>
                   </div>
                   <div className="robustness-explainer-card">
-                    <div className="optimizer-result-title">Feasibility %</div>
+                    <div className="optimizer-result-title">Success Rate %</div>
                     <div className="optimizer-result-sub">
                       This is the weighted share of the model’s full future probability where the plan stays valid overall: cash does not break, mortgage rules hold, the post-2032 liquid-savings floor is preserved, and the one-home or two-home house-value rule is met. Higher is better.
                     </div>
                   </div>
                   <div className="robustness-explainer-card">
-                    <div className="optimizer-result-title">Private School %</div>
+                    <div className="optimizer-result-title">Private School Success %</div>
                     <div className="optimizer-result-sub">
                       This only looks at the private-school slice of futures. It asks: after re-weighting just that slice to 100%, what share still remains feasible and can still afford school fees? Higher is better.
                     </div>
@@ -4298,8 +4437,8 @@ const App = () => {
                         <th>Mortgage 2</th>
                         <th>Expected Net Worth</th>
                         <th>Regret CVaR 10%</th>
-                        <th>Feasibility</th>
-                        <th>Private School</th>
+                        <th>Success Rate</th>
+                        <th>Private School Success</th>
                         <th>Apply</th>
                       </tr>
                     </thead>

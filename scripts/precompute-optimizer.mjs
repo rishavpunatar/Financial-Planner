@@ -34,6 +34,7 @@ const moduleSource = `${appSource.slice(startIndex, endIndex)}
 export {
   BASE_BIRTH_YEAR,
   OPTIMIZER_ASSUMPTION_CASES,
+  OPTIMIZER_OBJECTIVE_DEFINITIONS,
   OPTIMIZER_STARTING_INCOME_1,
   OPTIMIZER_STARTING_INCOME_2,
   OPTIMIZER_MIN_FIRST_PROPERTY_VALUE,
@@ -50,6 +51,7 @@ export {
   buildSteppedPoints,
   getOptimizerUpgradeYearMax,
   compareOptimizerResults,
+  compareOptimizerResultsForObjective,
   createOptimizerFailureCounts,
   recordOptimizerFailures,
   summarizeOptimizerFailureCounts,
@@ -67,6 +69,7 @@ const optimizerCore = await import(`${pathToFileURL(tempModulePath).href}?ts=${D
 const {
   BASE_BIRTH_YEAR,
   OPTIMIZER_ASSUMPTION_CASES,
+  OPTIMIZER_OBJECTIVE_DEFINITIONS,
   OPTIMIZER_STARTING_INCOME_1,
   OPTIMIZER_STARTING_INCOME_2,
   OPTIMIZER_MIN_FIRST_PROPERTY_VALUE,
@@ -78,6 +81,7 @@ const {
   buildSteppedPoints,
   getOptimizerUpgradeYearMax,
   compareOptimizerResults,
+  compareOptimizerResultsForObjective,
   createOptimizerFailureCounts,
   recordOptimizerFailures,
   summarizeOptimizerFailureCounts,
@@ -265,6 +269,28 @@ const sanitizeResult = (result) => ({
   peakMortgageBalance: result.peakMortgageBalance,
 });
 
+const buildObjectiveResults = (results) => Object.fromEntries(
+  OPTIMIZER_OBJECTIVE_DEFINITIONS.map((objective) => {
+    const sortedResults = [...results].sort((left, right) => (
+      compareOptimizerResultsForObjective(objective.id, left, right)
+    ));
+
+    return [
+      objective.id,
+      {
+        objective: {
+          id: objective.id,
+          label: objective.label,
+          shortLabel: objective.shortLabel,
+          description: objective.description,
+        },
+        bestResult: sortedResults[0] ?? null,
+        topResults: sortedResults.slice(0, PRECOMPUTED_TOP_RESULTS_PER_CASE),
+      },
+    ];
+  }),
+);
+
 const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
   const searchPlan = buildFullSearchPlan(searchConfig);
   const {
@@ -431,8 +457,9 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
       }
     }
 
-    const feasibleResults = results.sort(compareOptimizerResults).map(sanitizeResult);
-    const topResults = feasibleResults.slice(0, PRECOMPUTED_TOP_RESULTS_PER_CASE);
+    const feasibleResults = [...results].sort(compareOptimizerResults).map(sanitizeResult);
+    const objectiveResults = buildObjectiveResults(feasibleResults);
+    const topResults = objectiveResults.netWorth?.topResults ?? feasibleResults.slice(0, PRECOMPUTED_TOP_RESULTS_PER_CASE);
 
     return {
       assumptionCase: {
@@ -449,6 +476,7 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
       feasibleCount: feasibleResults.length,
       bestResult: feasibleResults[0] ?? null,
       topResults,
+      objectiveResults,
       failureSummary: summarizeOptimizerFailureCounts(failureCounts, scenariosTested),
     };
   });
