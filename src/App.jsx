@@ -88,41 +88,88 @@ const loadFiltersFromURL = () => {
   return filters ? JSON.parse(decodeURIComponent(filters)) : null;
 };
 
+const loadSavedPresets = () => {
+  if (typeof window === 'undefined') return [];
+  const storedPresets = localStorage.getItem('savedPresets');
+  return storedPresets ? JSON.parse(storedPresets) : [];
+};
+
+const loadStoredScenario = () => {
+  if (typeof window === 'undefined') return null;
+  return loadFiltersFromURL()
+    || JSON.parse(localStorage.getItem('currentScenario') || 'null');
+};
+
 const BASE_BIRTH_YEAR = 1998;
+const END_AGE = 70;
 const CAREER_GROWTH_PEAK_AGE = 40;
 const CAREER_GROWTH_END_AGE = 55;
 const TAX_YEAR_LABEL = '2025/26';
+// Smoothed real-terms threshold tightening assumption for long-run UK fiscal drag.
+const TAX_THRESHOLD_DRAG_PCT = 1.85;
 const PERSONAL_ALLOWANCE = 12570;
 const BASIC_RATE_LIMIT = 50270;
 const ADDITIONAL_RATE_LIMIT = 125140;
-const BASIC_RATE_BAND = BASIC_RATE_LIMIT - PERSONAL_ALLOWANCE;
-const HIGHER_RATE_BAND = ADDITIONAL_RATE_LIMIT - BASIC_RATE_LIMIT;
 const EMPLOYEE_NI_PRIMARY_THRESHOLD = 12570;
 const EMPLOYEE_NI_UPPER_EARNINGS_LIMIT = 50270;
 
-const calculateIncomeTax = (income) => {
-  if (income <= PERSONAL_ALLOWANCE) return 0;
+const getDraggedThreshold = (threshold, yearsFromStart) =>
+  threshold * Math.pow(1 - TAX_THRESHOLD_DRAG_PCT / 100, yearsFromStart);
 
-  let personalAllowance = PERSONAL_ALLOWANCE;
-  if (income > 100000) {
-    const excessOver100k = income - 100000;
-    const taperAmount = Math.floor(excessOver100k / 2);
+const calculateRealTermsTakeHomePay = (income, yearsFromStart) => {
+  const incomeTax = calculateIncomeTax(income, {
+    personalAllowance: getDraggedThreshold(PERSONAL_ALLOWANCE, yearsFromStart),
+    basicRateLimit: getDraggedThreshold(BASIC_RATE_LIMIT, yearsFromStart),
+    additionalRateLimit: getDraggedThreshold(ADDITIONAL_RATE_LIMIT, yearsFromStart),
+    allowanceTaperStart: getDraggedThreshold(100000, yearsFromStart),
+  });
+  const nationalInsurance = calculateEmployeeNationalInsurance(income, {
+    primaryThreshold: getDraggedThreshold(
+      EMPLOYEE_NI_PRIMARY_THRESHOLD,
+      yearsFromStart,
+    ),
+    upperEarningsLimit: getDraggedThreshold(
+      EMPLOYEE_NI_UPPER_EARNINGS_LIMIT,
+      yearsFromStart,
+    ),
+  });
+
+  return income - incomeTax - nationalInsurance;
+};
+
+const calculateIncomeTax = (income, thresholds = {}) => {
+  const {
+    personalAllowance: personalAllowanceBase = PERSONAL_ALLOWANCE,
+    basicRateLimit = BASIC_RATE_LIMIT,
+    additionalRateLimit = ADDITIONAL_RATE_LIMIT,
+    allowanceTaperStart = 100000,
+  } = thresholds;
+
+  if (income <= personalAllowanceBase) return 0;
+
+  let personalAllowance = personalAllowanceBase;
+  if (income > allowanceTaperStart) {
+    const excessOverTaper = income - allowanceTaperStart;
+    const taperAmount = Math.floor(excessOverTaper / 2);
     personalAllowance = Math.max(0, personalAllowance - taperAmount);
   }
+
+  const basicRateBand = Math.max(0, basicRateLimit - personalAllowanceBase);
+  const higherRateBand = Math.max(0, additionalRateLimit - basicRateLimit);
 
   let tax = 0;
   let remainingIncome = income - personalAllowance;
 
   if (remainingIncome > 0) {
-    const basicRateBand = Math.min(remainingIncome, BASIC_RATE_BAND);
-    tax += basicRateBand * 0.2;
-    remainingIncome -= basicRateBand;
+    const taxedAtBasicRate = Math.min(remainingIncome, basicRateBand);
+    tax += taxedAtBasicRate * 0.2;
+    remainingIncome -= taxedAtBasicRate;
   }
 
   if (remainingIncome > 0) {
-    const higherRateBand = Math.min(remainingIncome, HIGHER_RATE_BAND);
-    tax += higherRateBand * 0.4;
-    remainingIncome -= higherRateBand;
+    const taxedAtHigherRate = Math.min(remainingIncome, higherRateBand);
+    tax += taxedAtHigherRate * 0.4;
+    remainingIncome -= taxedAtHigherRate;
   }
 
   if (remainingIncome > 0) {
@@ -132,31 +179,26 @@ const calculateIncomeTax = (income) => {
   return tax;
 };
 
-const calculateEmployeeNationalInsurance = (income) => {
-  if (income <= EMPLOYEE_NI_PRIMARY_THRESHOLD) return 0;
+const calculateEmployeeNationalInsurance = (income, thresholds = {}) => {
+  const {
+    primaryThreshold = EMPLOYEE_NI_PRIMARY_THRESHOLD,
+    upperEarningsLimit = EMPLOYEE_NI_UPPER_EARNINGS_LIMIT,
+  } = thresholds;
+
+  if (income <= primaryThreshold) return 0;
 
   let nationalInsurance = 0;
-  const mainBand =
-    Math.min(income, EMPLOYEE_NI_UPPER_EARNINGS_LIMIT) -
-    EMPLOYEE_NI_PRIMARY_THRESHOLD;
+  const mainBand = Math.min(income, upperEarningsLimit) - primaryThreshold;
 
   if (mainBand > 0) {
     nationalInsurance += mainBand * 0.08;
   }
 
-  if (income > EMPLOYEE_NI_UPPER_EARNINGS_LIMIT) {
-    nationalInsurance +=
-      (income - EMPLOYEE_NI_UPPER_EARNINGS_LIMIT) * 0.02;
+  if (income > upperEarningsLimit) {
+    nationalInsurance += (income - upperEarningsLimit) * 0.02;
   }
 
   return nationalInsurance;
-};
-
-const calculateTakeHomePay = (income) => {
-  const incomeTax = calculateIncomeTax(income);
-  const nationalInsurance = calculateEmployeeNationalInsurance(income);
-
-  return income - incomeTax - nationalInsurance;
 };
 
 const getCareerGrowthFactor = (age) => {
@@ -194,7 +236,7 @@ const simulateFinancialPlan = (params) => {
     startYear,
     firstHousePurchaseYear,
     startAge,
-    maxYear = 2069,
+    maxYear = BASE_BIRTH_YEAR + END_AGE,
     mortgageRate,
     salaryMortgageEarly,
     salaryMortgageLater,
@@ -217,7 +259,6 @@ const simulateFinancialPlan = (params) => {
     recessionYear,
     secondRecessionYear,
     thirdRecessionYear,
-    pensionRate,
     baseLivingCost,
     child1AnnualCost,
     child2AnnualCost,
@@ -232,7 +273,7 @@ const simulateFinancialPlan = (params) => {
     cgtRatePct,
     usePrivateSchool,
     enableSecondHouse,
-    calculateTakeHomePayFn = calculateTakeHomePay,
+    calculateTakeHomePayFn = calculateRealTermsTakeHomePay,
     returnFullData = true,
   } = params;
 
@@ -296,11 +337,10 @@ const simulateFinancialPlan = (params) => {
     }
 
     const grossIncome = income1 + income2;
-    const takeHome1 = calculateTakeHomePayFn(income1);
-    const takeHome2 = calculateTakeHomePayFn(income2);
+    const takeHome1 = calculateTakeHomePayFn(income1, yearsFromStart);
+    const takeHome2 = calculateTakeHomePayFn(income2, yearsFromStart);
     const netBeforePension = takeHome1 + takeHome2;
-    const pension = grossIncome * (pensionRate / 100);
-    const netIncome = netBeforePension - pension;
+    const netIncome = netBeforePension;
     const totalPostTax = netIncome;
 
     const isRecessionYearFlag = [recessionYear, secondRecessionYear, thirdRecessionYear]
@@ -527,78 +567,83 @@ const simulateFinancialPlan = (params) => {
 };
 
 const App = () => {
-  const [mortgageRate, setMortgageRate] = useState(6);
-  const [salaryMortgageEarly, setSalaryMortgageEarly] = useState(18);
-  const [salaryMortgageLater, setSalaryMortgageLater] = useState(10);
+  const initialScenario = useMemo(() => loadStoredScenario(), []);
 
-  const [realGrowthCosts, setRealGrowthCosts] = useState(2);
-  const [realGrowthProperty, setRealGrowthProperty] = useState(2);
-  const [isaGrowth, setIsaGrowth] = useState(3);
+  const [mortgageRate, setMortgageRate] = useState(initialScenario?.mortgageRate ?? 6);
+  const [salaryMortgageEarly, setSalaryMortgageEarly] = useState(initialScenario?.salaryMortgageEarly ?? 18);
+  const [salaryMortgageLater, setSalaryMortgageLater] = useState(initialScenario?.salaryMortgageLater ?? 10);
 
-  const [initialMortgage, setInitialMortgage] = useState(300000);
-  const [initialDeposit, setInitialDeposit] = useState(300000);
-  const [secondMortgage, setSecondMortgage] = useState(100000);
-  const [isaSeed, setIsaSeed] = useState(0);
+  const [realGrowthCosts, setRealGrowthCosts] = useState(initialScenario?.realGrowthCosts ?? 2);
+  const [realGrowthProperty, setRealGrowthProperty] = useState(initialScenario?.realGrowthProperty ?? 2);
+  const [isaGrowth, setIsaGrowth] = useState(initialScenario?.isaGrowth ?? 3);
 
-  const [income1Start, setIncome1Start] = useState(90000);
-  const [income2Start, setIncome2Start] = useState(90000);
-  const [incomeGrowth, setIncomeGrowth] = useState(0);
+  const [initialMortgage, setInitialMortgage] = useState(initialScenario?.initialMortgage ?? 300000);
+  const [initialDeposit, setInitialDeposit] = useState(initialScenario?.initialDeposit ?? 300000);
+  const [secondMortgage, setSecondMortgage] = useState(initialScenario?.secondMortgage ?? 100000);
+  const [isaSeed, setIsaSeed] = useState(initialScenario?.isaSeed ?? 0);
 
-  const [secondHouseYear, setSecondHouseYear] = useState(2037);
-  const [secondHouseDeposit, setSecondHouseDeposit] = useState(200000);
+  const [income1Start, setIncome1Start] = useState(initialScenario?.income1Start ?? 90000);
+  const [income2Start, setIncome2Start] = useState(initialScenario?.income2Start ?? 90000);
+  const [incomeGrowth, setIncomeGrowth] = useState(initialScenario?.incomeGrowth ?? 0);
 
-  const [child1BirthYear, setChild1BirthYear] = useState(2032);
-  const [child2BirthYear, setChild2BirthYear] = useState(2034);
+  const [secondHouseYear, setSecondHouseYear] = useState(initialScenario?.secondHouseYear ?? 2037);
+  const [secondHouseDeposit, setSecondHouseDeposit] = useState(initialScenario?.secondHouseDeposit ?? 200000);
 
-  const [recessionYear, setRecessionYear] = useState(2035);
-  const [secondRecessionYear, setSecondRecessionYear] = useState(2042);
-  const [thirdRecessionYear, setThirdRecessionYear] = useState(2050);
+  const [child1BirthYear, setChild1BirthYear] = useState(initialScenario?.child1BirthYear ?? 2032);
+  const [child2BirthYear, setChild2BirthYear] = useState(initialScenario?.child2BirthYear ?? 2034);
 
-  const [pensionRate, setPensionRate] = useState(5);
-  const [baseLivingCost, setBaseLivingCost] = useState(40000);
-  const [child1AnnualCost, setChild1AnnualCost] = useState(30000);
-  const [child2AnnualCost, setChild2AnnualCost] = useState(20000);
-  const [emergencyFundAnnual, setEmergencyFundAnnual] = useState(5000);
+  const [recessionYear, setRecessionYear] = useState(initialScenario?.recessionYear ?? 2035);
+  const [secondRecessionYear, setSecondRecessionYear] = useState(initialScenario?.secondRecessionYear ?? 2042);
+  const [thirdRecessionYear, setThirdRecessionYear] = useState(initialScenario?.thirdRecessionYear ?? 2050);
 
-  const [visaCostPreSecondHouse, setVisaCostPreSecondHouse] = useState(2200);
-  const [visaCostAtSecondHouse, setVisaCostAtSecondHouse] = useState(2500);
+  const [baseLivingCost, setBaseLivingCost] = useState(initialScenario?.baseLivingCost ?? 40000);
+  const [child1AnnualCost, setChild1AnnualCost] = useState(initialScenario?.child1AnnualCost ?? 30000);
+  const [child2AnnualCost, setChild2AnnualCost] = useState(initialScenario?.child2AnnualCost ?? 20000);
+  const [emergencyFundAnnual, setEmergencyFundAnnual] = useState(initialScenario?.emergencyFundAnnual ?? 5000);
 
-  const [carCost, setCarCost] = useState(20000);
-  const [kid1GiftAmount, setKid1GiftAmount] = useState(100000);
-  const [kid2GiftAmount, setKid2GiftAmount] = useState(100000);
-  const [combinedGiftAmount, setCombinedGiftAmount] = useState(200000);
+  const [visaCostPreSecondHouse, setVisaCostPreSecondHouse] = useState(initialScenario?.visaCostPreSecondHouse ?? 2200);
+  const [visaCostAtSecondHouse, setVisaCostAtSecondHouse] = useState(initialScenario?.visaCostAtSecondHouse ?? 2500);
 
-  const [isaContributionCap, setIsaContributionCap] = useState(40000);
-  const [recessionHitPct, setRecessionHitPct] = useState(20);
-  const [cgtRatePct, setCgtRatePct] = useState(20);
+  const [carCost, setCarCost] = useState(initialScenario?.carCost ?? 20000);
+  const [kid1GiftAmount, setKid1GiftAmount] = useState(initialScenario?.kid1GiftAmount ?? 100000);
+  const [kid2GiftAmount, setKid2GiftAmount] = useState(initialScenario?.kid2GiftAmount ?? 100000);
+  const [combinedGiftAmount, setCombinedGiftAmount] = useState(
+    (initialScenario?.kid1GiftAmount ?? 100000) + (initialScenario?.kid2GiftAmount ?? 100000),
+  );
 
-  const [initialCash, setInitialCash] = useState(300000);
+  const [isaContributionCap, setIsaContributionCap] = useState(initialScenario?.isaContributionCap ?? 40000);
+  const [recessionHitPct, setRecessionHitPct] = useState(initialScenario?.recessionHitPct ?? 20);
+  const [cgtRatePct, setCgtRatePct] = useState(initialScenario?.cgtRatePct ?? 20);
+
+  const [initialCash, setInitialCash] = useState(initialScenario?.initialCash ?? 300000);
 
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const [lockHouseLink, setLockHouseLink] = useState(false);
-  const [depositPool, setDepositPool] = useState(300000 + 200000);
-  const [mortgagePool, setMortgagePool] = useState(300000 + 100000);
+  const [lockHouseLink, setLockHouseLink] = useState(initialScenario?.lockHouseLink ?? false);
+  const [depositPool, setDepositPool] = useState(
+    (initialScenario?.initialDeposit ?? 300000) + (initialScenario?.secondHouseDeposit ?? 200000),
+  );
+  const [mortgagePool, setMortgagePool] = useState(
+    (initialScenario?.initialMortgage ?? 300000) + (initialScenario?.secondMortgage ?? 100000),
+  );
 
-  const [usePrivateSchool, setUsePrivateSchool] = useState(false);
+  const [usePrivateSchool, setUsePrivateSchool] = useState(initialScenario?.usePrivateSchool ?? false);
 
-  const [showIncomeLine, setShowIncomeLine] = useState(true);
-  const [showSurplusLine, setShowSurplusLine] = useState(true);
-  const [showIsaLine, setShowIsaLine] = useState(true);
-  const [showMortgageBalanceLine, setShowMortgageBalanceLine] = useState(true);
+  const [showIncomeLine, setShowIncomeLine] = useState(initialScenario?.showIncomeLine ?? true);
+  const [showSurplusLine, setShowSurplusLine] = useState(initialScenario?.showSurplusLine ?? true);
+  const [showIsaLine, setShowIsaLine] = useState(initialScenario?.showIsaLine ?? true);
+  const [showMortgageBalanceLine, setShowMortgageBalanceLine] = useState(initialScenario?.showMortgageBalanceLine ?? true);
+  const [showPieChart, setShowPieChart] = useState(initialScenario?.showPieChart ?? false);
+  const [showAssumptions, setShowAssumptions] = useState(initialScenario?.showAssumptions ?? false);
 
   const [presetName, setPresetName] = useState('');
-  const [savedPresets, setSavedPresets] = useState([]);
+  const [savedPresets, setSavedPresets] = useState(loadSavedPresets);
   const [selectedPreset, setSelectedPreset] = useState('');
+  const [linkCopyStatus, setLinkCopyStatus] = useState('');
 
-  const [startYear, setStartYear] = useState(2027);
-  const [firstHousePurchaseYear, setFirstHousePurchaseYear] = useState(2027);
-  const [enableSecondHouse, setEnableSecondHouse] = useState(true);
-
-  const [targetFinalCash, setTargetFinalCash] = useState(0);
-  const [goalSeekStatus, setGoalSeekStatus] = useState('');
-  const [goalSeekLoading, setGoalSeekLoading] = useState(false);
-  const [goalSeekTouched, setGoalSeekTouched] = useState(false);
+  const [startYear, setStartYear] = useState(initialScenario?.startYear ?? 2027);
+  const [firstHousePurchaseYear, setFirstHousePurchaseYear] = useState(initialScenario?.firstHousePurchaseYear ?? 2027);
+  const [enableSecondHouse, setEnableSecondHouse] = useState(initialScenario?.enableSecondHouse ?? true);
 
   const initialPropertyValue = useMemo(
     () => initialMortgage + initialDeposit,
@@ -619,8 +664,6 @@ const App = () => {
     () => calculateStampDuty(initialPropertyValue, false),
     [initialPropertyValue],
   );
-
-  const [secondHouseStampDuty, setSecondHouseStampDuty] = useState(0);
 
   const handleCombinedGiftAmountChange = (value) => {
     const totalGift = Math.max(0, value);
@@ -733,56 +776,105 @@ const App = () => {
     });
   };
 
+  const currentScenario = useMemo(() => ({
+    mortgageRate,
+    salaryMortgageEarly,
+    salaryMortgageLater,
+    realGrowthCosts,
+    realGrowthProperty,
+    isaGrowth,
+    initialMortgage,
+    initialDeposit,
+    secondMortgage,
+    isaSeed,
+    income1Start,
+    income2Start,
+    incomeGrowth,
+    secondHouseYear,
+    secondHouseDeposit,
+    child1BirthYear,
+    child2BirthYear,
+    recessionYear,
+    secondRecessionYear,
+    thirdRecessionYear,
+    baseLivingCost,
+    child1AnnualCost,
+    child2AnnualCost,
+    emergencyFundAnnual,
+    visaCostPreSecondHouse,
+    visaCostAtSecondHouse,
+    carCost,
+    kid1GiftAmount,
+    kid2GiftAmount,
+    isaContributionCap,
+    recessionHitPct,
+    cgtRatePct,
+    initialCash,
+    usePrivateSchool,
+    lockHouseLink,
+    showIncomeLine,
+    showSurplusLine,
+    showIsaLine,
+    showMortgageBalanceLine,
+    showPieChart,
+    showAssumptions,
+    startYear,
+    firstHousePurchaseYear,
+    enableSecondHouse,
+  }), [
+    mortgageRate,
+    salaryMortgageEarly,
+    salaryMortgageLater,
+    realGrowthCosts,
+    realGrowthProperty,
+    isaGrowth,
+    initialMortgage,
+    initialDeposit,
+    secondMortgage,
+    isaSeed,
+    income1Start,
+    income2Start,
+    incomeGrowth,
+    secondHouseYear,
+    secondHouseDeposit,
+    child1BirthYear,
+    child2BirthYear,
+    recessionYear,
+    secondRecessionYear,
+    thirdRecessionYear,
+    baseLivingCost,
+    child1AnnualCost,
+    child2AnnualCost,
+    emergencyFundAnnual,
+    visaCostPreSecondHouse,
+    visaCostAtSecondHouse,
+    carCost,
+    kid1GiftAmount,
+    kid2GiftAmount,
+    isaContributionCap,
+    recessionHitPct,
+    cgtRatePct,
+    initialCash,
+    usePrivateSchool,
+    lockHouseLink,
+    showIncomeLine,
+    showSurplusLine,
+    showIsaLine,
+    showMortgageBalanceLine,
+    showPieChart,
+    showAssumptions,
+    startYear,
+    firstHousePurchaseYear,
+    enableSecondHouse,
+  ]);
+
   const handleSavePreset = () => {
     const name = presetName.trim();
     if (!name) return;
 
     const preset = {
       name,
-      mortgageRate,
-      salaryMortgageEarly,
-      salaryMortgageLater,
-      realGrowthCosts,
-      realGrowthProperty,
-      isaGrowth,
-      initialMortgage,
-      initialDeposit,
-      secondMortgage,
-      isaSeed,
-      income1Start,
-      income2Start,
-      incomeGrowth,
-      secondHouseYear,
-      secondHouseDeposit,
-      child1BirthYear,
-      child2BirthYear,
-      recessionYear,
-      secondRecessionYear,
-      thirdRecessionYear,
-      pensionRate,
-      baseLivingCost,
-      child1AnnualCost,
-      child2AnnualCost,
-      emergencyFundAnnual,
-      visaCostPreSecondHouse,
-      visaCostAtSecondHouse,
-      carCost,
-      kid1GiftAmount,
-      kid2GiftAmount,
-      isaContributionCap,
-      recessionHitPct,
-      cgtRatePct,
-      initialCash,
-      usePrivateSchool,
-      lockHouseLink,
-      showIncomeLine,
-      showSurplusLine,
-      showIsaLine,
-      showMortgageBalanceLine,
-      startYear,
-      firstHousePurchaseYear,
-      enableSecondHouse,
-      targetFinalCash,
+      ...currentScenario,
     };
 
     setSavedPresets(prev => {
@@ -793,6 +885,16 @@ const App = () => {
   };
 
   const applyPreset = (p) => {
+    const nextStartYear = p.startYear ?? 2027;
+    const nextFirstHouseYear = Math.max(
+      nextStartYear,
+      p.firstHousePurchaseYear ?? p.startYear ?? 2027,
+    );
+    const nextSecondHouseYear = Math.max(
+      nextFirstHouseYear + 1,
+      p.secondHouseYear ?? 2037,
+    );
+
     setMortgageRate(p.mortgageRate);
     setSalaryMortgageEarly(p.salaryMortgageEarly);
     setSalaryMortgageLater(p.salaryMortgageLater);
@@ -808,7 +910,7 @@ const App = () => {
       p.initialCash != null ? p.initialCash : p.initialDeposit + p.isaSeed;
     setInitialCash(initialCashVal);
 
-    setSecondHouseYear(p.secondHouseYear);
+    setSecondHouseYear(nextSecondHouseYear);
     setSecondHouseDeposit(p.secondHouseDeposit);
 
     setIncome1Start(p.income1Start);
@@ -822,7 +924,6 @@ const App = () => {
     setSecondRecessionYear(p.secondRecessionYear);
     setThirdRecessionYear(p.thirdRecessionYear ?? thirdRecessionYear);
 
-    setPensionRate(p.pensionRate);
     setBaseLivingCost(p.baseLivingCost);
     setChild1AnnualCost(p.child1AnnualCost);
     setChild2AnnualCost(p.child2AnnualCost);
@@ -852,11 +953,12 @@ const App = () => {
     setShowSurplusLine(p.showSurplusLine ?? true);
     setShowIsaLine(p.showIsaLine ?? true);
     setShowMortgageBalanceLine(p.showMortgageBalanceLine ?? true);
+    setShowPieChart(p.showPieChart ?? false);
+    setShowAssumptions(p.showAssumptions ?? false);
 
-    setStartYear(p.startYear ?? startYear);
-    setFirstHousePurchaseYear(p.firstHousePurchaseYear ?? p.startYear ?? firstHousePurchaseYear);
+    setStartYear(nextStartYear);
+    setFirstHousePurchaseYear(nextFirstHouseYear);
     setEnableSecondHouse(p.enableSecondHouse ?? true);
-    setTargetFinalCash(p.targetFinalCash ?? targetFinalCash);
   };
 
   const handleLoadPreset = () => {
@@ -864,6 +966,15 @@ const App = () => {
     const preset = savedPresets.find(p => p.name === selectedPreset);
     if (!preset) return;
     applyPreset(preset);
+  };
+
+  const handleCopyScenarioLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setLinkCopyStatus('Link copied');
+    } catch {
+      setLinkCopyStatus('Copy failed');
+    }
   };
 
   const handleEditPreset = (presetNameParam) => {
@@ -875,17 +986,23 @@ const App = () => {
   };
 
   useEffect(() => {
-    const storedPresets = localStorage.getItem('savedPresets');
-    if (storedPresets) {
-      setSavedPresets(JSON.parse(storedPresets));
-    } else {
-      setSavedPresets([]);
-    }
-  }, []);
-
-  useEffect(() => {
     localStorage.setItem('savedPresets', JSON.stringify(savedPresets));
   }, [savedPresets]);
+
+  useEffect(() => {
+    if (!linkCopyStatus) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      setLinkCopyStatus('');
+    }, 2000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [linkCopyStatus]);
+
+  useEffect(() => {
+    localStorage.setItem('currentScenario', JSON.stringify(currentScenario));
+    saveFiltersToURL(currentScenario);
+  }, [currentScenario]);
 
   const handleDeletePreset = (presetNameParam) => {
     setSavedPresets(prev => {
@@ -897,25 +1014,6 @@ const App = () => {
       setSelectedPreset('');
     }
   };
-
-  useEffect(() => {
-    const savedFilters = loadFiltersFromURL();
-    if (savedFilters) {
-      // placeholder for future filter restores
-    }
-  }, []);
-
-  useEffect(() => {
-    if (firstHousePurchaseYear < startYear) {
-      setFirstHousePurchaseYear(startYear);
-    }
-  }, [startYear, firstHousePurchaseYear]);
-
-  useEffect(() => {
-    if (secondHouseYear <= firstHousePurchaseYear) {
-      setSecondHouseYear(firstHousePurchaseYear + 1);
-    }
-  }, [firstHousePurchaseYear, secondHouseYear]);
 
   const handleSecondHouseYearChange = (value) => {
     const adjusted = Math.max(value, firstHousePurchaseYear + 1);
@@ -953,7 +1051,6 @@ const App = () => {
       recessionYear,
       secondRecessionYear,
       thirdRecessionYear,
-      pensionRate,
       baseLivingCost,
       child1AnnualCost,
       child2AnnualCost,
@@ -968,7 +1065,7 @@ const App = () => {
       cgtRatePct,
       usePrivateSchool,
       enableSecondHouse,
-      calculateTakeHomePayFn: calculateTakeHomePay,
+      calculateTakeHomePayFn: calculateRealTermsTakeHomePay,
       ...overrides,
     }),
     [
@@ -997,7 +1094,6 @@ const App = () => {
       recessionYear,
       secondRecessionYear,
       thirdRecessionYear,
-      pensionRate,
       baseLivingCost,
       child1AnnualCost,
       child2AnnualCost,
@@ -1030,13 +1126,10 @@ const App = () => {
     [buildSimulationParams],
   );
 
-  useEffect(() => {
-    if (!enableSecondHouse) {
-      setSecondHouseStampDuty(0);
-      return;
-    }
+  const secondHouseStampDuty = useMemo(() => {
+    if (!enableSecondHouse) return 0;
     const purchasePrice = secondHousePurchasePrice || (initialPropertyValue + moveIncrementValue);
-    setSecondHouseStampDuty(calculateStampDuty(purchasePrice, false));
+    return calculateStampDuty(purchasePrice, false);
   }, [enableSecondHouse, secondHousePurchasePrice, initialPropertyValue, moveIncrementValue]);
 
   const finalYear = financialData[financialData.length - 1] || {};
@@ -1062,86 +1155,11 @@ const App = () => {
 
   const minIsaSafe = minIsaBalance >= 60000;
 
-  useEffect(() => {
-    if (!goalSeekTouched && finalLiquidNet > 0) {
-      setTargetFinalCash(Math.round(finalLiquidNet / 10000) * 10000);
-    }
-  }, [finalLiquidNet, goalSeekTouched]);
-
   const formatCurrency = (value) => {
     const abs = Math.abs(value);
     if (abs >= 1000000) return `£${(value / 1000000).toFixed(2)}M`;
     if (abs >= 1000) return `£${(value / 1000).toFixed(0)}k`;
     return `£${value.toFixed(0)}`;
-  };
-
-  const handleGoalTargetChange = (value) => {
-    setGoalSeekTouched(true);
-    setTargetFinalCash(value);
-  };
-
-  const handleGoalSeek = () => {
-    if (!targetFinalCash || goalSeekLoading) return;
-    setGoalSeekLoading(true);
-    setGoalSeekStatus('Searching for a plan that keeps the ISA above £60k...');
-
-    const earlyOptions = [];
-    for (let v = Math.max(5, Math.round(salaryMortgageEarly) - 4); v <= Math.min(30, Math.round(salaryMortgageEarly) + 4); v += 1) {
-      earlyOptions.push(v);
-    }
-
-    const laterOptions = [];
-    for (let v = Math.max(5, Math.round(salaryMortgageLater) - 5); v <= Math.min(50, Math.round(salaryMortgageLater) + 5); v += 1) {
-      laterOptions.push(v);
-    }
-
-    const isaCaps = new Set([isaContributionCap]);
-    for (let cap = 20000; cap <= 80000; cap += 5000) {
-      isaCaps.add(cap);
-    }
-
-    let bestMatch = null;
-    let fallbackMatch = null;
-
-    for (const early of earlyOptions) {
-      for (const later of laterOptions) {
-        for (const cap of isaCaps) {
-          const sim = simulateFinancialPlan(
-            buildSimulationParams({
-              salaryMortgageEarly: early,
-              salaryMortgageLater: later,
-              isaContributionCap: cap,
-              returnFullData: false,
-            }),
-          );
-
-          if (sim.minIsaBalance < 60000) continue;
-          const diff = sim.finalLiquidNet - targetFinalCash;
-
-          if (diff >= 0) {
-            if (!bestMatch || diff < bestMatch.diff) {
-              bestMatch = { diff, early, later, cap, finalCash: sim.finalLiquidNet };
-            }
-          } else if (!fallbackMatch || sim.finalLiquidNet > fallbackMatch.finalCash) {
-            fallbackMatch = { diff, early, later, cap, finalCash: sim.finalLiquidNet };
-          }
-        }
-      }
-    }
-
-    setGoalSeekLoading(false);
-
-    const chosen = bestMatch || fallbackMatch;
-    if (chosen) {
-      setSalaryMortgageEarly(chosen.early);
-      setSalaryMortgageLater(chosen.later);
-      setIsaContributionCap(chosen.cap);
-      setGoalSeekStatus(
-        `Updated mortgage share & ISA cap → projected final cash ${formatCurrency(chosen.finalCash)} (ISA floor safe).`,
-      );
-    } else {
-      setGoalSeekStatus('No viable combination met the ISA floor requirement. Try tweaking assumptions manually.');
-    }
   };
 
   const renderEndLabel = (color) => (props) => {
@@ -1187,7 +1205,10 @@ const App = () => {
   const bakedInAssumptions = [
     `All values are modelled in today's money, and the mortgage rate input is treated as a real annual borrowing rate.`,
     `Net pay uses England/Wales/Northern Ireland income tax plus employee National Insurance thresholds for ${TAX_YEAR_LABEL}.`,
+    `Tax and NI thresholds are assumed to shrink by ${TAX_THRESHOLD_DRAG_PCT}% a year in real terms as a smoothed fiscal-drag assumption.`,
     `Income rises by a fixed real cash increment until age ${CAREER_GROWTH_PEAK_AGE}, then that increment linearly tapers to zero by age ${CAREER_GROWTH_END_AGE}.`,
+    `The model stops at age ${END_AGE}.`,
+    'Pensions are excluded from the model entirely.',
     `Partner 2 income falls by 50% in each birth year (${child1BirthYear} and ${child2BirthYear}).`,
     'Child costs start one year after birth and continue until age 21.',
     usePrivateSchool
@@ -1210,7 +1231,7 @@ const App = () => {
     <div className="app-root">
       <h1 className="app-title">Financial Life Planner</h1>
       <p className="app-subtitle">
-        Combined pre-tax income line; all figures are shown in real terms, mortgage uses a real rate, and take-home pay includes UK employee NI.
+        Combined pre-tax income line; all figures are shown in real terms, mortgage uses a real rate, tax bands drift tighter over time, and the model ends at age {END_AGE}.
       </p>
 
       <div className="summary-grid">
@@ -1230,7 +1251,7 @@ const App = () => {
             {formatCurrency(totalMortgagePayments)}
           </div>
           <div className="summary-sub">
-            Principal + interest to 2069
+            Principal + interest to age {END_AGE}
           </div>
         </div>
 
@@ -1299,7 +1320,21 @@ const App = () => {
           >
             Delete
           </button>
+          <button
+            type="button"
+            className="preset-button preset-button-secondary"
+            onClick={handleCopyScenarioLink}
+          >
+            Copy current link
+          </button>
+          {linkCopyStatus && (
+            <span className="helper-text helper-text-inline">{linkCopyStatus}</span>
+          )}
         </div>
+
+        <p className="helper-text">
+          Save preset stores a named version only in this browser. The page URL updates with your current settings, so bookmarking or copying the current link will reopen the same scenario later, including on another device.
+        </p>
 
         <div className="advanced-box">
           <button
@@ -1330,16 +1365,6 @@ const App = () => {
                 step={1}
                 onChange={setStartYear}
                 formatValue={v => v}
-              />
-
-              <RangeSlider
-                label="Pension Rate (% of gross)"
-                value={pensionRate}
-                min={0}
-                max={15}
-                step={0.5}
-                onChange={setPensionRate}
-                formatValue={v => `${v}%`}
               />
 
               <RangeSlider
@@ -1467,29 +1492,6 @@ const App = () => {
           )}
         </div>
 
-        <div className="goal-seek-row">
-          <div className="goal-seek-input-group">
-            <label>Target final cash level</label>
-            <input
-              type="number"
-              className="goal-seek-input"
-              value={targetFinalCash}
-              onChange={e => handleGoalTargetChange(Number(e.target.value))}
-            />
-          </div>
-          <button
-            type="button"
-            className="preset-button"
-            onClick={handleGoalSeek}
-            disabled={!targetFinalCash || goalSeekLoading}
-          >
-            {goalSeekLoading ? 'Optimising…' : 'Auto adjust plan'}
-          </button>
-          {goalSeekStatus && (
-            <div className="goal-seek-status">{goalSeekStatus}</div>
-          )}
-        </div>
-
         <div className="chart-top-row">
           <div className="chart-summary-inline">
             <div className="chart-summary-tile">
@@ -1570,7 +1572,7 @@ const App = () => {
                   label="First House Purchase Year"
                   value={firstHousePurchaseYear}
                   min={startYear}
-                  max={enableSecondHouse ? secondHouseYear - 1 : 2065}
+                  max={enableSecondHouse ? secondHouseYear - 1 : BASE_BIRTH_YEAR + END_AGE}
                   step={1}
                   onChange={handleFirstHouseYearChange}
                   formatValue={v => v}
@@ -1611,7 +1613,7 @@ const App = () => {
                   label="Second House Purchase Year"
                   value={secondHouseYear}
                   min={firstHousePurchaseYear + 1}
-                  max={2069}
+                  max={BASE_BIRTH_YEAR + END_AGE}
                   step={1}
                   onChange={handleSecondHouseYearChange}
                   formatValue={v => v}
@@ -1684,7 +1686,7 @@ const App = () => {
                   label="Recession Year 1"
                   value={recessionYear}
                   min={2027}
-                  max={2069}
+                  max={BASE_BIRTH_YEAR + END_AGE}
                   step={1}
                   onChange={setRecessionYear}
                   formatValue={v => v}
@@ -1693,7 +1695,7 @@ const App = () => {
                   label="Recession Year 2"
                   value={secondRecessionYear}
                   min={2027}
-                  max={2069}
+                  max={BASE_BIRTH_YEAR + END_AGE}
                   step={1}
                   onChange={setSecondRecessionYear}
                   formatValue={v => v}
@@ -1702,7 +1704,7 @@ const App = () => {
                   label="Recession Year 3"
                   value={thirdRecessionYear}
                   min={2027}
-                  max={2069}
+                  max={BASE_BIRTH_YEAR + END_AGE}
                   step={1}
                   onChange={setThirdRecessionYear}
                   formatValue={v => v}
@@ -1804,16 +1806,36 @@ const App = () => {
           </span>
         </div>
 
-        <div className="assumptions-box">
-          <h3 className="assumptions-title">Assumptions baked into the model</h3>
-          <div className="assumptions-list">
-            {bakedInAssumptions.map((assumption) => (
-              <div key={assumption} className="assumption-item">
-                {assumption}
-              </div>
-            ))}
-          </div>
+        <div className="display-controls-row">
+          <button
+            type="button"
+            className="advanced-toggle"
+            onClick={() => setShowAssumptions(prev => !prev)}
+          >
+            {showAssumptions ? 'Hide assumptions' : 'Show assumptions'}
+          </button>
+          <label className="line-toggle">
+            <input
+              type="checkbox"
+              checked={showPieChart}
+              onChange={e => setShowPieChart(e.target.checked)}
+            />
+            Show financial breakdown
+          </label>
         </div>
+
+        {showAssumptions && (
+          <div className="assumptions-box">
+            <h3 className="assumptions-title">Assumptions baked into the model</h3>
+            <div className="assumptions-list">
+              {bakedInAssumptions.map((assumption) => (
+                <div key={assumption} className="assumption-item">
+                  {assumption}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="line-toggle-row">
           <label className="line-toggle">
@@ -1974,28 +1996,31 @@ const App = () => {
             )}
           </div>
 
-          <div className="pie-chart-container pie-chart-inline">
-            <h3 className="pie-chart-title">Final Financial Breakdown</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={entry => `${entry.name}: ${formatCurrency(entry.value)}`}
-                  outerRadius={90}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={value => formatCurrency(value)} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          {showPieChart && (
+            <div className="pie-chart-container pie-chart-inline">
+              <h3 className="pie-chart-title">Final Financial Breakdown</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="45%"
+                    labelLine={false}
+                    label={entry => `${entry.name}: ${formatCurrency(entry.value)}`}
+                    outerRadius={72}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Legend verticalAlign="bottom" height={36} />
+                  <Tooltip formatter={value => formatCurrency(value)} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
         <div className="milestones">

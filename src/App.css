@@ -157,6 +157,12 @@ body {
   cursor: default;
 }
 
+.preset-button-secondary {
+  border-color: #d1d5db;
+  background: #ffffff;
+  color: #111827;
+}
+
 /* -------- Advanced block -------- */
 
 .advanced-box {
@@ -184,39 +190,12 @@ body {
   gap: 4px 12px;
 }
 
-.goal-seek-row {
-  margin-top: 10px;
+.display-controls-row {
+  margin-top: 8px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  align-items: flex-end;
-}
-
-.goal-seek-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 200px;
-}
-
-.goal-seek-input-group label {
-  font-size: 0.75rem;
-  color: #4b5563;
-}
-
-.goal-seek-input {
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 0.9rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.goal-seek-status {
-  flex: 1 1 auto;
-  min-width: 220px;
-  font-size: 0.78rem;
-  color: #0369a1;
+  gap: 12px;
+  align-items: center;
 }
 
 /* -------- Top row: inline summary + sliders -------- */
@@ -528,6 +507,10 @@ body {
 .helper-text {
   font-size: 0.72rem;
   color: #9ca3af;
+}
+
+.helper-text-inline {
+  color: #6b7280;
 }
 
 /* -------- Stamp Duty Box -------- */
