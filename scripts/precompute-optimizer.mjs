@@ -9,6 +9,14 @@ const appPath = path.join(repoRoot, 'src', 'App.jsx');
 const tempDir = path.join(repoRoot, '.tmp');
 const tempModulePath = path.join(tempDir, 'optimizer-core.mjs');
 const outputPath = path.join(repoRoot, 'public', 'precomputed-optimizer-results.json');
+const OPTIMIZER_PRECOMPUTE_VARIANTS = [
+  { key: 'standard', label: 'Private school off', usePrivateSchool: false },
+  { key: 'privateSchool', label: 'Private school on', usePrivateSchool: true },
+];
+const DEFAULT_FIRST_HOUSE_MORTGAGE_MAX = 600000;
+const OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE = 400000;
+const OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF = 2035;
+const OPTIMIZER_MAX_UPGRADE_VALUE = 600000;
 
 const appSource = await readFile(appPath, 'utf8');
 const startToken = 'const calculateStampDuty';
@@ -143,6 +151,7 @@ const searchConfig = {
   firstHouseMortgageMax: clampValue(
     Math.max(
       Math.max(0, roundToStep(Math.max(defaultScenario.initialMortgage, 100000) * 0.75, 50000)),
+      DEFAULT_FIRST_HOUSE_MORTGAGE_MAX,
       roundToStep(Math.max(defaultScenario.initialMortgage, 100000) * 1.25, 50000),
     ),
     0,
@@ -166,6 +175,13 @@ const searchConfig = {
   secondHouseMortgageMax: clampValue(
     Math.max(
       Math.max(0, roundToStep(Math.max(defaultScenario.secondMortgage, 100000) * 0.75, 50000)),
+      Math.max(
+        0,
+        OPTIMIZER_MAX_UPGRADE_VALUE - Math.max(
+          Math.max(0, roundToStep(Math.max(defaultScenario.secondHouseDeposit, 100000) * 0.75, 50000)),
+          roundToStep(Math.max(defaultScenario.secondHouseDeposit, 100000) * 1.25, 50000),
+        ),
+      ),
       roundToStep(Math.max(defaultScenario.secondMortgage, 100000) * 1.25, 50000),
     ),
     0,
@@ -279,13 +295,16 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
 
               if (
                 initialDeposit > startingCashPool ||
-                firstHouseValue < OPTIMIZER_MIN_FIRST_PROPERTY_VALUE ||
+                firstHouseValue < OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE ||
                 initialMortgage > OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE
               ) {
                 continue;
               }
 
               if (currentPropertyMode === 'one') {
+                if (firstHouseValue < OPTIMIZER_MIN_FIRST_PROPERTY_VALUE) {
+                  continue;
+                }
                 scenariosTested += 1;
                 const simulation = simulateFinancialPlan({
                   ...baseParams,
@@ -335,7 +354,10 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
                   for (const salaryMortgageLater of laterMortgagePcts) {
                     const secondUpgradeValue = secondHouseDeposit + secondMortgage;
 
-                    if (secondUpgradeValue < OPTIMIZER_MIN_UPGRADE_VALUE) {
+                    if (
+                      secondUpgradeValue < OPTIMIZER_MIN_UPGRADE_VALUE ||
+                      secondUpgradeValue > OPTIMIZER_MAX_UPGRADE_VALUE
+                    ) {
                       continue;
                     }
 
@@ -355,6 +377,12 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
                     }
 
                     for (const secondHouseYear of validSecondHouseYears) {
+                      const minimumFirstHouseValue = secondHouseYear <= OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF
+                        ? OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE
+                        : OPTIMIZER_MIN_FIRST_PROPERTY_VALUE;
+                      if (firstHouseValue < minimumFirstHouseValue) {
+                        continue;
+                      }
                       scenariosTested += 1;
                       const simulation = simulateFinancialPlan({
                         ...baseParams,
@@ -456,9 +484,41 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
   };
 };
 
-const payload = runFullHousingOptimizer({ baseParams, searchConfig });
+const variants = Object.fromEntries(
+  OPTIMIZER_PRECOMPUTE_VARIANTS.map((variant) => {
+    const variantPayload = runFullHousingOptimizer({
+      baseParams: {
+        ...baseParams,
+        usePrivateSchool: variant.usePrivateSchool,
+      },
+      searchConfig,
+    });
+
+    return [
+      variant.key,
+      {
+        ...variantPayload,
+        variant: {
+          key: variant.key,
+          label: variant.label,
+          usePrivateSchool: variant.usePrivateSchool,
+        },
+      },
+    ];
+  }),
+);
+
+const payload = {
+  generatedAt: new Date().toISOString(),
+  variants,
+};
+
 await writeFile(outputPath, JSON.stringify(payload, null, 2));
 
 console.log(`Wrote ${outputPath}`);
-console.log(`Tested: ${payload.searchMeta.testedScenarioCount}`);
-console.log(`Feasible: ${payload.searchMeta.feasibleScenarioCount}`);
+OPTIMIZER_PRECOMPUTE_VARIANTS.forEach((variant) => {
+  const variantPayload = variants[variant.key];
+  console.log(
+    `${variant.label}: tested ${variantPayload.searchMeta.testedScenarioCount}, feasible ${variantPayload.searchMeta.feasibleScenarioCount}`,
+  );
+});

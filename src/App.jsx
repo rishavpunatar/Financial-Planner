@@ -102,7 +102,10 @@ const OPTIMIZER_STARTING_INCOME_2 = 90000;
 const OPTIMIZER_SAMPLE_COUNT = 3;
 const OPTIMIZER_FULL_SEARCH_LIMIT = 60000;
 const OPTIMIZER_MIN_FIRST_PROPERTY_VALUE = 500000;
+const OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE = 400000;
+const OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF = 2035;
 const OPTIMIZER_MIN_UPGRADE_VALUE = 200000;
+const OPTIMIZER_MAX_UPGRADE_VALUE = 600000;
 const OPTIMIZER_MIN_END_PROPERTY_VALUE = 1200000;
 const OPTIMIZER_FIXED_FIRST_HOUSE_YEAR = 2027;
 const OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD = 750000;
@@ -110,6 +113,9 @@ const OPTIMIZER_FAST_UPGRADE_YEAR_MAX = 2036;
 const OPTIMIZER_LATE_UPGRADE_YEAR_MAX = 2045;
 const OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE = 700000;
 const OPTIMIZER_MAX_TOTAL_MORTGAGE = 700000;
+const OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX = 600000;
+const FIRST_HOME_SALE_AGENT_FEE_PCT = 1.5;
+const FIRST_HOME_SALE_LEGAL_FEES = 2000;
 const OPTIMIZER_FAILURE_REASON_DEFINITIONS = [
   {
     key: 'cashEnd',
@@ -244,6 +250,12 @@ const buildSteppedPoints = (min, max, step) => {
 
   return Array.from(new Set(points)).sort((a, b) => a - b);
 };
+
+const getMinimumFirstHouseValue = (enableSecondHouse, secondHouseYear) => (
+  enableSecondHouse && secondHouseYear <= OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF
+    ? OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE
+    : OPTIMIZER_MIN_FIRST_PROPERTY_VALUE
+);
 
 const applyTerminalMortgagePayoff = ({
   isaTotal = 0,
@@ -675,6 +687,7 @@ const simulateFinancialPlan = (params) => {
   let secondHouseValueAtMoveLocal = null;
   let secondHousePurchasePriceLocal = null;
   let secondHouseFundingGapLocal = 0;
+  let firstHouseSaleCostsLocal = 0;
   let minIsaBalance = isaSeed || 0;
   let negativeAmortizationYears = 0;
   let capitalizedInterestTotal = 0;
@@ -752,6 +765,8 @@ const simulateFinancialPlan = (params) => {
     if (enableSecondHouse && year === secondHouseYear) {
       const plannedSecondHouseValue = propertyValue + moveIncrementValue;
       const plannedSecondHouseStampDuty = calculateStampDuty(plannedSecondHouseValue, false);
+      const firstHouseSaleCosts =
+        (propertyValue * FIRST_HOME_SALE_AGENT_FEE_PCT / 100) + FIRST_HOME_SALE_LEGAL_FEES;
       const withdrawn = Math.min(secondHouseDeposit, isaTotal);
       isaTotal -= withdrawn;
       const depositGap = Math.max(0, secondHouseDeposit - withdrawn);
@@ -763,7 +778,8 @@ const simulateFinancialPlan = (params) => {
       propertyValue = plannedSecondHouseValue;
       secondHouseValueAtMoveLocal = propertyValue;
       secondHousePurchasePriceLocal = propertyValue;
-      purchaseLumpSum += plannedSecondHouseStampDuty + SECOND_HOUSE_LEGAL_FEES;
+      firstHouseSaleCostsLocal = firstHouseSaleCosts;
+      purchaseLumpSum += plannedSecondHouseStampDuty + SECOND_HOUSE_LEGAL_FEES + firstHouseSaleCosts;
     }
 
     let visaCost = 0;
@@ -994,6 +1010,7 @@ const simulateFinancialPlan = (params) => {
     secondHouseValueAtMove: secondHouseValueAtMoveLocal,
     secondHousePurchasePrice: secondHousePurchasePriceLocal,
     secondHouseFundingGap: secondHouseFundingGapLocal,
+    firstHouseSaleCosts: firstHouseSaleCostsLocal,
     firstMortgagePaidOffYear: firstMortgagePaidOffYearLocal,
     minIsaBalance,
     finalLiquidNet,
@@ -1044,13 +1061,16 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
 
               if (
                 initialDeposit > startingCashPool ||
-                firstHouseValue < OPTIMIZER_MIN_FIRST_PROPERTY_VALUE ||
+                firstHouseValue < OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE ||
                 initialMortgage > OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE
               ) {
                 continue;
               }
 
               if (currentPropertyMode === 'one') {
+                if (firstHouseValue < OPTIMIZER_MIN_FIRST_PROPERTY_VALUE) {
+                  continue;
+                }
                 scenariosTested += 1;
                 const simulation = simulateFinancialPlan({
                   ...baseParams,
@@ -1100,7 +1120,10 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                   for (const salaryMortgageLater of laterMortgagePcts) {
                     const secondUpgradeValue = secondHouseDeposit + secondMortgage;
 
-                    if (secondUpgradeValue < OPTIMIZER_MIN_UPGRADE_VALUE) {
+                    if (
+                      secondUpgradeValue < OPTIMIZER_MIN_UPGRADE_VALUE ||
+                      secondUpgradeValue > OPTIMIZER_MAX_UPGRADE_VALUE
+                    ) {
                       continue;
                     }
 
@@ -1120,6 +1143,10 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                     }
 
                     for (const secondHouseYear of validSecondHouseYears) {
+                      const minimumFirstHouseValue = getMinimumFirstHouseValue(true, secondHouseYear);
+                      if (firstHouseValue < minimumFirstHouseValue) {
+                        continue;
+                      }
                       scenariosTested += 1;
                       const simulation = simulateFinancialPlan({
                         ...baseParams,
@@ -1364,6 +1391,9 @@ const App = () => {
   const [optimizerPropertyMode, setOptimizerPropertyMode] = useState(
     initialScenario?.optimizerPropertyMode ?? 'both',
   );
+  const [optimizerUsePrivateSchool, setOptimizerUsePrivateSchool] = useState(
+    initialScenario?.optimizerUsePrivateSchool ?? initialScenario?.usePrivateSchool ?? false,
+  );
   const [optimizerFirstHouseDepositMin, setOptimizerFirstHouseDepositMin] = useState(
     initialScenario?.optimizerFirstHouseDepositMin
       ?? Math.max(0, roundToStep(Math.max(initialDeposit, 50000) * 0.75, 50000)),
@@ -1388,6 +1418,7 @@ const App = () => {
       initialScenario?.optimizerFirstHouseMortgageMax
         ?? Math.max(
           Math.max(0, roundToStep(Math.max(initialMortgage, 100000) * 0.75, 50000)),
+          OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX,
           roundToStep(Math.max(initialMortgage, 100000) * 1.25, 50000),
         ),
       0,
@@ -1418,6 +1449,13 @@ const App = () => {
       initialScenario?.optimizerSecondHouseMortgageMax
         ?? Math.max(
           Math.max(0, roundToStep(Math.max(secondMortgage, 100000) * 0.75, 50000)),
+          Math.max(
+            0,
+            OPTIMIZER_MAX_UPGRADE_VALUE - Math.max(
+              Math.max(0, roundToStep(Math.max(secondHouseDeposit, 100000) * 0.75, 50000)),
+              roundToStep(Math.max(secondHouseDeposit, 100000) * 1.25, 50000),
+            ),
+          ),
           roundToStep(Math.max(secondMortgage, 100000) * 1.25, 50000),
         ),
       0,
@@ -1622,6 +1660,7 @@ const App = () => {
     showAdvanced,
     activeTab,
     optimizerPropertyMode,
+    optimizerUsePrivateSchool,
     optimizerFirstHouseDepositMin,
     optimizerFirstHouseDepositMax,
     optimizerFirstHouseMortgageMin,
@@ -1689,6 +1728,7 @@ const App = () => {
     showAdvanced,
     activeTab,
     optimizerPropertyMode,
+    optimizerUsePrivateSchool,
     optimizerFirstHouseDepositMin,
     optimizerFirstHouseDepositMax,
     optimizerFirstHouseMortgageMin,
@@ -1873,6 +1913,7 @@ const App = () => {
     secondHouseValueAtMove,
     secondHousePurchasePrice,
     secondHouseFundingGap,
+    firstHouseSaleCosts,
     firstMortgagePaidOffYear,
     minIsaBalance,
     finalLiquidNet: simulatedFinalLiquidNet,
@@ -1892,7 +1933,7 @@ const App = () => {
   }, [enableSecondHouse, secondHousePurchasePrice, initialPropertyValue, moveIncrementValue]);
   const firstHousePurchaseCosts = firstHouseStampDuty + FIRST_HOUSE_LEGAL_FEES;
   const secondHousePurchaseCosts = enableSecondHouse
-    ? secondHouseStampDuty + SECOND_HOUSE_LEGAL_FEES
+    ? secondHouseStampDuty + SECOND_HOUSE_LEGAL_FEES + firstHouseSaleCosts
     : 0;
 
   const finalYear = financialData[financialData.length - 1] || {};
@@ -1917,7 +1958,9 @@ const App = () => {
     }
 
     return runHousingOptimizer({
-      baseParams: buildSimulationParams(),
+      baseParams: buildSimulationParams({
+        usePrivateSchool: optimizerUsePrivateSchool,
+      }),
       searchConfig: {
         propertyMode: optimizerPropertyMode,
         firstHouseDepositMin: optimizerFirstHouseDepositMin,
@@ -1942,6 +1985,7 @@ const App = () => {
     activeTab,
     buildSimulationParams,
     optimizerPropertyMode,
+    optimizerUsePrivateSchool,
     optimizerFirstHouseDepositMin,
     optimizerFirstHouseDepositMax,
     optimizerFirstHouseMortgageMin,
@@ -1965,12 +2009,24 @@ const App = () => {
       .sort(compareOptimizerResults)
   ), [optimizerResults]);
 
+  const selectedPrecomputedOptimizerPayload = useMemo(() => {
+    if (!precomputedOptimizerPayload) return null;
+
+    if (precomputedOptimizerPayload.variants) {
+      return optimizerUsePrivateSchool
+        ? precomputedOptimizerPayload.variants.privateSchool
+        : precomputedOptimizerPayload.variants.standard;
+    }
+
+    return precomputedOptimizerPayload;
+  }, [optimizerUsePrivateSchool, precomputedOptimizerPayload]);
   const precomputedOptimizerResults = useMemo(
-    () => precomputedOptimizerPayload?.caseResults ?? [],
-    [precomputedOptimizerPayload],
+    () => selectedPrecomputedOptimizerPayload?.caseResults ?? [],
+    [selectedPrecomputedOptimizerPayload],
   );
-  const precomputedOptimizerSearchMeta = precomputedOptimizerPayload?.searchMeta ?? null;
-  const precomputedOptimizerGeneratedAt = precomputedOptimizerPayload?.generatedAt ?? '';
+  const precomputedOptimizerSearchMeta = selectedPrecomputedOptimizerPayload?.searchMeta ?? null;
+  const precomputedOptimizerGeneratedAt = selectedPrecomputedOptimizerPayload?.generatedAt ?? '';
+  const hasPrecomputedOptimizerResults = selectedPrecomputedOptimizerPayload !== null;
   const precomputedRecommendedResults = useMemo(() => (
     precomputedOptimizerResults
       .map(({ bestResult }) => bestResult)
@@ -1982,6 +2038,9 @@ const App = () => {
       .flatMap(({ feasibleResults = [] }) => feasibleResults)
       .sort(compareOptimizerResults)
   ), [precomputedOptimizerResults]);
+  const displayOptimizerSearchMeta = hasPrecomputedOptimizerResults
+    ? precomputedOptimizerSearchMeta
+    : optimizerSearchMeta;
   const allFeasiblePageSize = 50;
   const allFeasiblePageCount = Math.max(
     1,
@@ -1996,6 +2055,10 @@ const App = () => {
       setAllFeasiblePage(allFeasiblePageCount);
     }
   }, [allFeasiblePage, allFeasiblePageCount]);
+  useEffect(() => {
+    setSelectedOptimizerResultKey('');
+    setAllFeasiblePage(1);
+  }, [optimizerUsePrivateSchool]);
 
   const optimizerResultsByIncome = useMemo(() => (
     OPTIMIZER_INCOME_CASES.map((incomeCase) => ({
@@ -2018,13 +2081,13 @@ const App = () => {
     }))
   ), [precomputedOptimizerResults]);
 
-  const displayOptimizerResults = precomputedAllFeasibleResults.length
+  const displayOptimizerResults = hasPrecomputedOptimizerResults
     ? precomputedAllFeasibleResults
     : optimizerRecommendedResults;
-  const displayOptimizerRecommendedResults = precomputedAllFeasibleResults.length
+  const displayOptimizerRecommendedResults = hasPrecomputedOptimizerResults
     ? precomputedRecommendedResults
     : optimizerRecommendedResults;
-  const displayOptimizerResultsByIncome = precomputedAllFeasibleResults.length
+  const displayOptimizerResultsByIncome = hasPrecomputedOptimizerResults
     ? precomputedResultsByIncome
     : optimizerResultsByIncome;
 
@@ -2042,6 +2105,7 @@ const App = () => {
     setIncomeGrowth(result.assumptionCase.incomeGrowth);
     setIsaGrowth(result.assumptionCase.isaGrowth);
     setRealGrowthProperty(result.assumptionCase.propertyGrowth);
+    setUsePrivateSchool(optimizerUsePrivateSchool);
     setInitialCash(result.initialDeposit + result.optimizerIsaSeed);
     setInitialDeposit(result.initialDeposit);
     setInitialMortgage(result.initialMortgage);
@@ -2131,7 +2195,7 @@ const App = () => {
     `Pension contributions are assumed to reduce taxable pay by ${pensionContributionRate}% before tax and NI, but no pension pot or future pension income is modelled.`,
     `Partner 2 income falls by 50% in each birth year (${child1BirthYear} and ${child2BirthYear}).`,
     'Child costs start one year after birth and continue until age 21.',
-    `Stamp duty and fixed legal fees (${formatCurrency(FIRST_HOUSE_LEGAL_FEES)} on the first purchase and ${formatCurrency(SECOND_HOUSE_LEGAL_FEES)} on the move) are charged as cash outflows in the relevant house-purchase year.`,
+    `Stamp duty and fixed legal fees (${formatCurrency(FIRST_HOUSE_LEGAL_FEES)} on the first purchase and ${formatCurrency(SECOND_HOUSE_LEGAL_FEES)} on the move) are charged as cash outflows in the relevant house-purchase year. If the second house is enabled, the first-home sale also incurs ${FIRST_HOME_SALE_AGENT_FEE_PCT.toFixed(1)}% estate-agent cost plus ${formatCurrency(FIRST_HOME_SALE_LEGAL_FEES)} of sale legal fees; no CGT is assumed on selling the main home.`,
     usePrivateSchool
       ? 'Private school fees are applied in real terms between ages 11 and 18.'
       : 'Private school fees are excluded unless the toggle is turned on.',
@@ -2167,7 +2231,10 @@ const App = () => {
   const optimizerFirstHouseTotalMin = optimizerFirstHouseDepositMin + optimizerFirstHouseMortgageMin;
   const optimizerFirstHouseTotalMax = optimizerFirstHouseDepositMax + optimizerFirstHouseMortgageMax;
   const optimizerUpgradeTotalMin = optimizerSecondHouseDepositMin + optimizerSecondHouseMortgageMin;
-  const optimizerUpgradeTotalMax = optimizerSecondHouseDepositMax + optimizerSecondHouseMortgageMax;
+  const optimizerUpgradeTotalMax = Math.min(
+    optimizerSecondHouseDepositMax + optimizerSecondHouseMortgageMax,
+    OPTIMIZER_MAX_UPGRADE_VALUE,
+  );
   const optimizerUpgradeYearRuleText =
     optimizerFirstHouseTotalMax < OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD
       ? `Latest upgrade year ${OPTIMIZER_FAST_UPGRADE_YEAR_MAX}`
@@ -2177,16 +2244,19 @@ const App = () => {
   const optimizerFrozenAssumptions = [
     `Starting incomes are fixed at ${formatCurrency(OPTIMIZER_STARTING_INCOME_1)} and ${formatCurrency(OPTIMIZER_STARTING_INCOME_2)}.`,
     `The first house purchase year is fixed at ${OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}.`,
-    `The first-house deposit and starting ISA seed share one fixed starting cash pool of ${formatCurrency(optimizerSearchMeta?.startingCashPool ?? (initialDeposit + isaSeed))}.`,
-    `The first property must be at least ${formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}, and any upgrade step must add at least ${formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} of extra property value from deposit plus mortgage.`,
+    `The first-house deposit and starting ISA seed share one fixed starting cash pool of ${formatCurrency(displayOptimizerSearchMeta?.startingCashPool ?? (initialDeposit + isaSeed))}.`,
+    `The first property must be at least ${formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}, except early upgrade paths completing by ${OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF} can start from ${formatCurrency(OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE)}. Any upgrade step must add between ${formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} and ${formatCurrency(OPTIMIZER_MAX_UPGRADE_VALUE)} of extra property value from deposit plus mortgage.`,
     `The first-house mortgage cannot exceed ${formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}, and total mortgage outstanding can never exceed ${formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)} at any point in the path.`,
     `If the first house total is below ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the latest upgrade year is ${OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. If it is ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)} or above, the latest upgrade year is ${OPTIMIZER_LATE_UPGRADE_YEAR_MAX}.`,
     `Every feasible result must end with property value above ${formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)} in today's money after applying the chosen real property-growth case.`,
     `At age ${END_AGE}, surplus savings and then ISA are used to pay down any remaining mortgage before end cash and end equity are measured.`,
     'The optimizer ranks plans by end net worth, defined as liquid cash after that payoff plus home equity. Final property value is still used as a feasibility floor, and lifetime interest is shown separately.',
     `The optimizer now tests a 9-case matrix across income growth and correlated market growth. Each market case couples ISA and property growth together. Other planner assumptions stay frozen, including mortgage real rate ${mortgageRate}% and living-cost growth ${realGrowthCosts}%.`,
-    `Base living costs, child costs, visa costs, car purchase, gifts, private school setting, recessions, redundancy years, tax drag, and pension contribution rate all stay exactly as set in the planner tab.`,
-    `House purchase costs include stamp duty plus fixed legal fees of ${formatCurrency(FIRST_HOUSE_LEGAL_FEES)} on the first purchase and ${formatCurrency(SECOND_HOUSE_LEGAL_FEES)} on the move.`,
+    optimizerUsePrivateSchool
+      ? 'Private school costs are forced on for this optimizer run.'
+      : 'Private school costs are forced off for this optimizer run.',
+    `Base living costs, child costs, visa costs, car purchase, gifts, recessions, redundancy years, tax drag, and pension contribution rate all stay exactly as set in the planner tab.`,
+    `House move costs include stamp duty plus fixed legal fees of ${formatCurrency(FIRST_HOUSE_LEGAL_FEES)} on the first purchase, ${formatCurrency(SECOND_HOUSE_LEGAL_FEES)} on the second purchase, and first-home sale costs of ${FIRST_HOME_SALE_AGENT_FEE_PCT.toFixed(1)}% estate-agent fee plus ${formatCurrency(FIRST_HOME_SALE_LEGAL_FEES)} sale legal fees. No CGT is assumed on selling the main home.`,
     `The optimizer still uses the same model rules shown in the planner assumptions, including stamp duty, legal fees, ISA deposit funding for the second move, and the age-${END_AGE} end point.`,
   ];
 
@@ -2722,7 +2792,7 @@ const App = () => {
         </div>
 
         <div className="stamp-duty-box">
-          <h3 className="stamp-duty-title">House Purchase Costs (England)</h3>
+          <h3 className="stamp-duty-title">House Move Costs (England)</h3>
           <div className="stamp-duty-row">
             <div className="stamp-duty-item">
               <div className="stamp-duty-label">First House</div>
@@ -2736,7 +2806,7 @@ const App = () => {
                 <div className="stamp-duty-label">Second House (assumes first sold)</div>
                 <div className="stamp-duty-value">{formatCurrency(secondHousePurchaseCosts)}</div>
                 <div className="stamp-duty-details">
-                  Property value: {formatCurrency(secondHousePurchasePrice || (initialPropertyValue + moveIncrementValue))} | Stamp duty {formatCurrency(secondHouseStampDuty)} | Legal fees {formatCurrency(SECOND_HOUSE_LEGAL_FEES)}
+                  Property value: {formatCurrency(secondHousePurchasePrice || (initialPropertyValue + moveIncrementValue))} | Stamp duty {formatCurrency(secondHouseStampDuty)} | Legal fees {formatCurrency(SECOND_HOUSE_LEGAL_FEES)} | First-home sale costs {formatCurrency(firstHouseSaleCosts)}
                 </div>
               </div>
             ) : (
@@ -3053,13 +3123,16 @@ const App = () => {
             This tab keeps the planner assumptions fixed, resets starting income to £70k for person 1 and £90k for person 2, and searches housing choices against three real income-growth paths for corporate careers.
           </p>
           <p className="helper-text">
+            You can switch the optimizer between private school off and private school on. That changes only the optimizer assumption set until you apply a selected result back into the planner.
+          </p>
+          <p className="helper-text">
             This optimizer now tests a 9-case matrix: income growth 2.0% / 3.5% / 5.0%, crossed with correlated market growth cases where ISA/property move together at 2.5%/0.5%, 4.0%/1.5%, and 5.5%/2.5% in real terms.
           </p>
           <p className="helper-text">
-            The first house is fixed to {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}. Housing inputs searched here are explicit deposit and mortgage ranges. House 1 value is deposit plus mortgage and must be at least {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}. The first-house mortgage cannot exceed {formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}. In the upgrade path, the extra deposit plus extra mortgage must be at least {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)}.
+            The first house is fixed to {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}. Housing inputs searched here are explicit deposit and mortgage ranges. House 1 value is deposit plus mortgage and must normally be at least {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}, but if the second move happens by {OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF} the first house can be as low as {formatCurrency(OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE)}. The first-house mortgage cannot exceed {formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}. In the upgrade path, the extra deposit plus extra mortgage must be between {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} and {formatCurrency(OPTIMIZER_MAX_UPGRADE_VALUE)}.
           </p>
           <p className="helper-text">
-            If the first house total is below {formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the upgrade must happen by {OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. Otherwise the latest upgrade year is {OPTIMIZER_LATE_UPGRADE_YEAR_MAX}. House purchase costs include stamp duty plus fixed legal fees.
+            If the first house total is below {formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the upgrade must happen by {OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. Otherwise the latest upgrade year is {OPTIMIZER_LATE_UPGRADE_YEAR_MAX}. House move costs include stamp duty, purchase legal fees, and first-home sale costs.
           </p>
           <p className="helper-text">
             {`Results are only kept if liquid cash before the age-${END_AGE} mortgage payoff stays positive, `}
@@ -3069,11 +3142,11 @@ const App = () => {
             Mode selected: {optimizerModeLabel}. {optimizerModeDescription}
           </p>
           <p className="helper-text">
-            Search type: {optimizerSearchMeta?.isExhaustive ? 'full stepped search across every value in the active ranges' : 'sampled browser preview across the active ranges'}.
-            {optimizerSearchMeta && !optimizerSearchMeta.isExhaustive
-              ? ` The full stepped grid would require ${optimizerSearchMeta.exactScenarioCount.toLocaleString()} assumption-path combinations, so the browser preview only samples the range to stay responsive.`
-              : optimizerSearchMeta
-                ? ` The current browser run covers ${optimizerSearchMeta.exactScenarioCount.toLocaleString()} assumption-path combinations exactly.`
+            Search type: {displayOptimizerSearchMeta?.isExhaustive ? 'full stepped search across every value in the active ranges' : 'sampled browser preview across the active ranges'}.
+            {displayOptimizerSearchMeta && !displayOptimizerSearchMeta.isExhaustive
+              ? ` The full stepped grid would require ${displayOptimizerSearchMeta.exactScenarioCount.toLocaleString()} assumption-path combinations, so the browser preview only samples the range to stay responsive.`
+              : displayOptimizerSearchMeta
+                ? ` The current browser run covers ${displayOptimizerSearchMeta.exactScenarioCount.toLocaleString()} assumption-path combinations exactly.`
                 : ''}
           </p>
           <p className="helper-text">
@@ -3105,6 +3178,23 @@ const App = () => {
             </button>
           </div>
 
+          <div className="optimizer-mode-row">
+            <button
+              type="button"
+              className={`view-tab${!optimizerUsePrivateSchool ? ' view-tab-active' : ''}`}
+              onClick={() => setOptimizerUsePrivateSchool(false)}
+            >
+              Private school off
+            </button>
+            <button
+              type="button"
+              className={`view-tab${optimizerUsePrivateSchool ? ' view-tab-active' : ''}`}
+              onClick={() => setOptimizerUsePrivateSchool(true)}
+            >
+              Private school on
+            </button>
+          </div>
+
           <div className="assumptions-box">
             <h3 className="assumptions-title">Frozen assumptions during search</h3>
             <div className="assumptions-list">
@@ -3130,7 +3220,7 @@ const App = () => {
                 {formatCurrency(optimizerFirstHouseTotalMin)} to {formatCurrency(optimizerFirstHouseTotalMax)}
               </div>
               <div className="summary-sub">
-                Deposit + mortgage, minimum required {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}
+                Deposit + mortgage, minimum {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)} or {formatCurrency(OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE)} if the upgrade is by {OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF}
               </div>
             </div>
             <div className="summary-card summary-accent-green">
@@ -3156,7 +3246,7 @@ const App = () => {
                   {formatCurrency(optimizerUpgradeTotalMin)} to {formatCurrency(optimizerUpgradeTotalMax)}
                 </div>
                 <div className="summary-sub">
-                  Extra deposit + extra mortgage, minimum required {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)}
+                  Extra deposit + extra mortgage, kept between {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} and {formatCurrency(OPTIMIZER_MAX_UPGRADE_VALUE)}
                 </div>
               </div>
             )}
@@ -3173,7 +3263,7 @@ const App = () => {
                 {formatCurrency(FIRST_HOUSE_LEGAL_FEES)} / {formatCurrency(SECOND_HOUSE_LEGAL_FEES)}
               </div>
               <div className="summary-sub">
-                First purchase / upgrade move, on top of stamp duty
+                First purchase / upgrade purchase, plus sale costs of {FIRST_HOME_SALE_AGENT_FEE_PCT.toFixed(1)}% + {formatCurrency(FIRST_HOME_SALE_LEGAL_FEES)}
               </div>
             </div>
           </div>
