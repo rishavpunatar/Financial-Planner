@@ -109,14 +109,19 @@ const EMPLOYEE_NI_UPPER_EARNINGS_LIMIT = 50270;
 const getDraggedThreshold = (threshold, yearsFromStart) =>
   threshold * Math.pow(1 - TAX_THRESHOLD_DRAG_PCT / 100, yearsFromStart);
 
-const calculateRealTermsTakeHomePay = (income, yearsFromStart) => {
-  const incomeTax = calculateIncomeTax(income, {
+const calculateRealTermsTakeHomePay = (
+  income,
+  yearsFromStart,
+  pensionContributionRate = 0,
+) => {
+  const taxableIncome = income * (1 - pensionContributionRate / 100);
+  const incomeTax = calculateIncomeTax(taxableIncome, {
     personalAllowance: getDraggedThreshold(PERSONAL_ALLOWANCE, yearsFromStart),
     basicRateLimit: getDraggedThreshold(BASIC_RATE_LIMIT, yearsFromStart),
     additionalRateLimit: getDraggedThreshold(ADDITIONAL_RATE_LIMIT, yearsFromStart),
     allowanceTaperStart: getDraggedThreshold(100000, yearsFromStart),
   });
-  const nationalInsurance = calculateEmployeeNationalInsurance(income, {
+  const nationalInsurance = calculateEmployeeNationalInsurance(taxableIncome, {
     primaryThreshold: getDraggedThreshold(
       EMPLOYEE_NI_PRIMARY_THRESHOLD,
       yearsFromStart,
@@ -127,7 +132,7 @@ const calculateRealTermsTakeHomePay = (income, yearsFromStart) => {
     ),
   });
 
-  return income - incomeTax - nationalInsurance;
+  return taxableIncome - incomeTax - nationalInsurance;
 };
 
 const calculateIncomeTax = (income, thresholds = {}) => {
@@ -252,6 +257,9 @@ const simulateFinancialPlan = (params) => {
     recessionYear,
     secondRecessionYear,
     thirdRecessionYear,
+    enableRedundancy,
+    redundancyYear,
+    secondRedundancyYear,
     baseLivingCost,
     child1AnnualCost,
     child2AnnualCost,
@@ -294,6 +302,7 @@ const simulateFinancialPlan = (params) => {
   let firstMortgagePaidOffYearLocal = null;
   let secondHouseValueAtMoveLocal = null;
   let secondHousePurchasePriceLocal = null;
+  let secondHouseFundingGapLocal = 0;
   let minIsaBalance = isaSeed || 0;
   let negativeAmortizationYears = 0;
   let capitalizedInterestTotal = 0;
@@ -326,16 +335,28 @@ const simulateFinancialPlan = (params) => {
       age,
     );
 
+    const isRedundancyYear = enableRedundancy
+      && [redundancyYear, secondRedundancyYear].filter(Boolean).includes(year);
+    if (isRedundancyYear) {
+      income1 = 0;
+    }
+
     if (year === child1BirthYear || year === child2BirthYear) {
       income2 *= 0.5;
     }
 
     const grossIncome = income1 + income2;
-    const takeHome1 = calculateTakeHomePayFn(income1, yearsFromStart);
-    const takeHome2 = calculateTakeHomePayFn(income2, yearsFromStart);
-    const netBeforePension = takeHome1 + takeHome2;
-    const pensionContribution = grossIncome * (pensionContributionRate / 100);
-    const netIncome = Math.max(0, netBeforePension - pensionContribution);
+    const takeHome1 = calculateTakeHomePayFn(
+      income1,
+      yearsFromStart,
+      pensionContributionRate,
+    );
+    const takeHome2 = calculateTakeHomePayFn(
+      income2,
+      yearsFromStart,
+      pensionContributionRate,
+    );
+    const netIncome = takeHome1 + takeHome2;
     const totalPostTax = netIncome;
 
     const isRecessionYearFlag = [recessionYear, secondRecessionYear, thirdRecessionYear]
@@ -347,15 +368,29 @@ const simulateFinancialPlan = (params) => {
         propertyValue *= recessionFactor;
       }
       isaTotal *= recessionFactor;
+      surplusPot *= recessionFactor;
+    }
+
+    let purchaseLumpSum = 0;
+    if (year === firstHousePurchaseYear) {
+      purchaseLumpSum += calculateStampDuty(initialPropertyValue, false);
     }
 
     if (enableSecondHouse && year === secondHouseYear) {
+      const plannedSecondHouseValue = propertyValue + moveIncrementValue;
+      const plannedSecondHouseStampDuty = calculateStampDuty(plannedSecondHouseValue, false);
       const withdrawn = Math.min(secondHouseDeposit, isaTotal);
       isaTotal -= withdrawn;
+      const depositGap = Math.max(0, secondHouseDeposit - withdrawn);
+      if (depositGap > 0) {
+        secondHouseFundingGapLocal += depositGap;
+        cumulativeShortfall += depositGap;
+      }
       secondMortgageBalance = secondMortgage;
-      propertyValue = propertyValue + moveIncrementValue;
+      propertyValue = plannedSecondHouseValue;
       secondHouseValueAtMoveLocal = propertyValue;
       secondHousePurchasePriceLocal = propertyValue;
+      purchaseLumpSum += plannedSecondHouseStampDuty;
     }
 
     let visaCost = 0;
@@ -462,6 +497,7 @@ const simulateFinancialPlan = (params) => {
     if (year === kid2GiftYear) {
       lumpSum += kid2GiftAmount;
     }
+    lumpSum += purchaseLumpSum;
 
     const totalLeft =
       totalPostTax -
@@ -553,6 +589,7 @@ const simulateFinancialPlan = (params) => {
     mortgageRepayYear: mortgageRepayYearLocal,
     secondHouseValueAtMove: secondHouseValueAtMoveLocal,
     secondHousePurchasePrice: secondHousePurchasePriceLocal,
+    secondHouseFundingGap: secondHouseFundingGapLocal,
     firstMortgagePaidOffYear: firstMortgagePaidOffYearLocal,
     minIsaBalance,
     finalLiquidNet,
@@ -590,6 +627,11 @@ const App = () => {
   const [recessionYear, setRecessionYear] = useState(initialScenario?.recessionYear ?? 2035);
   const [secondRecessionYear, setSecondRecessionYear] = useState(initialScenario?.secondRecessionYear ?? 2042);
   const [thirdRecessionYear, setThirdRecessionYear] = useState(initialScenario?.thirdRecessionYear ?? 2050);
+  const [enableRedundancy, setEnableRedundancy] = useState(initialScenario?.enableRedundancy ?? false);
+  const [redundancyYear, setRedundancyYear] = useState(initialScenario?.redundancyYear ?? 2031);
+  const [secondRedundancyYear, setSecondRedundancyYear] = useState(
+    initialScenario?.secondRedundancyYear ?? 2039,
+  );
 
   const [baseLivingCost, setBaseLivingCost] = useState(initialScenario?.baseLivingCost ?? 40000);
   const [child1AnnualCost, setChild1AnnualCost] = useState(initialScenario?.child1AnnualCost ?? 30000);
@@ -793,6 +835,9 @@ const App = () => {
     recessionYear,
     secondRecessionYear,
     thirdRecessionYear,
+    enableRedundancy,
+    redundancyYear,
+    secondRedundancyYear,
     baseLivingCost,
     child1AnnualCost,
     child2AnnualCost,
@@ -841,6 +886,9 @@ const App = () => {
     recessionYear,
     secondRecessionYear,
     thirdRecessionYear,
+    enableRedundancy,
+    redundancyYear,
+    secondRedundancyYear,
     baseLivingCost,
     child1AnnualCost,
     child2AnnualCost,
@@ -929,6 +977,9 @@ const App = () => {
       recessionYear,
       secondRecessionYear,
       thirdRecessionYear,
+      enableRedundancy,
+      redundancyYear,
+      secondRedundancyYear,
       baseLivingCost,
       child1AnnualCost,
       child2AnnualCost,
@@ -973,6 +1024,9 @@ const App = () => {
       recessionYear,
       secondRecessionYear,
       thirdRecessionYear,
+      enableRedundancy,
+      redundancyYear,
+      secondRedundancyYear,
       baseLivingCost,
       child1AnnualCost,
       child2AnnualCost,
@@ -996,6 +1050,7 @@ const App = () => {
     mortgageRepayYear,
     secondHouseValueAtMove,
     secondHousePurchasePrice,
+    secondHouseFundingGap,
     firstMortgagePaidOffYear,
     minIsaBalance,
     finalLiquidNet: simulatedFinalLiquidNet,
@@ -1075,7 +1130,7 @@ const App = () => {
   };
 
   const derivedSecondHouseText = enableSecondHouse && secondHouseValue
-    ? formatCurrency(secondHouseValue)
+    ? `${formatCurrency(secondHouseValue)}${secondHouseFundingGap > 0 ? ` (gap ${formatCurrency(secondHouseFundingGap)})` : ''}`
     : 'Second house disabled';
 
   const totalStampDuty = enableSecondHouse
@@ -1088,9 +1143,10 @@ const App = () => {
     `Tax and NI thresholds are assumed to shrink by ${TAX_THRESHOLD_DRAG_PCT}% a year in real terms as a smoothed fiscal-drag assumption.`,
     `Income rises by a fixed real cash increment until age ${CAREER_GROWTH_PEAK_AGE}, then that increment linearly tapers to zero by age ${CAREER_GROWTH_END_AGE}.`,
     `The model stops at age ${END_AGE}.`,
-    `Pension contributions are deducted from take-home cash at ${pensionContributionRate}%, but no pension pot or future pension income is modelled.`,
+    `Pension contributions are assumed to reduce taxable pay by ${pensionContributionRate}% before tax and NI, but no pension pot or future pension income is modelled.`,
     `Partner 2 income falls by 50% in each birth year (${child1BirthYear} and ${child2BirthYear}).`,
     'Child costs start one year after birth and continue until age 21.',
+    'Stamp duty is charged as a cash outflow in the relevant house-purchase year.',
     usePrivateSchool
       ? 'Private school fees are applied in real terms between ages 11 and 18.'
       : 'Private school fees are excluded unless the toggle is turned on.',
@@ -1098,9 +1154,12 @@ const App = () => {
     `Surplus savings grow at the ISA real growth rate less ${cgtRatePct}% CGT on gains.`,
     `A car purchase is assumed in 2028, and gifts are assumed at age 27 (currently ${formatCurrency(kid1GiftAmount)} and ${formatCurrency(kid2GiftAmount)}).`,
     enableSecondHouse
-      ? `The second house uses ISA for the deposit, adds a second mortgage in ${secondHouseYear}, and assumes the first property is sold for stamp duty treatment.`
+      ? `The second house uses ISA for the deposit, adds a second mortgage in ${secondHouseYear}, and assumes the first property is sold for stamp duty treatment.${secondHouseFundingGap > 0 ? ` The current plan is short by ${formatCurrency(secondHouseFundingGap)} on the move deposit.` : ''}`
       : 'Second house purchase is currently disabled.',
-    `Recession years (${recessionYear}, ${secondRecessionYear}, ${thirdRecessionYear}) reduce ISA and property value by ${recessionHitPct}%.`,
+    `Recession years (${recessionYear}, ${secondRecessionYear}, ${thirdRecessionYear}) reduce ISA, surplus savings, and property value by ${recessionHitPct}%.`,
+    enableRedundancy
+      ? `Redundancy years (${redundancyYear} and ${secondRedundancyYear}) set person 1 income to zero for the full year.`
+      : 'Redundancy shocks are excluded unless the toggle is turned on.',
     negativeAmortizationYears > 0
       ? `In ${negativeAmortizationYears} year(s), the mortgage budget does not cover all interest, so ${formatCurrency(capitalizedInterestTotal)} is added back onto the loan balance.`
       : 'Mortgage repayments always cover interest under the current assumptions.',
@@ -1317,7 +1376,7 @@ const App = () => {
                 formatValue={formatCurrency}
               />
               <RangeSlider
-                label="Recession Hit (%) on Property & ISA"
+                label="Recession Hit (%) on Property, ISA & Surplus"
                 value={recessionHitPct}
                 min={0}
                 max={50}
@@ -1556,6 +1615,37 @@ const App = () => {
                   formatValue={v => v}
                 />
               </div>
+
+              <div className="slider-column">
+                <label className="line-toggle">
+                  <input
+                    type="checkbox"
+                    checked={enableRedundancy}
+                    onChange={e => setEnableRedundancy(e.target.checked)}
+                  />
+                  Redundancy shocks
+                </label>
+                <RangeSlider
+                  label="Redundancy Year 1"
+                  value={redundancyYear}
+                  min={2027}
+                  max={BASE_BIRTH_YEAR + END_AGE}
+                  step={1}
+                  onChange={setRedundancyYear}
+                  formatValue={v => v}
+                  disabled={!enableRedundancy}
+                />
+                <RangeSlider
+                  label="Redundancy Year 2"
+                  value={secondRedundancyYear}
+                  min={2027}
+                  max={BASE_BIRTH_YEAR + END_AGE}
+                  step={1}
+                  onChange={setSecondRedundancyYear}
+                  formatValue={v => v}
+                  disabled={!enableRedundancy}
+                />
+              </div>
             </div>
           </div>
 
@@ -1745,6 +1835,12 @@ const App = () => {
                   <ReferenceLine x={recessionYear} stroke="#94a3b8" strokeDasharray="4 4" label="📉" />
                   <ReferenceLine x={secondRecessionYear} stroke="#94a3b8" strokeDasharray="4 4" label="📉2" />
                   <ReferenceLine x={thirdRecessionYear} stroke="#94a3b8" strokeDasharray="4 4" label="📉3" />
+                  {enableRedundancy && (
+                    <ReferenceLine x={redundancyYear} stroke="#ef4444" strokeDasharray="4 3" label="R1" />
+                  )}
+                  {enableRedundancy && (
+                    <ReferenceLine x={secondRedundancyYear} stroke="#ef4444" strokeDasharray="4 3" label="R2" />
+                  )}
                   {mortgageRepayYear && (
                     <ReferenceLine
                       x={mortgageRepayYear}
@@ -1884,7 +1980,7 @@ const App = () => {
             🎁2 {kid2GiftYear} - Gift to child 2 ({formatCurrency(kid2GiftAmount)})
           </span>
           <span>
-            📉 {recessionYear} - Recession (-{recessionHitPct}% property & ISA)
+            📉 {recessionYear} - Recession (-{recessionHitPct}% property, ISA & surplus)
           </span>
           <span>
             📉2 {secondRecessionYear} - Second recession
@@ -1892,6 +1988,12 @@ const App = () => {
           <span>
             📉3 {thirdRecessionYear} - Third recession
           </span>
+          {enableRedundancy && (
+            <span>R1 {redundancyYear} - Person 1 redundancy year</span>
+          )}
+          {enableRedundancy && (
+            <span>R2 {secondRedundancyYear} - Person 1 second redundancy year</span>
+          )}
           {firstMortgagePaidOffYear && (
             <span>✅1 {firstMortgagePaidOffYear} - First mortgage fully repaid</span>
           )}
