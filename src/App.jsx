@@ -4052,6 +4052,26 @@ const App = () => {
                 <div className="optimizer-result-sub">
                   Ranked by composite robust score: feasibility first, then regret CVaR, then expected end net worth.
                 </div>
+                <div className="robustness-explainer-grid">
+                  <div className="robustness-explainer-card">
+                    <div className="optimizer-result-title">Regret CVaR 10%</div>
+                    <div className="optimizer-result-sub">
+                      This is a downside measure. For each future, the model asks how far this strategy falls behind the best strategy in that same future. It then looks at the worst 10% of those gaps and averages them. Lower is better.
+                    </div>
+                  </div>
+                  <div className="robustness-explainer-card">
+                    <div className="optimizer-result-title">Feasibility %</div>
+                    <div className="optimizer-result-sub">
+                      This is the weighted share of futures where the plan stays valid overall: cash does not break, mortgage rules hold, and the one-home or two-home house-value rule is met. Higher is better.
+                    </div>
+                  </div>
+                  <div className="robustness-explainer-card">
+                    <div className="optimizer-result-title">Private School %</div>
+                    <div className="optimizer-result-sub">
+                      This only looks at futures where private school is switched on. It shows the weighted share of those futures where the strategy still remains feasible and the school costs are affordable. Higher is better.
+                    </div>
+                  </div>
+                </div>
                 <div className="robustness-table-wrap">
                   <table className="robustness-table">
                     <thead>
@@ -4104,7 +4124,7 @@ const App = () => {
                 <div className="robustness-chart-card">
                   <div className="optimizer-result-title">Expected Net Worth vs Regret</div>
                   <div className="optimizer-result-sub">
-                    Pareto frontier and the current top robust strategies.
+                    Each dot is one strategy. The horizontal axis is weighted expected end net worth, so further right is better. The vertical axis is regret CVaR 10%, so lower is better. The line is the Pareto frontier: strategies on that line are not clearly dominated by another strategy on both measures.
                   </div>
                   {robustnessCharts?.scatter && (
                     <img
@@ -4117,7 +4137,7 @@ const App = () => {
                 <div className="robustness-chart-card">
                   <div className="optimizer-result-title">CDF of Top 5 Strategies</div>
                   <div className="optimizer-result-sub">
-                    Weighted end-net-worth distributions for the most robust candidates.
+                    Each line shows the full weighted distribution of end net worth for one of the top strategies. Moving right means higher net worth. At any height on the chart, you can compare how much wealth each strategy has reached by that cumulative probability level.
                   </div>
                   {robustnessCharts?.cdf && (
                     <img
@@ -4130,7 +4150,7 @@ const App = () => {
                 <div className="robustness-chart-card">
                   <div className="optimizer-result-title">Deposit vs Mortgage Plateau</div>
                   <div className="optimizer-result-sub">
-                    The strong starting region for first-house deposit and first mortgage.
+                    This heatmap groups strategies by the two most important starting levers: first deposit and first mortgage. Darker cells are stronger robust scores. The highlighted plateau is the region where nearby starting combinations perform similarly well, so you are not relying on one fragile exact point.
                   </div>
                   {robustnessCharts?.heatmap && (
                     <img
@@ -4143,7 +4163,7 @@ const App = () => {
                 <div className="robustness-chart-card">
                   <div className="optimizer-result-title">Sensitivity</div>
                   <div className="optimizer-result-sub">
-                    Which strategy wins as medium-case weighting and private-school probability move.
+                    This shows which strategy comes out on top when you change two judgment calls: how much weight to give medium-case futures, and how likely private school is. Each box shows the winning strategy for that assumption pair, so you can see whether the recommendation is stable or flips easily.
                   </div>
                   {robustnessCharts?.sensitivity && (
                     <img
