@@ -105,32 +105,91 @@ const OPTIMIZER_MIN_FIRST_PROPERTY_VALUE = 500000;
 const OPTIMIZER_MIN_UPGRADE_VALUE = 200000;
 const OPTIMIZER_MIN_END_PROPERTY_VALUE = 1000000;
 const OPTIMIZER_FIXED_FIRST_HOUSE_YEAR = 2027;
-const OPTIMIZER_ASSUMPTION_PROFILES = [
+const OPTIMIZER_INCOME_CASES = [
   {
-    id: 'conservative',
-    label: 'Low growth case',
-    incomeGrowth: 0.5,
-    isaGrowth: 2.5,
-    propertyGrowth: 0.5,
-    description: 'Slower career progression, muted real investment returns, and softer real house-price growth.',
+    id: 'income-low',
+    label: 'Income low',
+    shortLabel: 'Low',
+    growth: 0.5,
+    description: 'Slower real career progression.',
   },
   {
-    id: 'base',
-    label: 'Medium growth case',
-    incomeGrowth: 1.5,
-    isaGrowth: 4.0,
-    propertyGrowth: 1.5,
-    description: 'Reasonable long-run base case for high-earning corporate households planning in real terms.',
+    id: 'income-medium',
+    label: 'Income medium',
+    shortLabel: 'Medium',
+    growth: 1.5,
+    description: 'Reasonable long-run corporate base case.',
   },
   {
-    id: 'optimistic',
-    label: 'High growth case',
-    incomeGrowth: 2.5,
-    isaGrowth: 5.5,
-    propertyGrowth: 2.5,
-    description: 'Strong career progression, stronger real ISA returns, and firmer real property growth.',
+    id: 'income-high',
+    label: 'Income high',
+    shortLabel: 'High',
+    growth: 2.5,
+    description: 'Strong real progression without extreme jumps.',
   },
 ];
+const OPTIMIZER_ISA_CASES = [
+  {
+    id: 'isa-low',
+    label: 'ISA low',
+    shortLabel: 'Low',
+    growth: 2.5,
+    description: 'More conservative real investment outcome.',
+  },
+  {
+    id: 'isa-medium',
+    label: 'ISA medium',
+    shortLabel: 'Medium',
+    growth: 4.0,
+    description: 'Reasonable long-run real return base case.',
+  },
+  {
+    id: 'isa-high',
+    label: 'ISA high',
+    shortLabel: 'High',
+    growth: 5.5,
+    description: 'Stronger real investment outcome.',
+  },
+];
+const OPTIMIZER_PROPERTY_CASES = [
+  {
+    id: 'property-low',
+    label: 'Property low',
+    shortLabel: 'Low',
+    growth: 0.5,
+    description: 'Softer real house-price growth.',
+  },
+  {
+    id: 'property-medium',
+    label: 'Property medium',
+    shortLabel: 'Medium',
+    growth: 1.5,
+    description: 'Reasonable real house-price growth base case.',
+  },
+  {
+    id: 'property-high',
+    label: 'Property high',
+    shortLabel: 'High',
+    growth: 2.5,
+    description: 'Stronger real house-price growth.',
+  },
+];
+const OPTIMIZER_ASSUMPTION_CASES = OPTIMIZER_INCOME_CASES.flatMap((incomeCase, incomeIndex) =>
+  OPTIMIZER_ISA_CASES.flatMap((isaCase, isaIndex) =>
+    OPTIMIZER_PROPERTY_CASES.map((propertyCase, propertyIndex) => ({
+      id: `${incomeCase.id}__${isaCase.id}__${propertyCase.id}`,
+      incomeCase,
+      isaCase,
+      propertyCase,
+      sortOrder: incomeIndex * 100 + isaIndex * 10 + propertyIndex,
+      label: `${incomeCase.label} / ${isaCase.label} / ${propertyCase.label}`,
+      description: `${incomeCase.description} ${isaCase.description} ${propertyCase.description}`,
+      incomeGrowth: incomeCase.growth,
+      isaGrowth: isaCase.growth,
+      propertyGrowth: propertyCase.growth,
+    })),
+  ),
+);
 const TAX_YEAR_LABEL = '2025/26';
 // Smoothed real-terms threshold tightening assumption for long-run UK fiscal drag.
 const TAX_THRESHOLD_DRAG_PCT = 1.85;
@@ -255,7 +314,7 @@ const buildOptimizerSearchPlan = (searchConfig) => {
   const exactScenarioCount = propertyModes.reduce((count, propertyMode) => (
     count + (propertyMode === 'one' ? exactOnePropertyCount : exactTwoPropertyCount)
   ), 0);
-  const totalScenarioCount = exactScenarioCount * OPTIMIZER_ASSUMPTION_PROFILES.length;
+  const totalScenarioCount = exactScenarioCount * OPTIMIZER_ASSUMPTION_CASES.length;
   const isExhaustive = totalScenarioCount <= OPTIMIZER_FULL_SEARCH_LIMIT;
 
   return {
@@ -797,7 +856,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
   } = buildOptimizerSearchPlan(searchConfig);
   const startingCashPool = baseParams.initialDeposit + baseParams.isaSeed;
 
-  const profileResults = OPTIMIZER_ASSUMPTION_PROFILES.map((profile) => {
+  const caseResults = OPTIMIZER_ASSUMPTION_CASES.map((assumptionCase) => {
     const results = [];
     let scenariosTested = 0;
 
@@ -832,9 +891,9 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                   secondMortgage: 0,
                   income1Start: OPTIMIZER_STARTING_INCOME_1,
                   income2Start: OPTIMIZER_STARTING_INCOME_2,
-                  incomeGrowth: profile.incomeGrowth,
-                  isaGrowth: profile.isaGrowth,
-                  realGrowthProperty: profile.propertyGrowth,
+                  incomeGrowth: assumptionCase.incomeGrowth,
+                  isaGrowth: assumptionCase.isaGrowth,
+                  realGrowthProperty: assumptionCase.propertyGrowth,
                 });
 
                 const feasible =
@@ -847,7 +906,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                 if (!feasible) continue;
 
                 results.push({
-                  assumptionProfile: profile,
+                  assumptionCase,
                   enableSecondHouse: false,
                   firstHousePurchaseYear,
                   initialDeposit,
@@ -900,9 +959,9 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                         secondMortgage,
                         income1Start: OPTIMIZER_STARTING_INCOME_1,
                         income2Start: OPTIMIZER_STARTING_INCOME_2,
-                        incomeGrowth: profile.incomeGrowth,
-                        isaGrowth: profile.isaGrowth,
-                        realGrowthProperty: profile.propertyGrowth,
+                        incomeGrowth: assumptionCase.incomeGrowth,
+                        isaGrowth: assumptionCase.isaGrowth,
+                        realGrowthProperty: assumptionCase.propertyGrowth,
                       });
 
                       const feasible =
@@ -915,7 +974,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
                       if (!feasible) continue;
 
                       results.push({
-                        assumptionProfile: profile,
+                        assumptionCase,
                         enableSecondHouse: true,
                         firstHousePurchaseYear,
                         initialDeposit,
@@ -943,7 +1002,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
     const sortedResults = results.sort(compareOptimizerResults).slice(0, 3);
 
     return {
-      profile,
+      assumptionCase,
       scenariosTested,
       feasibleCount: results.length,
       bestResult: sortedResults[0] ?? null,
@@ -952,12 +1011,12 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
   });
 
   return {
-    profileResults,
+    caseResults,
     searchMeta: {
       isExhaustive,
       exactScenarioCount,
-      testedScenarioCount: profileResults.reduce(
-        (count, profileResult) => count + profileResult.scenariosTested,
+      testedScenarioCount: caseResults.reduce(
+        (count, caseResult) => count + caseResult.scenariosTested,
         0,
       ),
       startingCashPool,
@@ -966,7 +1025,7 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
 };
 
 const getOptimizerResultKey = (result) => [
-  result.assumptionProfile.id,
+  result.assumptionCase.id,
   result.enableSecondHouse ? 'two' : 'one',
   result.firstHousePurchaseYear,
   result.firstHouseValue,
@@ -1576,10 +1635,10 @@ const App = () => {
     ? finalIsaTotal + finalSurplusPot - finalMortgageBalance - finalShortfall
     : simulatedFinalLiquidNet;
 
-  const { profileResults: optimizerResults, searchMeta: optimizerSearchMeta } = useMemo(() => {
+  const { caseResults: optimizerResults, searchMeta: optimizerSearchMeta } = useMemo(() => {
     if (activeTab !== 'optimizer') {
       return {
-        profileResults: [],
+        caseResults: [],
         searchMeta: null,
       };
     }
@@ -1641,6 +1700,17 @@ const App = () => {
       .slice(0, 6);
   }, [optimizerResults]);
 
+  const optimizerResultsByIncome = useMemo(() => (
+    OPTIMIZER_INCOME_CASES.map((incomeCase) => ({
+      incomeCase,
+      caseResults: optimizerResults
+        .filter(({ assumptionCase }) => assumptionCase.incomeCase.id === incomeCase.id)
+        .sort(
+          (left, right) => left.assumptionCase.sortOrder - right.assumptionCase.sortOrder,
+        ),
+    }))
+  ), [optimizerResults]);
+
   const selectedOptimizerResult = useMemo(() => {
     if (!optimizerRecommendedResults.length) return null;
 
@@ -1652,9 +1722,9 @@ const App = () => {
   const handleApplyOptimizerResult = (result) => {
     setIncome1Start(OPTIMIZER_STARTING_INCOME_1);
     setIncome2Start(OPTIMIZER_STARTING_INCOME_2);
-    setIncomeGrowth(result.assumptionProfile.incomeGrowth);
-    setIsaGrowth(result.assumptionProfile.isaGrowth);
-    setRealGrowthProperty(result.assumptionProfile.propertyGrowth);
+    setIncomeGrowth(result.assumptionCase.incomeGrowth);
+    setIsaGrowth(result.assumptionCase.isaGrowth);
+    setRealGrowthProperty(result.assumptionCase.propertyGrowth);
     setInitialCash(result.initialDeposit + result.optimizerIsaSeed);
     setInitialDeposit(result.initialDeposit);
     setInitialMortgage(result.initialMortgage);
@@ -1674,7 +1744,7 @@ const App = () => {
       setSecondMortgage(0);
     }
 
-    setPresetName(`${result.assumptionProfile.label} plan`);
+    setPresetName(`${result.assumptionCase.label} plan`);
     setActiveTab('planner');
   };
 
@@ -1788,7 +1858,7 @@ const App = () => {
     `The first property must be at least ${formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}, and any upgrade step must add at least ${formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} of extra property value from deposit plus mortgage.`,
     `Every feasible result must end with property value above ${formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)} in today's money after applying the chosen real property-growth case.`,
     'The optimizer maximizes final cash first, then uses higher final property value and lower lifetime mortgage paid as tie-breakers.',
-    `The growth cases vary income, ISA returns, and property growth together. Other planner assumptions stay frozen, including mortgage real rate ${mortgageRate}% and living-cost growth ${realGrowthCosts}%.`,
+    `The optimizer now tests the full 27-case matrix across income growth, ISA growth, and property growth separately. Other planner assumptions stay frozen, including mortgage real rate ${mortgageRate}% and living-cost growth ${realGrowthCosts}%.`,
     `Base living costs, child costs, visa costs, car purchase, gifts, private school setting, recessions, redundancy years, tax drag, and pension contribution rate all stay exactly as set in the planner tab.`,
     `The optimizer still uses the same model rules shown in the planner assumptions, including stamp duty, ISA deposit funding for the second move, and the age-${END_AGE} end point.`,
   ];
@@ -2656,7 +2726,7 @@ const App = () => {
             This tab keeps the planner assumptions fixed, resets starting income to £70k for person 1 and £90k for person 2, and searches housing choices against three real income-growth paths for corporate careers.
           </p>
           <p className="helper-text">
-            Low / medium / high growth cases used here are: income 0.5% / 1.5% / 2.5%, ISA 2.5% / 4.0% / 5.5%, and property 0.5% / 1.5% / 2.5%, all in real terms.
+            This optimizer now tests the full 27-case matrix: income growth 0.5% / 1.5% / 2.5%, ISA growth 2.5% / 4.0% / 5.5%, and property growth 0.5% / 1.5% / 2.5%, all in real terms.
           </p>
           <p className="helper-text">
             The first house is fixed to {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}. Housing inputs searched here are explicit deposit and mortgage ranges. House 1 value is deposit plus mortgage and must be at least {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}. In the upgrade path, the extra deposit plus extra mortgage must be at least {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)}.
@@ -2903,7 +2973,7 @@ const App = () => {
                       className={`optimizer-choice-button${resultKey === getOptimizerResultKey(selectedOptimizerResult) ? ' optimizer-choice-active' : ''}`}
                       onClick={() => setSelectedOptimizerResultKey(resultKey)}
                     >
-                      #{index + 1} {result.assumptionProfile.label} · {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'}
+                      #{index + 1} {result.assumptionCase.incomeCase.shortLabel} income / {result.assumptionCase.isaCase.shortLabel} ISA / {result.assumptionCase.propertyCase.shortLabel} property · {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'}
                     </button>
                   );
                 })}
@@ -2928,7 +2998,7 @@ const App = () => {
               </div>
 
               <div className="optimizer-detail-list">
-                <div>Assumption case: {selectedOptimizerResult.assumptionProfile.label} | income {selectedOptimizerResult.assumptionProfile.incomeGrowth}% | ISA {selectedOptimizerResult.assumptionProfile.isaGrowth}% | property {selectedOptimizerResult.assumptionProfile.propertyGrowth}%</div>
+                <div>Assumption case: {selectedOptimizerResult.assumptionCase.incomeCase.label} {selectedOptimizerResult.assumptionCase.incomeGrowth}% | {selectedOptimizerResult.assumptionCase.isaCase.label} {selectedOptimizerResult.assumptionCase.isaGrowth}% | {selectedOptimizerResult.assumptionCase.propertyCase.label} {selectedOptimizerResult.assumptionCase.propertyGrowth}%</div>
                 <div>Starting cash split: deposit {formatCurrency(selectedOptimizerResult.initialDeposit)} | ISA seed {formatCurrency(selectedOptimizerResult.optimizerIsaSeed)}</div>
                 <div>First house: {selectedOptimizerResult.firstHousePurchaseYear} | value {formatCurrency(selectedOptimizerResult.firstHouseValue)} | deposit {formatCurrency(selectedOptimizerResult.initialDeposit)} | mortgage {formatCurrency(selectedOptimizerResult.initialMortgage)}</div>
                 <div>Mortgage budget: {selectedOptimizerResult.salaryMortgageEarly}% early{selectedOptimizerResult.enableSecondHouse ? `, ${selectedOptimizerResult.salaryMortgageLater}% after the move` : ''}</div>
@@ -2950,75 +3020,88 @@ const App = () => {
             </div>
           )}
 
-          <div className="optimizer-results-grid">
-            {optimizerResults.map(({ profile, scenariosTested, feasibleCount, bestResult, topResults }) => (
-              <div key={profile.id} className="optimizer-result-card">
-                <div className="optimizer-result-header">
-                  <div>
-                    <div className="optimizer-result-title">{profile.label}</div>
-                    <div className="optimizer-result-sub">
-                      Income {profile.incomeGrowth}% | ISA {profile.isaGrowth}% | property {profile.propertyGrowth}% | {profile.description}
-                    </div>
-                  </div>
-                  <div className="optimizer-result-meta">
-                    {feasibleCount} feasible / {scenariosTested} tested
-                  </div>
+          {optimizerResultsByIncome.map(({ incomeCase, caseResults }) => (
+            <div key={incomeCase.id} className="optimizer-income-section">
+              <div className="optimizer-income-header">
+                <div className="optimizer-result-title">{incomeCase.label}</div>
+                <div className="optimizer-result-sub">
+                  Real income growth {incomeCase.growth}% | {incomeCase.description}
                 </div>
-
-                {bestResult ? (
-                  <>
-                    <div className="optimizer-metric-grid">
-                      <div className="summary-card summary-accent-cyan">
-                        <div className="summary-label">Best Final Cash</div>
-                        <div className="summary-value">{formatCurrency(bestResult.finalLiquidNet)}</div>
-                        <div className="summary-sub">Primary objective</div>
-                      </div>
-                      <div className="summary-card summary-accent-green">
-                        <div className="summary-label">Final Property</div>
-                        <div className="summary-value">{formatCurrency(bestResult.finalPropertyValue)}</div>
-                        <div className="summary-sub">Property floor £1.00M</div>
-                      </div>
-                      <div className="summary-card summary-accent-blue">
-                        <div className="summary-label">Mortgage Paid</div>
-                        <div className="summary-value">{formatCurrency(bestResult.totalMortgagePayments)}</div>
-                        <div className="summary-sub">{bestResult.enableSecondHouse ? 'Two-property path' : 'One-property path'}</div>
-                      </div>
-                    </div>
-
-                    <div className="optimizer-top-list">
-                      {topResults.map((result, index) => {
-                        const resultKey = getOptimizerResultKey(result);
-                        const isSelected = resultKey === getOptimizerResultKey(selectedOptimizerResult || bestResult);
-
-                        return (
-                          <button
-                            key={resultKey}
-                            type="button"
-                            className={`optimizer-top-item${isSelected ? ' optimizer-choice-active' : ''}`}
-                            onClick={() => setSelectedOptimizerResultKey(resultKey)}
-                          >
-                            Option {index + 1}: {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | cash {formatCurrency(result.finalLiquidNet)} | property {formatCurrency(result.finalPropertyValue)} | mortgage {formatCurrency(result.totalMortgagePayments)}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <button
-                      type="button"
-                      className="preset-button preset-button-secondary"
-                      onClick={() => setSelectedOptimizerResultKey(getOptimizerResultKey(bestResult))}
-                    >
-                      View this profile's best combination
-                    </button>
-                  </>
-                ) : (
-                  <div className="optimizer-empty">
-                    No feasible plan found in the current search ranges.
-                  </div>
-                )}
               </div>
-            ))}
-          </div>
+
+              <div className="optimizer-results-grid">
+                {caseResults.map(({ assumptionCase, scenariosTested, feasibleCount, bestResult, topResults }) => (
+                  <div key={assumptionCase.id} className="optimizer-result-card">
+                    <div className="optimizer-result-header">
+                      <div>
+                        <div className="optimizer-result-title">
+                          {assumptionCase.isaCase.label} / {assumptionCase.propertyCase.label}
+                        </div>
+                        <div className="optimizer-result-sub">
+                          ISA {assumptionCase.isaGrowth}% | property {assumptionCase.propertyGrowth}% | {assumptionCase.description}
+                        </div>
+                      </div>
+                      <div className="optimizer-result-meta">
+                        {feasibleCount} feasible / {scenariosTested} tested
+                      </div>
+                    </div>
+
+                    {bestResult ? (
+                      <>
+                        <div className="optimizer-metric-grid">
+                          <div className="summary-card summary-accent-cyan">
+                            <div className="summary-label">Best Final Cash</div>
+                            <div className="summary-value">{formatCurrency(bestResult.finalLiquidNet)}</div>
+                            <div className="summary-sub">Primary objective</div>
+                          </div>
+                          <div className="summary-card summary-accent-green">
+                            <div className="summary-label">Final Property</div>
+                            <div className="summary-value">{formatCurrency(bestResult.finalPropertyValue)}</div>
+                            <div className="summary-sub">Property floor £1.00M</div>
+                          </div>
+                          <div className="summary-card summary-accent-blue">
+                            <div className="summary-label">Mortgage Paid</div>
+                            <div className="summary-value">{formatCurrency(bestResult.totalMortgagePayments)}</div>
+                            <div className="summary-sub">{bestResult.enableSecondHouse ? 'Two-property path' : 'One-property path'}</div>
+                          </div>
+                        </div>
+
+                        <div className="optimizer-top-list">
+                          {topResults.map((result, index) => {
+                            const resultKey = getOptimizerResultKey(result);
+                            const isSelected = resultKey === getOptimizerResultKey(selectedOptimizerResult || bestResult);
+
+                            return (
+                              <button
+                                key={resultKey}
+                                type="button"
+                                className={`optimizer-top-item${isSelected ? ' optimizer-choice-active' : ''}`}
+                                onClick={() => setSelectedOptimizerResultKey(resultKey)}
+                              >
+                                Option {index + 1}: {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | cash {formatCurrency(result.finalLiquidNet)} | property {formatCurrency(result.finalPropertyValue)} | mortgage {formatCurrency(result.totalMortgagePayments)}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <button
+                          type="button"
+                          className="preset-button preset-button-secondary"
+                          onClick={() => setSelectedOptimizerResultKey(getOptimizerResultKey(bestResult))}
+                        >
+                          View this case&apos;s best combination
+                        </button>
+                      </>
+                    ) : (
+                      <div className="optimizer-empty">
+                        No feasible plan found in the current search ranges.
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

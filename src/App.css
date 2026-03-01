@@ -244,6 +244,14 @@ body {
   gap: 12px;
 }
 
+.optimizer-income-section {
+  margin-top: 18px;
+}
+
+.optimizer-income-header {
+  margin-bottom: 10px;
+}
+
 .optimizer-selected-card {
   margin-top: 14px;
   background: #eff6ff;
