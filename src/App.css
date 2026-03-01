@@ -39,6 +39,29 @@ body {
   color: #6b7280;
 }
 
+.view-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.view-tab {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.view-tab-active {
+  border-color: #2563eb;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
+}
+
 /* -------- Summary cards (top) -------- */
 
 .summary-grid {
@@ -194,6 +217,93 @@ body {
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
+}
+
+.optimizer-mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.optimizer-grid {
+  margin-top: 12px;
+}
+
+.optimizer-results-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.optimizer-result-card {
+  background: #f8fafc;
+  border: 1px solid #dbe4ee;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.optimizer-result-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.optimizer-result-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.optimizer-result-sub {
+  font-size: 0.74rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.optimizer-result-meta {
+  font-size: 0.72rem;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.optimizer-metric-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.optimizer-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: #334155;
+}
+
+.optimizer-top-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.optimizer-top-item {
+  font-size: 0.74rem;
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.optimizer-empty {
+  font-size: 0.8rem;
+  color: #64748b;
 }
 
 /* -------- Top row: inline summary + sliders -------- */
@@ -600,6 +710,10 @@ body {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .optimizer-results-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .chart-top-row {
     flex-direction: column;
   }
@@ -647,6 +761,10 @@ body {
 
 @media (max-width: 800px) {
   .summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .optimizer-results-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
