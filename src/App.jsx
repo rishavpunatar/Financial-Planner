@@ -1311,6 +1311,8 @@ const App = () => {
   const [selectedOptimizerResultKey, setSelectedOptimizerResultKey] = useState('');
   const [precomputedOptimizerPayload, setPrecomputedOptimizerPayload] = useState(null);
   const [precomputedOptimizerError, setPrecomputedOptimizerError] = useState('');
+  const [showAllFeasibleResults, setShowAllFeasibleResults] = useState(false);
+  const [allFeasiblePage, setAllFeasiblePage] = useState(1);
 
   const kid1GiftYear = child1BirthYear + 27;
   const kid2GiftYear = child2BirthYear + 27;
@@ -1624,6 +1626,12 @@ const App = () => {
     };
   }, [activeTab, precomputedOptimizerPayload, precomputedOptimizerError]);
 
+  useEffect(() => {
+    if (allFeasiblePage > allFeasiblePageCount) {
+      setAllFeasiblePage(allFeasiblePageCount);
+    }
+  }, [allFeasiblePage, allFeasiblePageCount]);
+
   const handleSecondHouseYearChange = (value) => {
     const adjusted = Math.min(
       Math.max(value, firstHousePurchaseYear + 1),
@@ -1842,6 +1850,15 @@ const App = () => {
       .flatMap(({ feasibleResults = [] }) => feasibleResults)
       .sort(compareOptimizerResults)
   ), [precomputedOptimizerResults]);
+  const allFeasiblePageSize = 50;
+  const allFeasiblePageCount = Math.max(
+    1,
+    Math.ceil(precomputedAllFeasibleResults.length / allFeasiblePageSize),
+  );
+  const pagedFeasibleResults = useMemo(() => {
+    const start = (allFeasiblePage - 1) * allFeasiblePageSize;
+    return precomputedAllFeasibleResults.slice(start, start + allFeasiblePageSize);
+  }, [allFeasiblePage, precomputedAllFeasibleResults]);
 
   const optimizerResultsByIncome = useMemo(() => (
     OPTIMIZER_INCOME_CASES.map((incomeCase) => ({
@@ -3245,22 +3262,58 @@ const App = () => {
                 </div>
               )}
 
-              <div className="optimizer-feasible-list">
-                {precomputedAllFeasibleResults.map((result, index) => {
-                  const resultKey = getOptimizerResultKey(result);
-                  const isSelected = resultKey === getOptimizerResultKey(selectedOptimizerResult);
-                  return (
+              <div className="optimizer-pager-row">
+                <button
+                  type="button"
+                  className="preset-button preset-button-secondary"
+                  onClick={() => setShowAllFeasibleResults(prev => !prev)}
+                >
+                  {showAllFeasibleResults ? 'Hide full list' : 'Show full list'}
+                </button>
+                {showAllFeasibleResults && (
+                  <>
                     <button
-                      key={resultKey}
                       type="button"
-                      className={`optimizer-top-item${isSelected ? ' optimizer-choice-active' : ''}`}
-                      onClick={() => setSelectedOptimizerResultKey(resultKey)}
+                      className="preset-button preset-button-secondary"
+                      onClick={() => setAllFeasiblePage(page => Math.max(1, page - 1))}
+                      disabled={allFeasiblePage === 1}
                     >
-                      {index + 1}. {result.assumptionCase.incomeCase.shortLabel} income / {result.assumptionCase.marketCase.shortLabel} market | {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | first {formatCurrency(result.firstHouseValue)} ({formatCurrency(result.initialDeposit)} deposit + {formatCurrency(result.initialMortgage)} mortgage){result.enableSecondHouse ? ` | upgrade ${result.secondHouseYear} +${formatCurrency(result.secondUpgradeValue)}` : ''} | net worth {formatCurrency(getOptimizerNetWorth(result))} | cash {formatCurrency(result.cashEnd)} | equity {formatCurrency(result.equityEnd)} | interest {formatCurrency(result.lifetimeInterestPaid)}
+                      Previous
                     </button>
-                  );
-                })}
+                    <div className="optimizer-result-meta">
+                      Page {allFeasiblePage} of {allFeasiblePageCount}
+                    </div>
+                    <button
+                      type="button"
+                      className="preset-button preset-button-secondary"
+                      onClick={() => setAllFeasiblePage(page => Math.min(allFeasiblePageCount, page + 1))}
+                      disabled={allFeasiblePage === allFeasiblePageCount}
+                    >
+                      Next
+                    </button>
+                  </>
+                )}
               </div>
+
+              {showAllFeasibleResults && (
+                <div className="optimizer-feasible-list">
+                  {pagedFeasibleResults.map((result, index) => {
+                    const resultKey = getOptimizerResultKey(result);
+                    const isSelected = resultKey === getOptimizerResultKey(selectedOptimizerResult);
+                    const overallIndex = (allFeasiblePage - 1) * allFeasiblePageSize + index + 1;
+                    return (
+                      <button
+                        key={resultKey}
+                        type="button"
+                        className={`optimizer-top-item${isSelected ? ' optimizer-choice-active' : ''}`}
+                        onClick={() => setSelectedOptimizerResultKey(resultKey)}
+                      >
+                        {overallIndex}. {result.assumptionCase.incomeCase.shortLabel} income / {result.assumptionCase.marketCase.shortLabel} market | {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | first {formatCurrency(result.firstHouseValue)} ({formatCurrency(result.initialDeposit)} deposit + {formatCurrency(result.initialMortgage)} mortgage){result.enableSecondHouse ? ` | upgrade ${result.secondHouseYear} +${formatCurrency(result.secondUpgradeValue)}` : ''} | net worth {formatCurrency(getOptimizerNetWorth(result))} | cash {formatCurrency(result.cashEnd)} | equity {formatCurrency(result.equityEnd)} | interest {formatCurrency(result.lifetimeInterestPaid)}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 

@@ -304,6 +304,13 @@ body {
   gap: 8px;
 }
 
+.optimizer-pager-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .optimizer-choice-button,
 .optimizer-top-item {
   font-size: 0.74rem;
