@@ -106,7 +106,8 @@ const OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE = 400000;
 const OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF = 2035;
 const OPTIMIZER_MIN_UPGRADE_VALUE = 200000;
 const OPTIMIZER_MAX_UPGRADE_VALUE = 600000;
-const OPTIMIZER_MIN_END_PROPERTY_VALUE = 1200000;
+const OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE = 850000;
+const OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE = 900000;
 const OPTIMIZER_FIXED_FIRST_HOUSE_YEAR = 2027;
 const OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD = 750000;
 const OPTIMIZER_FAST_UPGRADE_YEAR_MAX = 2036;
@@ -122,8 +123,8 @@ const OPTIMIZER_FAILURE_REASON_DEFINITIONS = [
     label: 'Liquid cash before the age-70 mortgage payoff ends at or below zero.',
   },
   {
-    key: 'propertyFloor',
-    label: `End property value stays below ${`£${(OPTIMIZER_MIN_END_PROPERTY_VALUE / 1000000).toFixed(1)}m`}.`,
+    key: 'houseValueRule',
+    label: `House-value rule fails: one-home plans need at least ${`£${(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE / 1000000).toFixed(2)}m`} on the first house, and two-home plans need at least ${`£${(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE / 1000000).toFixed(2)}m`} on the second house purchase value.`,
   },
   {
     key: 'fundingGap',
@@ -246,6 +247,16 @@ const getYearPathValue = (pathValues, year, fallbackValue) => {
   return fallbackValue;
 };
 
+const passesOptimizerHouseValueRule = ({
+  enableSecondHouse,
+  firstHouseValue = 0,
+  secondHousePurchasePrice = 0,
+}) => (
+  enableSecondHouse
+    ? secondHousePurchasePrice >= OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE
+    : firstHouseValue >= OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE
+);
+
 const buildSamplePoints = (min, max, step, count = OPTIMIZER_SAMPLE_COUNT) => {
   const lower = Math.min(min, max);
   const upper = Math.max(min, max);
@@ -320,8 +331,8 @@ const getOptimizerFailureKeys = (simulation) => {
   if (simulation.cashBeforeTerminalMortgagePayoff <= 0) {
     failedKeys.push('cashEnd');
   }
-  if (simulation.finalPropertyValue < OPTIMIZER_MIN_END_PROPERTY_VALUE) {
-    failedKeys.push('propertyFloor');
+  if (!passesOptimizerHouseValueRule(simulation)) {
+    failedKeys.push('houseValueRule');
   }
   if (simulation.secondHouseFundingGap > 0.01) {
     failedKeys.push('fundingGap');
@@ -1068,6 +1079,8 @@ const simulateFinancialPlan = (params) => {
 
   return {
     financialData: returnFullData && data ? data : [],
+    enableSecondHouse,
+    firstHouseValue: initialPropertyValue,
     mortgageRepayYear: mortgageRepayYearLocal,
     secondHouseValueAtMove: secondHouseValueAtMoveLocal,
     secondHousePurchasePrice: secondHousePurchasePriceLocal,
@@ -1134,9 +1147,6 @@ const runHousingOptimizer = ({ baseParams, searchConfig }) => {
               }
 
               if (currentPropertyMode === 'one') {
-                if (firstHouseValue < OPTIMIZER_MIN_FIRST_PROPERTY_VALUE) {
-                  continue;
-                }
                 scenariosTested += 1;
                 const simulation = simulateFinancialPlan({
                   ...baseParams,
@@ -2442,12 +2452,12 @@ const App = () => {
     `Starting incomes are fixed at ${formatCurrency(OPTIMIZER_STARTING_INCOME_1)} and ${formatCurrency(OPTIMIZER_STARTING_INCOME_2)}.`,
     `The first house purchase year is fixed at ${OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}.`,
     `The first-house deposit and starting ISA seed share one fixed starting cash pool of ${formatCurrency(displayOptimizerSearchMeta?.startingCashPool ?? (initialDeposit + isaSeed))}.`,
-    `The first property must be at least ${formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}, except early upgrade paths completing by ${OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF} can start from ${formatCurrency(OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE)}. Any upgrade step must add between ${formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} and ${formatCurrency(OPTIMIZER_MAX_UPGRADE_VALUE)} of extra property value from deposit plus mortgage.`,
+    `For upgrade paths, the first property must be at least ${formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}, except early upgrade paths completing by ${OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF} can start from ${formatCurrency(OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE)}. Any upgrade step must add between ${formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} and ${formatCurrency(OPTIMIZER_MAX_UPGRADE_VALUE)} of extra property value from deposit plus mortgage.`,
     `The first-house mortgage cannot exceed ${formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}, and total mortgage outstanding can never exceed ${formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)} at any point in the path.`,
     `If the first house total is below ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the latest upgrade year is ${OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. If it is ${formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)} or above, the latest upgrade year is ${OPTIMIZER_LATE_UPGRADE_YEAR_MAX}.`,
-    `Every feasible result must end with property value above ${formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)} in today's money after applying the chosen real property-growth case.`,
+    `A one-home path is only feasible if the first house bought in ${OPTIMIZER_FIXED_FIRST_HOUSE_YEAR} is at least ${formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)}. A two-home path is only feasible if the second house purchase value reaches at least ${formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)} at the move year.`,
     `At age ${END_AGE}, surplus savings and then ISA are used to pay down any remaining mortgage before end cash and end equity are measured.`,
-    'The optimizer ranks plans by end net worth, defined as liquid cash after that payoff plus home equity. Final property value is still used as a feasibility floor, and lifetime interest is shown separately.',
+    'The optimizer ranks plans by end net worth, defined as liquid cash after that payoff plus home equity. Lifetime interest is shown separately and does not drive the ranking directly.',
     `The optimizer now tests a 9-case matrix across income growth and correlated market growth. Each market case couples ISA and property growth together. Other planner assumptions stay frozen, including mortgage real rate ${mortgageRate}% and living-cost growth ${realGrowthCosts}%.`,
     optimizerUsePrivateSchool
       ? 'Private school costs are forced on for this optimizer run.'
@@ -3344,14 +3354,14 @@ const App = () => {
                   This optimizer now tests a 9-case matrix: income growth 2.0% / 3.5% / 5.0%, crossed with correlated market growth cases where ISA/property move together at 2.5%/0.5%, 4.0%/1.5%, and 5.5%/2.5% in real terms.
                 </p>
                 <p className="helper-text">
-                  The first house is fixed to {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}. Housing inputs searched here are explicit deposit and mortgage ranges. House 1 value is deposit plus mortgage and must normally be at least {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}, but if the second move happens by {OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF} the first house can be as low as {formatCurrency(OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE)}. The first-house mortgage cannot exceed {formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}. In the upgrade path, the extra deposit plus extra mortgage must be between {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} and {formatCurrency(OPTIMIZER_MAX_UPGRADE_VALUE)}.
+                  The first house is fixed to {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}. Housing inputs searched here are explicit deposit and mortgage ranges. For upgrade paths, house 1 value is deposit plus mortgage and can start from {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}, or from {formatCurrency(OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE)} if the second move happens by {OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF}. One-home paths are later filtered by the stricter {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} first-house rule. The first-house mortgage cannot exceed {formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}. In the upgrade path, the extra deposit plus extra mortgage must be between {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} and {formatCurrency(OPTIMIZER_MAX_UPGRADE_VALUE)}.
                 </p>
                 <p className="helper-text">
                   If the first house total is below {formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the upgrade must happen by {OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. Otherwise the latest upgrade year is {OPTIMIZER_LATE_UPGRADE_YEAR_MAX}. House move costs include stamp duty, purchase legal fees, and first-home sale costs.
                 </p>
                 <p className="helper-text">
                   {`Results are only kept if liquid cash before the age-${END_AGE} mortgage payoff stays positive, `}
-                  end property value stays above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, there is no funding gap, cumulative shortfall, or capitalised interest, and total mortgage outstanding never goes above {formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)}. The optimizer then ranks by end net worth, defined as post-payoff liquid cash plus home equity.
+                  one-home plans buy at least {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} in {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}, two-home plans reach at least {formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)} on the second purchase value, there is no funding gap, cumulative shortfall, or capitalised interest, and total mortgage outstanding never goes above {formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)}. The optimizer then ranks by end net worth, defined as post-payoff liquid cash plus home equity.
                 </p>
                 <p className="helper-text">
                   Mode selected: {optimizerModeLabel}. {optimizerModeDescription}
@@ -3366,7 +3376,7 @@ const App = () => {
                 </p>
                 <p className="helper-text">
                   {`"Tested" means the number of housing combinations the optimizer actually ran for that assumption case. "Feasible" means the subset that passed every hard rule: positive liquid cash before the age-${END_AGE} mortgage payoff, `}
-                  property floor above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, no funding gap, no cumulative shortfall, no capitalised interest, and mortgage balances within the caps.
+                  one-home plans needing at least {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} on the first house, two-home plans needing at least {formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)} on the second purchase value, no funding gap, no cumulative shortfall, no capitalised interest, and mortgage balances within the caps.
                 </p>
               </div>
             )}
@@ -3449,7 +3459,7 @@ const App = () => {
                 {formatCurrency(optimizerFirstHouseTotalMin)} to {formatCurrency(optimizerFirstHouseTotalMax)}
               </div>
               <div className="summary-sub">
-                Deposit + mortgage, minimum {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)} or {formatCurrency(OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE)} if the upgrade is by {OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF}
+                Deposit + mortgage search range; one-home feasibility later needs {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)}
               </div>
             </div>
             <div className="summary-card summary-accent-green">
@@ -3480,10 +3490,12 @@ const App = () => {
               </div>
             )}
             <div className="summary-card summary-accent-cyan">
-              <div className="summary-label">End Property Floor</div>
-              <div className="summary-value">{formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}</div>
+              <div className="summary-label">House Value Rule</div>
+              <div className="summary-value">
+                {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} / {formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)}
+              </div>
               <div className="summary-sub">
-                Final property value in today&apos;s money after real property growth
+                One-home first house minimum / two-home second purchase minimum
               </div>
             </div>
             <div className="summary-card summary-accent-cyan">
@@ -3926,7 +3938,7 @@ const App = () => {
         <div className="chart-card">
           <h2 className="panel-title">Robustness Analysis</h2>
           <p className="helper-text">
-            This tab reads a precomputed weighted Monte Carlo report from the terminal-side run. It keeps the browser fast and focuses on robust starting regions rather than one exact point.
+            This tab answers a different question from the optimizer: not “what wins in one assumed future?”, but “what still looks sensible across many plausible futures?”
           </p>
 
           {robustnessError && !robustnessReport && (
@@ -3943,6 +3955,27 @@ const App = () => {
 
           {robustnessReport && (
             <>
+              <div className="robustness-explainer-grid">
+                <div className="robustness-explainer-card">
+                  <div className="optimizer-result-title">What this tab does</div>
+                  <div className="optimizer-result-sub">
+                    It takes the best housing strategies found so far, runs them through many weighted future paths, and looks for strategies that still hold up when returns, income, mortgage rates, and school costs move around.
+                  </div>
+                </div>
+                <div className="robustness-explainer-card">
+                  <div className="optimizer-result-title">How to use it</div>
+                  <div className="optimizer-result-sub">
+                    Start with the recommended region, then compare the top 10 rows. If a strategy looks right, click `Apply` to send those housing levers back to the planner tab and inspect the year-by-year path.
+                  </div>
+                </div>
+                <div className="robustness-explainer-card">
+                  <div className="optimizer-result-title">How to read it</div>
+                  <div className="optimizer-result-sub">
+                    Higher expected end net worth is better, lower regret CVaR is better, and higher feasibility means the plan survives more futures without breaking your cash or house-value rules.
+                  </div>
+                </div>
+              </div>
+
               <div className="summary-grid robustness-summary-grid">
                 <div className="summary-card summary-accent-cyan">
                   <div className="summary-label">Scenario Sample</div>
@@ -3982,6 +4015,9 @@ const App = () => {
                   ))}
                 </div>
                 <div className="optimizer-detail-list">
+                  <div>
+                    House-value rule in this run: one-home paths need a first house of at least {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} in {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}; two-home paths need the second house purchase value to reach at least {formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)}.
+                  </div>
                   <div>
                     Default weighting: medium cases {formatProbability(robustnessMeta?.defaultMediumWeight ?? 0)}
                     {' '}and private school probability {formatProbability(robustnessMeta?.defaultPrivateSchoolProbability ?? 0)}.

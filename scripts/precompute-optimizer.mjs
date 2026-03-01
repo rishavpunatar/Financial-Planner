@@ -38,7 +38,6 @@ export {
   OPTIMIZER_STARTING_INCOME_2,
   OPTIMIZER_MIN_FIRST_PROPERTY_VALUE,
   OPTIMIZER_MIN_UPGRADE_VALUE,
-  OPTIMIZER_MIN_END_PROPERTY_VALUE,
   OPTIMIZER_FIXED_FIRST_HOUSE_YEAR,
   OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD,
   OPTIMIZER_FAST_UPGRADE_YEAR_MAX,
@@ -303,9 +302,6 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
               }
 
               if (currentPropertyMode === 'one') {
-                if (firstHouseValue < OPTIMIZER_MIN_FIRST_PROPERTY_VALUE) {
-                  continue;
-                }
                 scenariosTested += 1;
                 const simulation = simulateFinancialPlan({
                   ...baseParams,

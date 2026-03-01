@@ -60,8 +60,10 @@ export {
   OPTIMIZER_ASSUMPTION_CASES,
   OPTIMIZER_STARTING_INCOME_1,
   OPTIMIZER_STARTING_INCOME_2,
-  OPTIMIZER_MIN_END_PROPERTY_VALUE,
+  OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE,
+  OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE,
   OPTIMIZER_MAX_TOTAL_MORTGAGE,
+  passesOptimizerHouseValueRule,
   calculateCareerIncome,
   calculateRealTermsTakeHomePay,
   compareOptimizerResults,
@@ -81,8 +83,10 @@ const {
   OPTIMIZER_MARKET_CASES,
   OPTIMIZER_STARTING_INCOME_1,
   OPTIMIZER_STARTING_INCOME_2,
-  OPTIMIZER_MIN_END_PROPERTY_VALUE,
+  OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE,
+  OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE,
   OPTIMIZER_MAX_TOTAL_MORTGAGE,
+  passesOptimizerHouseValueRule,
   calculateCareerIncome,
   calculateRealTermsTakeHomePay,
   compareOptimizerResults,
@@ -371,7 +375,7 @@ const getOverallFeasible = (evaluation) => (
   evaluation.cashBufferOk
   && evaluation.canBuyHouse2IfChosen
   && evaluation.privateSchoolAffordable
-  && evaluation.propertyValueEnd >= OPTIMIZER_MIN_END_PROPERTY_VALUE
+  && passesOptimizerHouseValueRule(evaluation)
   && evaluation.negativeAmortizationYears === 0
   && evaluation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE
 );
@@ -413,6 +417,9 @@ const evaluateStrategies = ({ strategies, scenarios }) => {
       });
 
       const evaluation = {
+        enableSecondHouse: strategy.enableSecondHouse,
+        firstHouseValue: strategy.firstHouseValue,
+        secondHousePurchasePrice: simulation.secondHousePurchasePrice ?? 0,
         endNetWorth: simulation.netWorthEnd,
         cashEnd: simulation.cashEnd,
         propertyValueEnd: simulation.finalPropertyValue,
@@ -956,6 +963,7 @@ const recommendation = {
   notes: [
     `The plateau contains ${plateauRegion.plateauCellCount} first-house starting cells that are within ${(HEATMAP_PLATEAU_THRESHOLD * 100).toFixed(0)}% of the best robust score and within ${(HEATMAP_FEASIBILITY_SLACK * 100).toFixed(0)} percentage points of the best feasibility rate.`,
     `${formatPercent(plateauRegion.twoHomeShare, 0)} of the plateau cells resolve to a two-home path rather than a one-home path.`,
+    `One-home strategies must buy at least ${formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} in ${standardOptimizerVariant.baseParams.firstHousePurchaseYear}. Two-home strategies must reach at least ${formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)} on the second house purchase value.`,
     `Robust ranking uses weighted feasibility first, then regret CVaR, then expected end net worth.`,
   ],
 };
@@ -981,6 +989,10 @@ const reportJson = {
       isaGrowth: defaultApplyMarketCase.isaGrowth,
       propertyGrowth: defaultApplyMarketCase.propertyGrowth,
       usePrivateSchool: false,
+    },
+    houseValueRules: {
+      oneHomeFirstHouseMin: OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE,
+      twoHomeSecondHouseMin: OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE,
     },
   },
   baseParams: standardOptimizerVariant.baseParams,
@@ -1017,9 +1029,13 @@ const reportJson = {
       feasibilityProbability: metric.weightedFeasibilityProbability,
       privateSchoolFeasibilityProbability: metric.weightedPrivateSchoolFeasibilityProbability,
       cashBufferProbability: metric.weightedCashBufferProbability,
-      secondHouseFundingProbability: metric.weightedSecondHouseFundingProbability,
-    },
-  })),
+        secondHouseFundingProbability: metric.weightedSecondHouseFundingProbability,
+        firstHouseValue: metric.strategy.firstHouseValue,
+        secondHousePurchaseValueRule: metric.strategy.enableSecondHouse
+          ? OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE
+          : OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE,
+      },
+    })),
   heatmap: {
     cells: heatmapCells,
     plateauRegion,
@@ -1050,6 +1066,7 @@ Generated: ${reportJson.generatedAt}
 - Default medium-case weight: ${formatPercent(reportJson.meta.defaultMediumWeight, 0)}
 - Default private-school probability: ${formatPercent(reportJson.meta.defaultPrivateSchoolProbability, 0)}
 - Starting incomes baked into the robustness run: ${formatCurrency(OPTIMIZER_STARTING_INCOME_1)} for person 1 and ${formatCurrency(OPTIMIZER_STARTING_INCOME_2)} for person 2
+- House-value rule: one-home first house at least ${formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} in ${standardOptimizerVariant.baseParams.firstHousePurchaseYear}; two-home second purchase at least ${formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)}
 
 ## Recommendation
 

@@ -4,29 +4,29 @@
   <text x="120" y="28" font-size="20" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">Robust Score Plateau by First Deposit vs First Mortgage</text>
   <text x="120" y="48" font-size="12" font-family="Arial, sans-serif" fill="#475569">Each cell shows the best strategy available for that starting deposit and mortgage pair. Bold outline marks the plateau region.</text>
   
-      <rect x="120" y="453.33333333333337" width="396" height="72.66666666666667" rx="8" fill="rgb(15, 118, 110)" stroke="#ffffff" stroke-width="1"/>
-      <text x="128" y="471.33333333333337" font-size="11" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">S67</text>
-      <text x="128" y="486.33333333333337" font-size="10" font-family="Arial, sans-serif" fill="#0f172a">27.4</text>
+      <rect x="120" y="453.33333333333337" width="396" height="72.66666666666667" rx="8" fill="rgb(63, 147, 143)" stroke="#ffffff" stroke-width="1"/>
+      <text x="128" y="471.33333333333337" font-size="11" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">S75</text>
+      <text x="128" y="486.33333333333337" font-size="10" font-family="Arial, sans-serif" fill="#0f172a">38.0</text>
     
-      <rect x="120" y="376.6666666666667" width="396" height="72.66666666666667" rx="8" fill="rgb(59, 144, 140)" stroke="#ffffff" stroke-width="1"/>
-      <text x="128" y="394.6666666666667" font-size="11" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">S12</text>
-      <text x="128" y="409.6666666666667" font-size="10" font-family="Arial, sans-serif" fill="#0f172a">23.9</text>
+      <rect x="120" y="376.6666666666667" width="396" height="72.66666666666667" rx="8" fill="rgb(15, 118, 110)" stroke="#0f172a" stroke-width="2.5"/>
+      <text x="128" y="394.6666666666667" font-size="11" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">S80</text>
+      <text x="128" y="409.6666666666667" font-size="10" font-family="Arial, sans-serif" fill="#0f172a">45.6</text>
     
-      <rect x="120" y="300" width="396" height="72.66666666666667" rx="8" fill="rgb(79, 156, 154)" stroke="#ffffff" stroke-width="1"/>
-      <text x="128" y="318" font-size="11" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">S17</text>
-      <text x="128" y="333" font-size="10" font-family="Arial, sans-serif" fill="#0f172a">22.2</text>
+      <rect x="120" y="300" width="396" height="72.66666666666667" rx="8" fill="rgb(84, 159, 157)" stroke="#ffffff" stroke-width="1"/>
+      <text x="128" y="318" font-size="11" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">S78</text>
+      <text x="128" y="333" font-size="10" font-family="Arial, sans-serif" fill="#0f172a">34.7</text>
     
-      <rect x="120" y="146.66666666666669" width="396" height="72.66666666666667" rx="8" fill="rgb(114, 177, 178)" stroke="#ffffff" stroke-width="1"/>
+      <rect x="120" y="146.66666666666669" width="396" height="72.66666666666667" rx="8" fill="rgb(92, 164, 163)" stroke="#ffffff" stroke-width="1"/>
       <text x="128" y="164.66666666666669" font-size="11" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">S34</text>
-      <text x="128" y="179.66666666666669" font-size="10" font-family="Arial, sans-serif" fill="#0f172a">19.4</text>
+      <text x="128" y="179.66666666666669" font-size="10" font-family="Arial, sans-serif" fill="#0f172a">33.5</text>
     
-      <rect x="120" y="70" width="396" height="72.66666666666667" rx="8" fill="rgb(156, 202, 207)" stroke="#ffffff" stroke-width="1"/>
+      <rect x="120" y="70" width="396" height="72.66666666666667" rx="8" fill="rgb(158, 203, 208)" stroke="#ffffff" stroke-width="1"/>
       <text x="128" y="88" font-size="11" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">S39</text>
-      <text x="128" y="103" font-size="10" font-family="Arial, sans-serif" fill="#0f172a">16.0</text>
+      <text x="128" y="103" font-size="10" font-family="Arial, sans-serif" fill="#0f172a">23.0</text>
     
       <rect x="520" y="223.33333333333334" width="396" height="72.66666666666667" rx="8" fill="rgb(224, 242, 254)" stroke="#ffffff" stroke-width="1"/>
-      <text x="528" y="241.33333333333334" font-size="11" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">S64</text>
-      <text x="528" y="256.33333333333337" font-size="10" font-family="Arial, sans-serif" fill="#0f172a">10.4</text>
+      <text x="528" y="241.33333333333334" font-size="11" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">S62</text>
+      <text x="528" y="256.33333333333337" font-size="10" font-family="Arial, sans-serif" fill="#0f172a">12.5</text>
     
   
     <text x="320" y="574" text-anchor="middle" font-size="10" font-family="Arial, sans-serif" fill="#334155">GBP 250k</text>

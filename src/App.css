@@ -816,6 +816,23 @@ body {
   max-width: none;
 }
 
+.robustness-explainer-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.robustness-explainer-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #dbe4ee;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .robustness-card {
   margin-top: 14px;
   background: #f8fafc;
@@ -905,6 +922,10 @@ body {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .robustness-explainer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .chart-top-row {
     flex-direction: column;
   }
@@ -964,6 +985,10 @@ body {
   }
 
   .robustness-chart-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .robustness-explainer-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
