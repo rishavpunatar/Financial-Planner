@@ -1,16 +1,19 @@
 # Robustness analysis
 
-Generated: 2026-03-01T22:28:54.402Z
+Generated: 2026-03-01T22:57:58.056Z
 
 ## Setup
 
 - Scenario method: Weighted stratified Monte Carlo
 - Scenario count: 54000
-- Candidate strategies: 173
+- Candidate strategies: 221
+- Scenario sampling: Scenarios are sampled as 3 income cases x 3 market cases x 2 private-school states x 3,000 random path draws per bucket.
+- Strategy sampling: Candidate strategies come from the optimizer-ranked housing plans plus a supplemental one-home grid across the full first deposit and first mortgage search range.
 - Default medium-case weight: 60%
 - Default private-school probability: 30%
 - Starting incomes baked into the robustness run: GBP 70k for person 1 and GBP 90k for person 2
 - House-value rule: one-home first house at least GBP 850k in 2027; two-home second purchase at least GBP 900k
+- Why not every scenario: The housing grid is finite, but the future-path generator is continuous year by year. Once annual income, ISA, property, and mortgage-rate shocks are random, there is no finite master list of all possible futures to enumerate.
 
 ## Recommendation
 
@@ -25,29 +28,33 @@ A robust starting region is first deposit GBP 250k to GBP 250k and first mortgag
 
 | Rank | Strategy | Path | Deposit 1 | Mortgage 1 | Expected Net Worth | Regret CVaR 10% | Feasibility | Private School Feasibility |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | S08 | Two-home | GBP 250k | GBP 250k | GBP 2.25m | GBP 486k | 64.3% | 3.3% |
-| 2 | S74 | Two-home | GBP 250k | GBP 250k | GBP 2.40m | GBP 395k | 53.3% | 0.3% |
-| 3 | S77 | Two-home | GBP 250k | GBP 250k | GBP 2.39m | GBP 402k | 53.9% | 0.2% |
-| 4 | S02 | Two-home | GBP 250k | GBP 250k | GBP 2.27m | GBP 460k | 61.0% | 4.3% |
-| 5 | S01 | Two-home | GBP 250k | GBP 250k | GBP 2.27m | GBP 457k | 61.0% | 3.3% |
-| 6 | S13 | Two-home | GBP 250k | GBP 250k | GBP 2.24m | GBP 503k | 63.9% | 4.5% |
-| 7 | S71 | Two-home | GBP 250k | GBP 250k | GBP 2.40m | GBP 389k | 51.9% | 0.3% |
-| 8 | S72 | Two-home | GBP 250k | GBP 250k | GBP 2.40m | GBP 408k | 52.2% | 0.2% |
-| 9 | S03 | Two-home | GBP 250k | GBP 250k | GBP 2.26m | GBP 474k | 60.4% | 4.5% |
-| 10 | S04 | Two-home | GBP 250k | GBP 250k | GBP 2.26m | GBP 478k | 59.4% | 5.6% |
+| 1 | S013 | Two-home | GBP 250k | GBP 250k | GBP 2.24m | GBP 1.04m | 63.9% | 4.5% |
+| 2 | S008 | Two-home | GBP 250k | GBP 250k | GBP 2.25m | GBP 1.06m | 64.3% | 3.3% |
+| 3 | S019 | Two-home | GBP 250k | GBP 250k | GBP 2.23m | GBP 1.01m | 62.5% | 5.7% |
+| 4 | S002 | Two-home | GBP 250k | GBP 250k | GBP 2.27m | GBP 1.04m | 61.0% | 4.3% |
+| 5 | S016 | Two-home | GBP 250k | GBP 300k | GBP 2.23m | GBP 1.08m | 62.8% | 2.9% |
+| 6 | S004 | Two-home | GBP 250k | GBP 250k | GBP 2.26m | GBP 1.01m | 59.4% | 5.6% |
+| 7 | S003 | Two-home | GBP 250k | GBP 250k | GBP 2.26m | GBP 1.04m | 60.4% | 4.5% |
+| 8 | S001 | Two-home | GBP 250k | GBP 250k | GBP 2.27m | GBP 1.06m | 61.0% | 3.3% |
+| 9 | S007 | Two-home | GBP 250k | GBP 250k | GBP 2.25m | GBP 1.02m | 57.3% | 5.9% |
+| 10 | S006 | Two-home | GBP 250k | GBP 300k | GBP 2.25m | GBP 1.06m | 58.5% | 3.9% |
 
 ## Pareto frontier
 
 | Strategy | Expected Net Worth | Regret CVaR 10% | Feasibility | Composite Score |
 | --- | --- | --- | --- | --- |
-| S104 | GBP 2.50m | GBP 142k | 8.8% | 30.1 |
-| S103 | GBP 2.51m | GBP 142k | 8.6% | 30.1 |
-| S169 | GBP 2.52m | GBP 144k | 5.3% | 28.4 |
-| S140 | GBP 2.52m | GBP 184k | 9.0% | 29.5 |
+| S180 | GBP 2.65m | GBP 398k | 0.0% | 22.4 |
+| S177 | GBP 2.73m | GBP 400k | 0.0% | 23.6 |
+| S179 | GBP 2.75m | GBP 402k | 0.0% | 23.8 |
+| S176 | GBP 2.82m | GBP 422k | 0.0% | 24.6 |
 
 ## Charts
 
-- [Scatter: expected end net worth vs regret CVaR](./scatter-net-worth-vs-regret.svg)
-- [CDF: top robust strategies](./cdf-top-robust-strategies.svg)
+- [Scatter: all strategies](./scatter-net-worth-vs-regret-overall.svg)
+- [Scatter: one-home only](./scatter-net-worth-vs-regret-one-home.svg)
+- [Scatter: two-home only](./scatter-net-worth-vs-regret-two-home.svg)
+- [CDF: all top strategies](./cdf-top-robust-strategies-overall.svg)
+- [CDF: one-home top strategies](./cdf-top-robust-strategies-one-home.svg)
+- [CDF: two-home top strategies](./cdf-top-robust-strategies-two-home.svg)
 - [Heatmap: first deposit vs first mortgage](./heatmap-deposit-vs-mortgage.svg)
 - [Sensitivity: medium weight vs private-school probability](./sensitivity-medium-weight-vs-private-school.svg)
