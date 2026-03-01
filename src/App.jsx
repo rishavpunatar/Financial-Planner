@@ -1488,6 +1488,15 @@ const App = () => {
   const [precomputedOptimizerError, setPrecomputedOptimizerError] = useState('');
   const [showAllFeasibleResults, setShowAllFeasibleResults] = useState(false);
   const [allFeasiblePage, setAllFeasiblePage] = useState(1);
+  const [showOptimizerIntro, setShowOptimizerIntro] = useState(
+    initialScenario?.showOptimizerIntro ?? false,
+  );
+  const [showOptimizerAssumptions, setShowOptimizerAssumptions] = useState(
+    initialScenario?.showOptimizerAssumptions ?? false,
+  );
+  const [expandedOptimizerIncomeId, setExpandedOptimizerIncomeId] = useState(
+    initialScenario?.expandedOptimizerIncomeId ?? OPTIMIZER_INCOME_CASES[0].id,
+  );
 
   const kid1GiftYear = child1BirthYear + 27;
   const kid2GiftYear = child2BirthYear + 27;
@@ -1664,6 +1673,9 @@ const App = () => {
     activeTab,
     optimizerPropertyMode,
     optimizerUsePrivateSchool,
+    showOptimizerIntro,
+    showOptimizerAssumptions,
+    expandedOptimizerIncomeId,
     optimizerFirstHouseDepositMin,
     optimizerFirstHouseDepositMax,
     optimizerFirstHouseMortgageMin,
@@ -1732,6 +1744,9 @@ const App = () => {
     activeTab,
     optimizerPropertyMode,
     optimizerUsePrivateSchool,
+    showOptimizerIntro,
+    showOptimizerAssumptions,
+    expandedOptimizerIncomeId,
     optimizerFirstHouseDepositMin,
     optimizerFirstHouseDepositMax,
     optimizerFirstHouseMortgageMin,
@@ -2103,12 +2118,44 @@ const App = () => {
   }, [displayOptimizerResults, selectedOptimizerResultKey]);
 
   const handleApplyOptimizerResult = (result) => {
+    const appliedBaseParams = selectedPrecomputedOptimizerPayload?.baseParams ?? null;
+
+    if (appliedBaseParams) {
+      setStartYear(appliedBaseParams.startYear);
+      setMortgageRate(appliedBaseParams.mortgageRate);
+      setRealGrowthCosts(appliedBaseParams.realGrowthCosts);
+      setChild1BirthYear(appliedBaseParams.child1BirthYear);
+      setChild2BirthYear(appliedBaseParams.child2BirthYear);
+      setBaseLivingCost(appliedBaseParams.baseLivingCost);
+      setChild1AnnualCost(appliedBaseParams.child1AnnualCost);
+      setChild2AnnualCost(appliedBaseParams.child2AnnualCost);
+      setEmergencyFundAnnual(appliedBaseParams.emergencyFundAnnual);
+      setPensionContributionRate(appliedBaseParams.pensionContributionRate);
+      setVisaCostPreSecondHouse(appliedBaseParams.visaCostPreSecondHouse);
+      setVisaCostAtSecondHouse(appliedBaseParams.visaCostAtSecondHouse);
+      setCarCost(appliedBaseParams.carCost);
+      setKid1GiftAmount(appliedBaseParams.kid1GiftAmount);
+      setKid2GiftAmount(appliedBaseParams.kid2GiftAmount);
+      setCombinedGiftAmount(appliedBaseParams.kid1GiftAmount + appliedBaseParams.kid2GiftAmount);
+      setIsaContributionCap(appliedBaseParams.isaContributionCap);
+      setRecessionHitPct(appliedBaseParams.recessionHitPct);
+      setCgtRatePct(appliedBaseParams.cgtRatePct);
+      setRecessionYear(appliedBaseParams.recessionYear);
+      setSecondRecessionYear(appliedBaseParams.secondRecessionYear);
+      setThirdRecessionYear(appliedBaseParams.thirdRecessionYear);
+      setEnableRedundancy(appliedBaseParams.enableRedundancy);
+      setRedundancyYear(appliedBaseParams.redundancyYear);
+      setSecondRedundancyYear(appliedBaseParams.secondRedundancyYear);
+      setUsePrivateSchool(appliedBaseParams.usePrivateSchool);
+    } else {
+      setUsePrivateSchool(optimizerUsePrivateSchool);
+    }
+
     setIncome1Start(OPTIMIZER_STARTING_INCOME_1);
     setIncome2Start(OPTIMIZER_STARTING_INCOME_2);
     setIncomeGrowth(result.assumptionCase.incomeGrowth);
     setIsaGrowth(result.assumptionCase.isaGrowth);
     setRealGrowthProperty(result.assumptionCase.propertyGrowth);
-    setUsePrivateSchool(optimizerUsePrivateSchool);
     setInitialCash(result.initialDeposit + result.optimizerIsaSeed);
     setInitialDeposit(result.initialDeposit);
     setInitialMortgage(result.initialMortgage);
@@ -3122,40 +3169,54 @@ const App = () => {
       ) : (
         <div className="chart-card">
           <h2 className="panel-title">Housing Optimizer</h2>
-          <p className="helper-text">
-            This tab keeps the planner assumptions fixed, resets starting income to £70k for person 1 and £90k for person 2, and searches housing choices against three real income-growth paths for corporate careers.
-          </p>
-          <p className="helper-text">
-            You can switch the optimizer between private school off and private school on. That changes only the optimizer assumption set until you apply a selected result back into the planner.
-          </p>
-          <p className="helper-text">
-            This optimizer now tests a 9-case matrix: income growth 2.0% / 3.5% / 5.0%, crossed with correlated market growth cases where ISA/property move together at 2.5%/0.5%, 4.0%/1.5%, and 5.5%/2.5% in real terms.
-          </p>
-          <p className="helper-text">
-            The first house is fixed to {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}. Housing inputs searched here are explicit deposit and mortgage ranges. House 1 value is deposit plus mortgage and must normally be at least {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}, but if the second move happens by {OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF} the first house can be as low as {formatCurrency(OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE)}. The first-house mortgage cannot exceed {formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}. In the upgrade path, the extra deposit plus extra mortgage must be between {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} and {formatCurrency(OPTIMIZER_MAX_UPGRADE_VALUE)}.
-          </p>
-          <p className="helper-text">
-            If the first house total is below {formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the upgrade must happen by {OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. Otherwise the latest upgrade year is {OPTIMIZER_LATE_UPGRADE_YEAR_MAX}. House move costs include stamp duty, purchase legal fees, and first-home sale costs.
-          </p>
-          <p className="helper-text">
-            {`Results are only kept if liquid cash before the age-${END_AGE} mortgage payoff stays positive, `}
-            end property value stays above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, there is no funding gap, cumulative shortfall, or capitalised interest, and total mortgage outstanding never goes above {formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)}. The optimizer then ranks by end net worth, defined as post-payoff liquid cash plus home equity.
-          </p>
-          <p className="helper-text">
-            Mode selected: {optimizerModeLabel}. {optimizerModeDescription}
-          </p>
-          <p className="helper-text">
-            Search type: {displayOptimizerSearchMeta?.isExhaustive ? 'full stepped search across every value in the active ranges' : 'sampled browser preview across the active ranges'}.
-            {displayOptimizerSearchMeta && !displayOptimizerSearchMeta.isExhaustive
-              ? ` The full stepped grid would require ${displayOptimizerSearchMeta.exactScenarioCount.toLocaleString()} assumption-path combinations, so the browser preview only samples the range to stay responsive.`
-              : displayOptimizerSearchMeta
-                ? ` The current browser run covers ${displayOptimizerSearchMeta.exactScenarioCount.toLocaleString()} assumption-path combinations exactly.`
-                : ''}
-          </p>
-          <p className="helper-text">
-            {`"Tested" means the number of housing combinations the optimizer actually ran for that assumption case. "Feasible" means the subset that passed every hard rule: positive liquid cash before the age-${END_AGE} mortgage payoff, `}
-            property floor above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, no funding gap, no cumulative shortfall, no capitalised interest, and mortgage balances within the caps.
-          </p>
+          <div className="advanced-box">
+            <button
+              type="button"
+              className="advanced-toggle"
+              onClick={() => setShowOptimizerIntro(prev => !prev)}
+            >
+              {showOptimizerIntro ? 'Hide optimizer intro' : 'Show optimizer intro'}
+            </button>
+
+            {showOptimizerIntro && (
+              <div className="optimizer-copy-block">
+                <p className="helper-text">
+                  This tab keeps the planner assumptions fixed, resets starting income to £70k for person 1 and £90k for person 2, and searches housing choices against three real income-growth paths for corporate careers.
+                </p>
+                <p className="helper-text">
+                  You can switch the optimizer between private school off and private school on. That changes only the optimizer assumption set until you apply a selected result back into the planner.
+                </p>
+                <p className="helper-text">
+                  This optimizer now tests a 9-case matrix: income growth 2.0% / 3.5% / 5.0%, crossed with correlated market growth cases where ISA/property move together at 2.5%/0.5%, 4.0%/1.5%, and 5.5%/2.5% in real terms.
+                </p>
+                <p className="helper-text">
+                  The first house is fixed to {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}. Housing inputs searched here are explicit deposit and mortgage ranges. House 1 value is deposit plus mortgage and must normally be at least {formatCurrency(OPTIMIZER_MIN_FIRST_PROPERTY_VALUE)}, but if the second move happens by {OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF} the first house can be as low as {formatCurrency(OPTIMIZER_EARLY_UPGRADE_MIN_FIRST_PROPERTY_VALUE)}. The first-house mortgage cannot exceed {formatCurrency(OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE)}. In the upgrade path, the extra deposit plus extra mortgage must be between {formatCurrency(OPTIMIZER_MIN_UPGRADE_VALUE)} and {formatCurrency(OPTIMIZER_MAX_UPGRADE_VALUE)}.
+                </p>
+                <p className="helper-text">
+                  If the first house total is below {formatCurrency(OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD)}, the upgrade must happen by {OPTIMIZER_FAST_UPGRADE_YEAR_MAX}. Otherwise the latest upgrade year is {OPTIMIZER_LATE_UPGRADE_YEAR_MAX}. House move costs include stamp duty, purchase legal fees, and first-home sale costs.
+                </p>
+                <p className="helper-text">
+                  {`Results are only kept if liquid cash before the age-${END_AGE} mortgage payoff stays positive, `}
+                  end property value stays above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, there is no funding gap, cumulative shortfall, or capitalised interest, and total mortgage outstanding never goes above {formatCurrency(OPTIMIZER_MAX_TOTAL_MORTGAGE)}. The optimizer then ranks by end net worth, defined as post-payoff liquid cash plus home equity.
+                </p>
+                <p className="helper-text">
+                  Mode selected: {optimizerModeLabel}. {optimizerModeDescription}
+                </p>
+                <p className="helper-text">
+                  Search type: {displayOptimizerSearchMeta?.isExhaustive ? 'full stepped search across every value in the active ranges' : 'sampled browser preview across the active ranges'}.
+                  {displayOptimizerSearchMeta && !displayOptimizerSearchMeta.isExhaustive
+                    ? ` The full stepped grid would require ${displayOptimizerSearchMeta.exactScenarioCount.toLocaleString()} assumption-path combinations, so the browser preview only samples the range to stay responsive.`
+                    : displayOptimizerSearchMeta
+                      ? ` The current browser run covers ${displayOptimizerSearchMeta.exactScenarioCount.toLocaleString()} assumption-path combinations exactly.`
+                      : ''}
+                </p>
+                <p className="helper-text">
+                  {`"Tested" means the number of housing combinations the optimizer actually ran for that assumption case. "Feasible" means the subset that passed every hard rule: positive liquid cash before the age-${END_AGE} mortgage payoff, `}
+                  property floor above {formatCurrency(OPTIMIZER_MIN_END_PROPERTY_VALUE)}, no funding gap, no cumulative shortfall, no capitalised interest, and mortgage balances within the caps.
+                </p>
+              </div>
+            )}
+          </div>
 
           <div className="optimizer-mode-row">
             <button
@@ -3199,14 +3260,25 @@ const App = () => {
           </div>
 
           <div className="assumptions-box">
-            <h3 className="assumptions-title">Frozen assumptions during search</h3>
-            <div className="assumptions-list">
-              {optimizerFrozenAssumptions.map((assumption) => (
-                <div key={assumption} className="assumption-item">
-                  {assumption}
+            <button
+              type="button"
+              className="advanced-toggle"
+              onClick={() => setShowOptimizerAssumptions(prev => !prev)}
+            >
+              {showOptimizerAssumptions ? 'Hide frozen assumptions' : 'Show frozen assumptions'}
+            </button>
+            {showOptimizerAssumptions && (
+              <>
+                <h3 className="assumptions-title">Frozen assumptions during search</h3>
+                <div className="assumptions-list">
+                  {optimizerFrozenAssumptions.map((assumption) => (
+                    <div key={assumption} className="assumption-item">
+                      {assumption}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
 
           <div className="optimizer-range-summary">
@@ -3577,15 +3649,27 @@ const App = () => {
 
           {displayOptimizerResultsByIncome.map(({ incomeCase, caseResults }) => (
             <div key={incomeCase.id} className="optimizer-income-section">
-              <div className="optimizer-income-header">
-                <div className="optimizer-result-title">{incomeCase.label}</div>
-                <div className="optimizer-result-sub">
-                  Real income growth {incomeCase.growth}% | {incomeCase.description}
+              <button
+                type="button"
+                className={`optimizer-income-header optimizer-income-toggle${expandedOptimizerIncomeId === incomeCase.id ? ' optimizer-income-toggle-open' : ''}`}
+                onClick={() => setExpandedOptimizerIncomeId(
+                  expandedOptimizerIncomeId === incomeCase.id ? '' : incomeCase.id,
+                )}
+              >
+                <div>
+                  <div className="optimizer-result-title">{incomeCase.label}</div>
+                  <div className="optimizer-result-sub">
+                    Real income growth {incomeCase.growth}% | {incomeCase.description}
+                  </div>
                 </div>
-              </div>
+                <div className="optimizer-income-chevron">
+                  {expandedOptimizerIncomeId === incomeCase.id ? 'Hide' : 'Show'}
+                </div>
+              </button>
 
-              <div className="optimizer-results-grid">
-                {caseResults.map(({
+              {expandedOptimizerIncomeId === incomeCase.id && (
+                <div className="optimizer-results-grid">
+                  {caseResults.map(({
                   assumptionCase,
                   scenariosTested,
                   feasibleCount,
@@ -3679,7 +3763,8 @@ const App = () => {
                     )}
                   </div>
                 ))}
-              </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

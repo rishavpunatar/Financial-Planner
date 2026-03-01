@@ -252,6 +252,31 @@ body {
   margin-bottom: 10px;
 }
 
+.optimizer-income-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #dbe4ee;
+  background: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+}
+
+.optimizer-income-toggle-open {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.optimizer-income-chevron {
+  font-size: 0.74rem;
+  color: #475569;
+  white-space: nowrap;
+}
+
 .optimizer-selected-card {
   margin-top: 14px;
   background: #eff6ff;
@@ -591,6 +616,17 @@ body {
   border-radius: 12px;
   background: #f8fafc;
   border: 1px solid #dbe4ee;
+}
+
+.optimizer-copy-block {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.optimizer-copy-block .helper-text {
+  margin: 0;
 }
 
 .assumptions-title {
