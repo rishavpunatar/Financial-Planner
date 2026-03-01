@@ -1214,6 +1214,25 @@ const getOptimizerResultKey = (result) => [
 ].join('|');
 
 const getOptimizerNetWorth = (result) => result.netWorthEnd;
+const hasRemainingMortgageAfterPayoff = (result) => (result?.finalMortgageBalance ?? 0) > 0.01;
+const getOptimizerHousingEndLabel = (result) => (
+  hasRemainingMortgageAfterPayoff(result)
+    ? 'Home Equity End'
+    : 'Property Value End'
+);
+const getOptimizerHousingEndValue = (result) => (
+  hasRemainingMortgageAfterPayoff(result)
+    ? result.equityEnd
+    : result.finalPropertyValue
+);
+const getOptimizerHousingEndSub = (result) => (
+  hasRemainingMortgageAfterPayoff(result)
+    ? 'Property value after any remaining mortgage'
+    : 'Mortgage fully cleared by the age-70 payoff'
+);
+const getOptimizerHousingEndInlineLabel = (result) => (
+  hasRemainingMortgageAfterPayoff(result) ? 'equity' : 'property'
+);
 
 const compareOptimizerResults = (left, right) => {
   const leftNetWorth = getOptimizerNetWorth(left);
@@ -3342,9 +3361,9 @@ const App = () => {
                   <div className="summary-sub">{`Liquid cash left after the age-${END_AGE} mortgage payoff`}</div>
                 </div>
                 <div className="summary-card summary-accent-green">
-                  <div className="summary-label">Home Equity End</div>
-                  <div className="summary-value">{formatCurrency(selectedOptimizerResult.equityEnd)}</div>
-                  <div className="summary-sub">Property value after any remaining mortgage</div>
+                  <div className="summary-label">{getOptimizerHousingEndLabel(selectedOptimizerResult)}</div>
+                  <div className="summary-value">{formatCurrency(getOptimizerHousingEndValue(selectedOptimizerResult))}</div>
+                  <div className="summary-sub">{getOptimizerHousingEndSub(selectedOptimizerResult)}</div>
                 </div>
                 <div className="summary-card summary-accent-blue">
                   <div className="summary-label">Lifetime Interest</div>
@@ -3364,7 +3383,11 @@ const App = () => {
                   <div>Housing path: one property only with no later move</div>
                 )}
                 <div>{`Age-${END_AGE} mortgage payoff from savings: `}{formatCurrency(selectedOptimizerResult.terminalMortgagePaydown)} | cash before payoff: {formatCurrency(selectedOptimizerResult.cashBeforeTerminalMortgagePayoff)}</div>
-                <div>End property value: {formatCurrency(selectedOptimizerResult.finalPropertyValue)} | remaining mortgage after payoff: {formatCurrency(selectedOptimizerResult.finalMortgageBalance)}</div>
+                {selectedOptimizerResult.finalMortgageBalance > 0.01 ? (
+                  <div>End property value: {formatCurrency(selectedOptimizerResult.finalPropertyValue)} | remaining mortgage after payoff: {formatCurrency(selectedOptimizerResult.finalMortgageBalance)}</div>
+                ) : (
+                  <div>End property value after payoff: {formatCurrency(selectedOptimizerResult.finalPropertyValue)} | mortgage fully cleared</div>
+                )}
                 <div>Lifetime interest paid: {formatCurrency(selectedOptimizerResult.lifetimeInterestPaid)}</div>
               </div>
 
@@ -3444,7 +3467,7 @@ const App = () => {
                         className={`optimizer-top-item${isSelected ? ' optimizer-choice-active' : ''}`}
                         onClick={() => setSelectedOptimizerResultKey(resultKey)}
                       >
-                        {overallIndex}. {result.assumptionCase.incomeCase.shortLabel} income / {result.assumptionCase.marketCase.shortLabel} market | {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | first {formatCurrency(result.firstHouseValue)} ({formatCurrency(result.initialDeposit)} deposit + {formatCurrency(result.initialMortgage)} mortgage){result.enableSecondHouse ? ` | upgrade ${result.secondHouseYear} +${formatCurrency(result.secondUpgradeValue)}` : ''} | net worth {formatCurrency(getOptimizerNetWorth(result))} | cash {formatCurrency(result.cashEnd)} | equity {formatCurrency(result.equityEnd)} | interest {formatCurrency(result.lifetimeInterestPaid)}
+                        {overallIndex}. {result.assumptionCase.incomeCase.shortLabel} income / {result.assumptionCase.marketCase.shortLabel} market | {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | first {formatCurrency(result.firstHouseValue)} ({formatCurrency(result.initialDeposit)} deposit + {formatCurrency(result.initialMortgage)} mortgage){result.enableSecondHouse ? ` | upgrade ${result.secondHouseYear} +${formatCurrency(result.secondUpgradeValue)}` : ''} | net worth {formatCurrency(getOptimizerNetWorth(result))} | cash {formatCurrency(result.cashEnd)} | {getOptimizerHousingEndInlineLabel(result)} {formatCurrency(getOptimizerHousingEndValue(result))} | interest {formatCurrency(result.lifetimeInterestPaid)}
                       </button>
                     );
                   })}
@@ -3506,9 +3529,9 @@ const App = () => {
                             <div className="summary-sub">{`Liquid cash left after the age-${END_AGE} mortgage payoff`}</div>
                           </div>
                           <div className="summary-card summary-accent-green">
-                            <div className="summary-label">Home Equity End</div>
-                            <div className="summary-value">{formatCurrency(bestResult.equityEnd)}</div>
-                            <div className="summary-sub">Property value after any remaining mortgage</div>
+                            <div className="summary-label">{getOptimizerHousingEndLabel(bestResult)}</div>
+                            <div className="summary-value">{formatCurrency(getOptimizerHousingEndValue(bestResult))}</div>
+                            <div className="summary-sub">{getOptimizerHousingEndSub(bestResult)}</div>
                           </div>
                           <div className="summary-card summary-accent-blue">
                             <div className="summary-label">Lifetime Interest</div>
@@ -3533,7 +3556,7 @@ const App = () => {
                                 className={`optimizer-top-item${isSelected ? ' optimizer-choice-active' : ''}`}
                                 onClick={() => setSelectedOptimizerResultKey(resultKey)}
                               >
-                                Preview {index + 1}: {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | net worth {formatCurrency(getOptimizerNetWorth(result))} | cash {formatCurrency(result.cashEnd)} | equity {formatCurrency(result.equityEnd)} | interest {formatCurrency(result.lifetimeInterestPaid)}
+                                Preview {index + 1}: {result.enableSecondHouse ? 'Upgrade path' : 'One-home path'} | net worth {formatCurrency(getOptimizerNetWorth(result))} | cash {formatCurrency(result.cashEnd)} | {getOptimizerHousingEndInlineLabel(result)} {formatCurrency(getOptimizerHousingEndValue(result))} | interest {formatCurrency(result.lifetimeInterestPaid)}
                               </button>
                             );
                           })}
