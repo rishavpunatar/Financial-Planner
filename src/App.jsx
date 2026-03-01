@@ -2619,11 +2619,17 @@ const App = () => {
     }
     return robustnessStrategyCatalog;
   }, [robustnessPathView, robustnessStrategyCatalog]);
+  const robustnessEligibleStrategies = useMemo(() => {
+    const eligible = robustnessFilteredStrategies.filter(
+      (strategy) => strategy.defaultApplyScenarioCheck?.overallPass !== false,
+    );
+    return eligible.length > 0 ? eligible : robustnessFilteredStrategies;
+  }, [robustnessFilteredStrategies]);
   const robustnessRankedStrategies = useMemo(
-    () => [...robustnessFilteredStrategies].sort((left, right) => (
+    () => [...robustnessEligibleStrategies].sort((left, right) => (
       compareRobustnessStrategiesForObjective(robustnessObjective, left, right)
     )),
-    [robustnessFilteredStrategies, robustnessObjective],
+    [robustnessEligibleStrategies, robustnessObjective],
   );
   const robustnessDisplayedStrategies = useMemo(
     () => robustnessRankedStrategies.slice(0, 15),
@@ -2634,6 +2640,7 @@ const App = () => {
       key: 'all',
       label: 'Best overall',
       strategy: [...robustnessStrategyCatalog]
+        .filter((strategy) => strategy.defaultApplyScenarioCheck?.overallPass !== false)
         .sort((left, right) => compareRobustnessStrategiesForObjective(robustnessObjective, left, right))[0]
         ?? null,
     },
@@ -2641,6 +2648,7 @@ const App = () => {
       key: 'oneHome',
       label: 'Best one-home',
       strategy: [...robustnessStrategyCatalog]
+        .filter((strategy) => strategy.defaultApplyScenarioCheck?.overallPass !== false)
         .filter((strategy) => strategy.pathType === 'One-home path')
         .sort((left, right) => compareRobustnessStrategiesForObjective(robustnessObjective, left, right))[0]
         ?? null,
@@ -2649,6 +2657,7 @@ const App = () => {
       key: 'twoHome',
       label: 'Best two-home',
       strategy: [...robustnessStrategyCatalog]
+        .filter((strategy) => strategy.defaultApplyScenarioCheck?.overallPass !== false)
         .filter((strategy) => strategy.pathType === 'Two-home path')
         .sort((left, right) => compareRobustnessStrategiesForObjective(robustnessObjective, left, right))[0]
         ?? null,
@@ -4508,6 +4517,9 @@ const App = () => {
                   <div>{selectedRobustnessObjectiveDefinition.description}</div>
                   <div>
                     The charts still show the same sampled strategy set. The objective buttons change which strategies are surfaced as the leaders and in the ranked table below.
+                  </div>
+                  <div>
+                    Displayed winners are also filtered to strategies that pass the default apply scenario hard rules, including the post-2032 {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} liquid-savings floor.
                   </div>
                 </div>
               </div>

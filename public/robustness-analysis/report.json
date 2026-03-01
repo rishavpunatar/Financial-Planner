@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-01T23:43:09.930Z",
+  "generatedAt": "2026-03-01T23:54:32.853Z",
   "meta": {
     "sampleMethod": "Weighted stratified Monte Carlo",
     "scenarioCount": 54000,
@@ -204,6 +204,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 105811.91251848193,
+        "cashEnd": 1583254.8036971826,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 378239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -237,6 +249,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 93144.17926087245,
+        "cashEnd": 1584891.5794813947,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 365555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -270,6 +294,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 850000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 180594.82067976,
+        "cashEnd": 1523271.611637362,
+        "finalPropertyValue": 813322.2644788832,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 550000,
+        "overallPass": true
       }
     },
     {
@@ -303,6 +339,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 95268.17941106498,
+        "cashEnd": 1692582.0815806817,
+        "finalPropertyValue": 781089.1904555995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 324182.7449953152,
+        "overallPass": true
       }
     },
     {
@@ -336,6 +384,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 95551.12987475544,
+        "cashEnd": 1567727.5632474152,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 378239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -369,6 +429,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 111678.39315848191,
+        "cashEnd": 1718805.2323436562,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 328239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -402,6 +474,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 99010.65990087243,
+        "cashEnd": 1720442.0081278682,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 315555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -435,6 +519,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 107935.91266867449,
+        "cashEnd": 1690945.3057964693,
+        "finalPropertyValue": 781089.1904555995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 336867.07983074686,
+        "overallPass": true
       }
     },
     {
@@ -468,6 +564,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 84952.17926087245,
+        "cashEnd": 1566786.6166325358,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 365555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -501,6 +609,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 102107.35985886704,
+        "cashEnd": 1647480.1000122642,
+        "finalPropertyValue": 786461.3694594799,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 350000,
+        "overallPass": true
       }
     }
   ],
@@ -570,6 +690,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 105811.91251848193,
+        "cashEnd": 1583254.8036971826,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 378239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -602,6 +734,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 93144.17926087245,
+        "cashEnd": 1584891.5794813947,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 365555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -634,6 +778,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 850000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 180594.82067976,
+        "cashEnd": 1523271.611637362,
+        "finalPropertyValue": 813322.2644788832,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 550000,
+        "overallPass": true
       }
     },
     {
@@ -666,6 +822,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 95268.17941106498,
+        "cashEnd": 1692582.0815806817,
+        "finalPropertyValue": 781089.1904555995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 324182.7449953152,
+        "overallPass": true
       }
     },
     {
@@ -698,6 +866,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 95551.12987475544,
+        "cashEnd": 1567727.5632474152,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 378239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -730,6 +910,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 111678.39315848191,
+        "cashEnd": 1718805.2323436562,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 328239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -762,6 +954,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 99010.65990087243,
+        "cashEnd": 1720442.0081278682,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 315555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -794,6 +998,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 107935.91266867449,
+        "cashEnd": 1690945.3057964693,
+        "finalPropertyValue": 781089.1904555995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 336867.07983074686,
+        "overallPass": true
       }
     },
     {
@@ -826,6 +1042,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 84952.17926087245,
+        "cashEnd": 1566786.6166325358,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 365555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -858,6 +1086,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 102107.35985886704,
+        "cashEnd": 1647480.1000122642,
+        "finalPropertyValue": 786461.3694594799,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 350000,
+        "overallPass": true
       }
     },
     {
@@ -890,6 +1130,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 105887.91266867449,
+        "cashEnd": 1675845.2342736353,
+        "finalPropertyValue": 781089.1904555995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 336867.07983074686,
+        "overallPass": true
       }
     },
     {
@@ -922,6 +1174,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 91487.62660125752,
+        "cashEnd": 1664633.257540634,
+        "finalPropertyValue": 786461.3694594799,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 350000,
+        "overallPass": true
       }
     },
     {
@@ -954,6 +1218,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 82524.44600326291,
+        "cashEnd": 1602343.0148215287,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 352871.1713779907,
+        "overallPass": true
       }
     },
     {
@@ -986,6 +1262,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 86342.92664326292,
+        "cashEnd": 1722078.7839120803,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 302871.1713779907,
+        "overallPass": true
       }
     },
     {
@@ -1018,6 +1306,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 82600.4461534554,
+        "cashEnd": 1694218.8573648937,
+        "finalPropertyValue": 781089.1904555995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 311498.4101598836,
+        "overallPass": true
       }
     },
     {
@@ -1050,6 +1350,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 109630.39315848192,
+        "cashEnd": 1704291.555541452,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 328239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -1082,6 +1394,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 82883.39661714598,
+        "cashEnd": 1579461.2035116244,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 365555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -1114,6 +1438,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 104155.35985886703,
+        "cashEnd": 1662996.481756421,
+        "finalPropertyValue": 786461.3694594799,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 350000,
+        "overallPass": true
       }
     },
     {
@@ -1146,6 +1482,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 850000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 243743.20269888654,
+        "cashEnd": 1500181.876039154,
+        "finalPropertyValue": 813322.2644788832,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "overallPass": true
       }
     },
     {
@@ -1178,6 +1526,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 93220.17941106498,
+        "cashEnd": 1678528.2951592552,
+        "finalPropertyValue": 781089.1904555995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 324182.7449953152,
+        "overallPass": true
       }
     },
     {
@@ -1210,6 +1570,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 89439.62660125754,
+        "cashEnd": 1649869.0044103488,
+        "finalPropertyValue": 786461.3694594799,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 350000,
+        "overallPass": true
       }
     },
     {
@@ -1242,6 +1614,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 93421.20987475544,
+        "cashEnd": 1581513.1492094854,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 378239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -1274,6 +1658,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 78819.89334364804,
+        "cashEnd": 1666270.033324846,
+        "finalPropertyValue": 786461.3694594799,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 350000,
+        "overallPass": true
       }
     },
     {
@@ -1306,6 +1702,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 95192.17926087244,
+        "cashEnd": 1600706.2390373172,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 365555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -1338,6 +1746,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 96962.65990087244,
+        "cashEnd": 1707284.3084834495,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 315555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -1370,6 +1790,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 74332.44600326291,
+        "cashEnd": 1569047.2359833415,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 352871.1713779907,
+        "overallPass": true
       }
     },
     {
@@ -1402,6 +1834,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 72284.44600326291,
+        "cashEnd": 1577731.3579811903,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 352871.1713779907,
+        "overallPass": true
       }
     },
     {
@@ -1434,6 +1878,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 78868.35292733852,
+        "cashEnd": 1544781.5913234693,
+        "finalPropertyValue": 823559.4975975356,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 374182.7449953152,
+        "overallPass": true
       }
     },
     {
@@ -1466,6 +1922,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 89406.16618494803,
+        "cashEnd": 1546413.0299716385,
+        "finalPropertyValue": 823559.4975975356,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 386867.07983074686,
+        "overallPass": true
       }
     },
     {
@@ -1498,6 +1966,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 80753.47661714598,
+        "cashEnd": 1592365.3436049283,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 365555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -1530,6 +2010,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 70215.66335953645,
+        "cashEnd": 1591568.2572118766,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 352871.1713779907,
+        "overallPass": true
       }
     },
     {
@@ -1562,6 +2054,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 107859.91251848191,
+        "cashEnd": 1599069.463253105,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 378239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -1594,6 +2098,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 68269.40231345542,
+        "cashEnd": 1543465.3791697987,
+        "finalPropertyValue": 823559.4975975356,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 361498.4101598836,
+        "overallPass": true
       }
     },
     {
@@ -1626,6 +2142,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 91177.13557106498,
+        "cashEnd": 1572209.8872571443,
+        "finalPropertyValue": 823559.4975975356,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 374182.7449953152,
+        "overallPass": true
       }
     },
     {
@@ -1658,6 +2186,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 68084.08563899486,
+        "cashEnd": 1729488.499486819,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 278239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -1690,6 +2230,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 80901.39442095249,
+        "cashEnd": 1584682.4838042087,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 378239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -1722,6 +2274,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 63645.63454271523,
+        "cashEnd": 1573808.6504732464,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 340186.8365425591,
+        "overallPass": true
       }
     },
     {
@@ -1754,6 +2318,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 76738.43292733852,
+        "cashEnd": 1558830.4007431327,
+        "finalPropertyValue": 823559.4975975356,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 374182.7449953152,
+        "overallPass": true
       }
     },
     {
@@ -1786,6 +2362,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 900000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 175930.08923650038,
+        "cashEnd": 1360855.4892531312,
+        "finalPropertyValue": 861164.7506246996,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "overallPass": true
       }
     },
     {
@@ -1818,6 +2406,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 66200.61966972894,
+        "cashEnd": 1556512.4878632345,
+        "finalPropertyValue": 823559.4975975356,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 361498.4101598836,
+        "overallPass": true
       }
     },
     {
@@ -1850,6 +2450,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 61597.63454271523,
+        "cashEnd": 1576817.2985478998,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 340186.8365425591,
+        "overallPass": true
       }
     },
     {
@@ -1882,6 +2494,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 76102.92664326294,
+        "cashEnd": 1729391.7448931776,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 302871.1713779907,
+        "overallPass": true
       }
     },
     {
@@ -1914,6 +2538,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 68085.74335953646,
+        "cashEnd": 1596941.8057805658,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 352871.1713779907,
+        "overallPass": true
       }
     },
     {
@@ -1946,6 +2582,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 74034.14399953646,
+        "cashEnd": 1729155.5753276064,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 302871.1713779907,
+        "overallPass": true
       }
     },
     {
@@ -1978,6 +2626,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 76674.57555180215,
+        "cashEnd": 1554385.3960395781,
+        "finalPropertyValue": 823559.4975975356,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 386867.07983074686,
+        "overallPass": true
       }
     },
     {
@@ -2010,6 +2670,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 103844.86882867449,
+        "cashEnd": 1570573.1114729322,
+        "finalPropertyValue": 823559.4975975356,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 386867.07983074686,
+        "overallPass": true
       }
     },
     {
@@ -2042,6 +2714,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 72722.52395753106,
+        "cashEnd": 1523728.2611077211,
+        "finalPropertyValue": 828931.6766014156,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 382809.9837772081,
+        "overallPass": true
       }
     },
     {
@@ -2074,6 +2758,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 65416.11518271523,
+        "cashEnd": 1731321.069067641,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 290186.8365425591,
+        "overallPass": true
       }
     },
     {
@@ -2106,6 +2802,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 87161.22660125751,
+        "cashEnd": 1543711.5150794059,
+        "finalPropertyValue": 828931.6766014156,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 382809.9837772081,
+        "overallPass": true
       }
     },
     {
@@ -2138,6 +2846,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 63368.11518271523,
+        "cashEnd": 1734002.074633668,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 290186.8365425591,
+        "overallPass": true
       }
     },
     {
@@ -2170,6 +2890,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 62270.39315848192,
+        "cashEnd": 1727649.686255558,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 278239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -2202,6 +2934,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 71904.22399953647,
+        "cashEnd": 1729922.4425854923,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 302871.1713779907,
+        "overallPass": true
       }
     },
     {
@@ -2234,6 +2978,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 60222.39315848192,
+        "cashEnd": 1741377.915798006,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 278239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -2266,6 +3022,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 64070.69966972894,
+        "cashEnd": 1566644.718015935,
+        "finalPropertyValue": 823559.4975975356,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 361498.4101598836,
+        "overallPass": true
       }
     },
     {
@@ -2298,6 +3066,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 61299.332538988754,
+        "cashEnd": 1734617.5063979877,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 290186.8365425591,
+        "overallPass": true
       }
     },
     {
@@ -2330,6 +3110,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 58174.39315848192,
+        "cashEnd": 1740977.788314092,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 278239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -2362,6 +3154,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 52858.44470436809,
+        "cashEnd": 1732468.0719008995,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 265555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -2394,6 +3198,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 99828.95985886702,
+        "cashEnd": 1542074.7392951937,
+        "finalPropertyValue": 828931.6766014156,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 395494.3186126398,
+        "overallPass": true
       }
     },
     {
@@ -2426,6 +3242,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 56105.61051475545,
+        "cashEnd": 1741910.6675281671,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 278239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -2458,6 +3286,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 54678.10326942615,
+        "cashEnd": 1728504.908414346,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 277502.50170712743,
+        "overallPass": true
       }
     },
     {
@@ -2490,6 +3330,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 52287.12987475545,
+        "cashEnd": 1609345.5857619299,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 328239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -2522,6 +3374,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 59169.412538988756,
+        "cashEnd": 1736073.4822751714,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 290186.8365425591,
+        "overallPass": true
       }
     },
     {
@@ -2554,6 +3418,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 52858.44470436809,
+        "cashEnd": 1725808.3383310058,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 265555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -2586,6 +3462,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 52630.10326942615,
+        "cashEnd": 1739014.7463067465,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 277502.50170712743,
+        "overallPass": true
       }
     },
     {
@@ -2618,6 +3506,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 58249.486015697,
+        "cashEnd": 1730453.5074396539,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 302871.1713779907,
+        "overallPass": true
       }
     },
     {
@@ -2650,6 +3550,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 55308.05917707926,
+        "cashEnd": 1601771.0296698108,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 340186.8365425591,
+        "overallPass": true
       }
     },
     {
@@ -2682,6 +3594,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 51650.659900872444,
+        "cashEnd": 1726696.347858319,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 265555.5062134222,
+        "overallPass": true
       }
     },
     {
@@ -2714,6 +3638,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 183140.64661510114,
+        "cashEnd": 2642842.7003801875,
+        "finalPropertyValue": 478424.8614581666,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -2746,6 +3682,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 190941.17036237946,
+        "cashEnd": 2631752.884021406,
+        "finalPropertyValue": 478424.8614581666,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -2778,6 +3726,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 49602.659900872444,
+        "cashEnd": 1739430.133699051,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 265555.5062134222,
+        "overallPass": false
       }
     },
     {
@@ -2810,6 +3770,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 50582.10326942615,
+        "cashEnd": 1738880.925225688,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 277502.50170712743,
+        "overallPass": true
       }
     },
     {
@@ -2842,6 +3814,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 265134.2451359758,
+        "cashEnd": 2615410.0939515363,
+        "finalPropertyValue": 478424.8614581666,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -2874,6 +3858,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 53877.80813747662,
+        "cashEnd": 1743689.3661304198,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 278239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -2906,6 +3902,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 850000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 36955.66712244022,
+        "cashEnd": 1565162.3556748684,
+        "finalPropertyValue": 813322.2644788832,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "overallPass": false
       }
     },
     {
@@ -2938,6 +3946,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 132178.79358432518,
+        "cashEnd": 2505123.5471208785,
+        "finalPropertyValue": 526267.3476039835,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 300000,
+        "overallPass": false
       }
     },
     {
@@ -2970,6 +3990,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 114180.76010706919,
+        "cashEnd": 2503516.313594166,
+        "finalPropertyValue": 526267.3476039835,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -3002,6 +4034,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 48811.62262942616,
+        "cashEnd": 1587193.782929495,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 327502.50170712743,
+        "overallPass": false
       }
     },
     {
@@ -3034,6 +4078,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 180346.32355416266,
+        "cashEnd": 2483841.4011368426,
+        "finalPropertyValue": 526267.3476039835,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 300000,
+        "overallPass": false
       }
     },
     {
@@ -3066,6 +4122,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 131271.55976470953,
+        "cashEnd": 2492426.497235385,
+        "finalPropertyValue": 526267.3476039835,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -3098,6 +4166,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 262397.1070351653,
+        "cashEnd": 2476657.022902349,
+        "finalPropertyValue": 526267.3476039835,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 300000,
+        "overallPass": false
       }
     },
     {
@@ -3130,6 +4210,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 205464.63453830592,
+        "cashEnd": 2476083.707165514,
+        "finalPropertyValue": 526267.3476039835,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -3162,6 +4254,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 49906.588271876615,
+        "cashEnd": 1608746.743350235,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 328239.8410488539,
+        "overallPass": false
       }
     },
     {
@@ -3194,6 +4298,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 46763.62262942616,
+        "cashEnd": 1600739.189749493,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 327502.50170712743,
+        "overallPass": false
       }
     },
     {
@@ -3226,6 +4342,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 164795.0441549877,
+        "cashEnd": 2339560.7753986446,
+        "finalPropertyValue": 574109.8337497995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 350000,
+        "overallPass": false
       }
     },
     {
@@ -3258,6 +4386,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 258150.75074294175,
+        "cashEnd": 2316939.2427250557,
+        "finalPropertyValue": 574109.8337497995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 350000,
+        "overallPass": false
       }
     },
     {
@@ -3290,6 +4430,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 93025.60854257763,
+        "cashEnd": 2353534.4777486958,
+        "finalPropertyValue": 574109.8337497995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 350000,
+        "overallPass": false
       }
     },
     {
@@ -3322,6 +4474,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 72509.18298665527,
+        "cashEnd": 2365797.1603348562,
+        "finalPropertyValue": 574109.8337497995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 300000,
+        "overallPass": false
       }
     },
     {
@@ -3354,6 +4518,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 202727.49643749534,
+        "cashEnd": 2337330.6361163277,
+        "finalPropertyValue": 574109.8337497995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 300000,
+        "overallPass": false
       }
     },
     {
@@ -3386,6 +4562,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 600000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 118289.92853258591,
+        "cashEnd": 2344515.0143508203,
+        "finalPropertyValue": 574109.8337497995,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 300000,
+        "overallPass": false
       }
     },
     {
@@ -3418,6 +4606,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 43736.17926087245,
+        "cashEnd": 1597697.963969746,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 315555.5062134222,
+        "overallPass": false
       }
     },
     {
@@ -3450,6 +4650,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 44694.839985699684,
+        "cashEnd": 1606982.4162706705,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 327502.50170712743,
+        "overallPass": false
       }
     },
     {
@@ -3482,6 +4694,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 43590.93443425345,
+        "cashEnd": 1726715.3317551515,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 264818.16687169584,
+        "overallPass": false
       }
     },
     {
@@ -3514,6 +4738,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 41688.17926087245,
+        "cashEnd": 1611992.5308698218,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 315555.5062134222,
+        "overallPass": false
       }
     },
     {
@@ -3546,6 +4782,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 40289.94457497245,
+        "cashEnd": 1600635.513261296,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 340186.8365425591,
+        "overallPass": false
       }
     },
     {
@@ -3578,6 +4826,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 110099.1126686745,
+        "cashEnd": 1807172.357463513,
+        "finalPropertyValue": 738618.8833136634,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 300000,
+        "overallPass": false
       }
     },
     {
@@ -3610,6 +4870,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 650000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 146459.83522314942,
+        "cashEnd": 2198463.2421434144,
+        "finalPropertyValue": 621952.3198956165,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 400000,
+        "overallPass": false
       }
     },
     {
@@ -3642,6 +4914,18 @@
         "secondHouseFundingProbability": 0.9999906666668368,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 37632.80376974127,
+        "cashEnd": 1736035.622997648,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 252871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -3674,6 +4958,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 97431.37941106499,
+        "cashEnd": 1809775.8926134373,
+        "finalPropertyValue": 738618.8833136634,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 300000,
+        "overallPass": false
       }
     },
     {
@@ -3706,6 +5002,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 650000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 255269.2411341308,
+        "cashEnd": 2157120.247329233,
+        "finalPropertyValue": 621952.3198956165,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 400000,
+        "overallPass": false
       }
     },
     {
@@ -3738,6 +5046,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 24318.775826443358,
+        "cashEnd": 1593998.7134541334,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 352871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -3770,6 +5090,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 650000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 64962.56110439958,
+        "cashEnd": 2206353.936959273,
+        "finalPropertyValue": 621952.3198956165,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 400000,
+        "overallPass": false
       }
     },
     {
@@ -3802,6 +5134,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 84763.64615345541,
+        "cashEnd": 1812986.4696304454,
+        "finalPropertyValue": 738618.8833136634,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 300000,
+        "overallPass": false
       }
     },
     {
@@ -3834,6 +5178,18 @@
         "secondHouseFundingProbability": 0.9999906666668368,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 37632.80376974127,
+        "cashEnd": 1731498.9942562885,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 252871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -3866,6 +5222,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 650000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 195333.8412708607,
+        "cashEnd": 2177612.8559390353,
+        "finalPropertyValue": 621952.3198956165,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 350000,
+        "overallPass": false
       }
     },
     {
@@ -3898,6 +5266,18 @@
         "secondHouseFundingProbability": 0.9999906666668368,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 37632.80376974127,
+        "cashEnd": 1737495.6891867795,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 252871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -3930,6 +5310,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 39619.396617145976,
+        "cashEnd": 1614075.6371075453,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 315555.5062134222,
+        "overallPass": false
       }
     },
     {
@@ -3962,6 +5354,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 33893.54742490932,
+        "cashEnd": 1607928.6743914746,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 328239.8410488539,
+        "overallPass": false
       }
     },
     {
@@ -3994,6 +5398,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 650000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 30969.213521000907,
+        "cashEnd": 2214208.090962674,
+        "finalPropertyValue": 621952.3198956165,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 350000,
+        "overallPass": false
       }
     },
     {
@@ -4026,6 +5442,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 650000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 97674.84729965025,
+        "cashEnd": 2200234.3886126224,
+        "finalPropertyValue": 621952.3198956165,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 350000,
+        "overallPass": false
       }
     },
     {
@@ -4058,6 +5486,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 108051.1126686745,
+        "cashEnd": 1797694.3939021782,
+        "finalPropertyValue": 738618.8833136634,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 300000,
+        "overallPass": false
       }
     },
     {
@@ -4090,6 +5530,18 @@
         "secondHouseFundingProbability": 0.9999906666668368,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 36934.92664326293,
+        "cashEnd": 1751433.7187854163,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 252871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -4122,6 +5574,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 42010.60678725863,
+        "cashEnd": 1606682.4760317015,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 327502.50170712743,
+        "overallPass": false
       }
     },
     {
@@ -4154,6 +5618,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 95383.37941106499,
+        "cashEnd": 1802085.2438831846,
+        "finalPropertyValue": 738618.8833136634,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 300000,
+        "overallPass": false
       }
     },
     {
@@ -4186,6 +5662,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 103533.5125184819,
+        "cashEnd": 1478147.720791877,
+        "finalPropertyValue": 860657.625735591,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 428239.8410488539,
+        "overallPass": true
       }
     },
     {
@@ -4218,6 +5706,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 550000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 72028.8346929077,
+        "cashEnd": 1816619.3948335117,
+        "finalPropertyValue": 738618.8833136634,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 300000,
+        "overallPass": false
       }
     },
     {
@@ -4250,6 +5750,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 113841.5931584819,
+        "cashEnd": 1835559.371651237,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 278239.8410488539,
+        "overallPass": false
       }
     },
     {
@@ -4282,6 +5794,18 @@
         "secondHouseFundingProbability": 0.9999906666668368,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 34886.92664326293,
+        "cashEnd": 1751070.4948788423,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 252871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -4314,6 +5838,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 101173.85990087243,
+        "cashEnd": 1838538.944065316,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 265555.5062134222,
+        "overallPass": false
       }
     },
     {
@@ -4346,6 +5882,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 25491.896496184014,
+        "cashEnd": 1752700.0769892547,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 265555.5062134222,
+        "overallPass": false
       }
     },
     {
@@ -4378,6 +5926,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 88506.12664326292,
+        "cashEnd": 1842106.4951620651,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 252871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -4410,6 +5970,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 70577.5931584819,
+        "cashEnd": 1852753.4095853916,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -4442,6 +6014,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 111793.5931584819,
+        "cashEnd": 1827199.9266200867,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 278239.8410488539,
+        "overallPass": false
       }
     },
     {
@@ -4474,6 +6058,18 @@
         "secondHouseFundingProbability": 0.9999906666668368,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 32838.92664326293,
+        "cashEnd": 1752308.520411641,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 252871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -4506,6 +6102,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 75771.31518271522,
+        "cashEnd": 1846089.077857934,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -4538,6 +6146,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 99125.85990087243,
+        "cashEnd": 1831879.2104954228,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 265555.5062134222,
+        "overallPass": false
       }
     },
     {
@@ -4570,6 +6190,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 68529.5931584819,
+        "cashEnd": 1852660.485733547,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -4602,6 +6234,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 86458.12664326292,
+        "cashEnd": 1837569.8664207056,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 252871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -4634,6 +6278,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 66481.5931584819,
+        "cashEnd": 1865870.8160839067,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -4666,6 +6322,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 109745.5931584819,
+        "cashEnd": 1824930.5796669186,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 278239.8410488539,
+        "overallPass": false
       }
     },
     {
@@ -4698,6 +6366,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 97077.85990087243,
+        "cashEnd": 1832767.2200227364,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 265555.5062134222,
+        "overallPass": false
       }
     },
     {
@@ -4730,6 +6410,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 73723.31518271522,
+        "cashEnd": 1843291.471049563,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -4762,6 +6454,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 64433.593158481905,
+        "cashEnd": 1868909.1165922387,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -4794,6 +6498,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 55458.44470436809,
+        "cashEnd": 1857839.7018994777,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -4826,6 +6542,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 61558.73721464899,
+        "cashEnd": 1850504.9322267503,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -4858,6 +6586,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 55458.44470436809,
+        "cashEnd": 1863533.1673397515,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -4890,6 +6630,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 53813.85990087244,
+        "cashEnd": 1874067.2240302998,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -4922,6 +6674,18 @@
         "secondHouseFundingProbability": 0.9999906666668368,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 30770.14399953646,
+        "cashEnd": 1754717.7222942414,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 252871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -4954,6 +6718,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 700000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 110318.79463629708,
+        "cashEnd": 2048203.4537310153,
+        "finalPropertyValue": 669794.8060414329,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 450000,
+        "overallPass": false
       }
     },
     {
@@ -4986,6 +6762,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 12888.265692303601,
+        "cashEnd": 1600387.6470299475,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 340186.8365425591,
+        "overallPass": false
       }
     },
     {
@@ -5018,6 +6806,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 4203.392731978737,
+        "cashEnd": 1750543.159702681,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 278239.8410488539,
+        "overallPass": false
       }
     },
     {
@@ -5050,6 +6850,18 @@
         "secondHouseFundingProbability": 0.9999906666668368,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 40232.80376974127,
+        "cashEnd": 1875420.0867578592,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -5082,6 +6894,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 700000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 252387.73152531977,
+        "cashEnd": 2003214.760503984,
+        "finalPropertyValue": 669794.8060414329,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 450000,
+        "overallPass": false
       }
     },
     {
@@ -5114,6 +6938,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 46190.93443425345,
+        "cashEnd": 1855571.513752182,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -5146,6 +6982,18 @@
         "secondHouseFundingProbability": 0.9999906666668368,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 40232.80376974127,
+        "cashEnd": 1863386.3856384421,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -5178,6 +7026,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 700000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 39539.02105859596,
+        "cashEnd": 2062459.6844860076,
+        "finalPropertyValue": 669794.8060414329,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 450000,
+        "overallPass": false
       }
     },
     {
@@ -5210,6 +7070,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 90.83933153844329,
+        "cashEnd": 1594337.8532364299,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 352871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -5242,6 +7114,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 7842.6161535097135,
+        "cashEnd": 1755337.5968703434,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 265555.5062134222,
+        "overallPass": false
       }
     },
     {
@@ -5274,6 +7158,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 700000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 690.5910923306327,
+        "cashEnd": 2067603.2621421353,
+        "finalPropertyValue": 669794.8060414329,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 400000,
+        "overallPass": false
       }
     },
     {
@@ -5306,6 +7202,18 @@
         "secondHouseFundingProbability": 0.9999906666668368,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 27528.92296164887,
+        "cashEnd": 1757656.14348031,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 252871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -5338,6 +7246,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 25625.060711024245,
+        "cashEnd": 1606317.8896145525,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 327502.50170712743,
+        "overallPass": false
       }
     },
     {
@@ -5370,6 +7290,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 700000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 73862.63030441641,
+        "cashEnd": 2059136.855357393,
+        "finalPropertyValue": 669794.8060414329,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 400000,
+        "overallPass": false
       }
     },
     {
@@ -5402,6 +7334,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 6737.883817242886,
+        "cashEnd": 1608003.5308851956,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 328239.8410488539,
+        "overallPass": false
       }
     },
     {
@@ -5434,6 +7378,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 700000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 192452.33166204952,
+        "cashEnd": 2017793.8605432117,
+        "finalPropertyValue": 669794.8060414329,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 400000,
+        "overallPass": false
       }
     },
     {
@@ -5466,6 +7422,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1778925.4521297168,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 265555.5062134222,
+        "overallPass": false
       }
     },
     {
@@ -5498,6 +7466,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 17049.940119101386,
+        "cashEnd": 1751380.4960960546,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 264818.16687169584,
+        "overallPass": false
       }
     },
     {
@@ -5530,6 +7510,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1758181.7110620025,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 277502.50170712743,
+        "overallPass": false
       }
     },
     {
@@ -5562,6 +7554,18 @@
         "secondHouseFundingProbability": 0.9996600000001702,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 24926.539995044517,
+        "cashEnd": 1873271.7686794335,
+        "finalPropertyValue": 733246.7043097828,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 250000,
+        "overallPass": false
       }
     },
     {
@@ -5594,6 +7598,18 @@
         "secondHouseFundingProbability": 0.9999906666668368,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 11622.562356060838,
+        "cashEnd": 1760210.3561205945,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 252871.1713779907,
+        "overallPass": false
       }
     },
     {
@@ -5626,6 +7642,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1616980.8880200032,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 340186.8365425591,
+        "overallPass": false
       }
     },
     {
@@ -5658,6 +7686,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 336.1846278993035,
+        "cashEnd": 1754373.1126324115,
+        "finalPropertyValue": 775717.0114517189,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 264818.16687169584,
+        "overallPass": false
       }
     },
     {
@@ -5690,6 +7730,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1637052.010982146,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 328239.8410488539,
+        "overallPass": false
       }
     },
     {
@@ -5722,6 +7774,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 750000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1980385.5965177661,
+        "finalPropertyValue": 717637.2921872496,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 450000,
+        "overallPass": false
       }
     },
     {
@@ -5754,6 +7818,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 500000,
         "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1610861.2847565054,
+        "finalPropertyValue": 818187.3185936548,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 327502.50170712743,
+        "overallPass": false
       }
     },
     {
@@ -5786,6 +7862,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 750000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1922798.1916427065,
+        "finalPropertyValue": 717637.2921872496,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 500000,
+        "overallPass": false
       }
     },
     {
@@ -5818,6 +7906,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 750000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 84094.4413545279,
+        "cashEnd": 1882729.3672377465,
+        "finalPropertyValue": 717637.2921872496,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 500000,
+        "overallPass": false
       }
     },
     {
@@ -5850,6 +7950,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 750000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 47501.88516421582,
+        "cashEnd": 1908877.0669449929,
+        "finalPropertyValue": 717637.2921872496,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 450000,
+        "overallPass": false
       }
     },
     {
@@ -5882,6 +7994,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 750000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 249506.22191650866,
+        "cashEnd": 1839447.4493891788,
+        "finalPropertyValue": 717637.2921872496,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 500000,
+        "overallPass": false
       }
     },
     {
@@ -5914,6 +8038,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 850000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1607730.8186884746,
+        "finalPropertyValue": 813322.2644788832,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 550000,
+        "overallPass": false
       }
     },
     {
@@ -5946,6 +8082,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 800000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1922798.1916427065,
+        "finalPropertyValue": 765479.7783330667,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 500000,
+        "overallPass": false
       }
     },
     {
@@ -5978,6 +8126,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 750000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 189570.82205323852,
+        "cashEnd": 1863888.3737179618,
+        "finalPropertyValue": 717637.2921872496,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 450000,
+        "overallPass": false
       }
     },
     {
@@ -6010,6 +8170,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 850000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1860729.6091187135,
+        "finalPropertyValue": 813322.2644788832,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 550000,
+        "overallPass": false
       }
     },
     {
@@ -6042,6 +8214,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 850000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1759233.520066593,
+        "finalPropertyValue": 813322.2644788832,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "overallPass": false
       }
     },
     {
@@ -6074,6 +8258,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 800000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1860729.6091187135,
+        "finalPropertyValue": 765479.7783330667,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 550000,
+        "overallPass": false
       }
     },
     {
@@ -6106,6 +8302,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 900000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1759233.520066593,
+        "finalPropertyValue": 861164.7506246996,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "overallPass": false
       }
     },
     {
@@ -6138,6 +8346,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 800000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 57627.48928896576,
+        "cashEnd": 1721359.113539752,
+        "finalPropertyValue": 765479.7783330667,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 550000,
+        "overallPass": false
       }
     },
     {
@@ -6170,6 +8390,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 800000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 18764.855503563278,
+        "cashEnd": 1743402.980451724,
+        "finalPropertyValue": 765479.7783330667,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 500000,
+        "overallPass": false
       }
     },
     {
@@ -6202,6 +8434,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 800000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 183749.6565750114,
+        "cashEnd": 1700121.0626031568,
+        "finalPropertyValue": 765479.7783330667,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 500000,
+        "overallPass": false
       }
     },
     {
@@ -6234,6 +8478,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 800000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 246624.71230769763,
+        "cashEnd": 1662597.998423384,
+        "finalPropertyValue": 765479.7783330667,
+        "post2032SavingsFloorOk": true,
+        "cashBufferOk": true,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": false,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 550000,
+        "overallPass": false
       }
     },
     {
@@ -6266,6 +8522,18 @@
         "secondHouseFundingProbability": 1.00000000000017,
         "firstHouseValue": 900000,
         "secondHousePurchaseValueRule": 850000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 1497791.6403163509,
+        "finalPropertyValue": 861164.7506246996,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "overallPass": false
       }
     }
   ],

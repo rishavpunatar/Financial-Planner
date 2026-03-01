@@ -522,6 +522,59 @@ const getOverallFeasible = (evaluation) => (
   && evaluation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE
 );
 
+const buildDefaultApplyScenarioCheck = (strategy) => {
+  const simulation = simulateFinancialPlan({
+    ...standardOptimizerVariant.baseParams,
+    startAge: baseStartAge,
+    maxYear,
+    returnFullData: false,
+    enableSecondHouse: strategy.enableSecondHouse,
+    firstHousePurchaseYear: strategy.buyYear1,
+    secondHouseYear: strategy.enableSecondHouse ? strategy.buyYear2 : null,
+    initialDeposit: strategy.deposit1,
+    initialMortgage: strategy.mortgage1,
+    secondHouseDeposit: strategy.enableSecondHouse ? strategy.deposit2 : 0,
+    secondMortgage: strategy.enableSecondHouse ? strategy.mortgage2 : 0,
+    isaSeed: strategy.optimizerIsaSeed,
+    salaryMortgageEarly: strategy.salaryMortgageEarly,
+    salaryMortgageLater: strategy.enableSecondHouse
+      ? strategy.salaryMortgageLater
+      : strategy.salaryMortgageEarly,
+    income1Start: OPTIMIZER_STARTING_INCOME_1,
+    income2Start: OPTIMIZER_STARTING_INCOME_2,
+    incomeGrowth: defaultApplyIncomeCase.growth,
+    isaGrowth: defaultApplyMarketCase.isaGrowth,
+    realGrowthProperty: defaultApplyMarketCase.propertyGrowth,
+    usePrivateSchool: false,
+    calculateTakeHomePayFn: calculateRealTermsTakeHomePay,
+  });
+
+  const evaluation = {
+    enableSecondHouse: strategy.enableSecondHouse,
+    firstHouseValue: strategy.firstHouseValue,
+    secondHousePurchasePrice: simulation.secondHousePurchasePrice ?? 0,
+    cashBufferOk: simulation.cashBufferOk,
+    canBuyHouse2IfChosen: simulation.canBuyHouse2IfChosen,
+    privateSchoolAffordable: simulation.privateSchoolAffordable,
+    post2032SavingsFloorOk: simulation.post2032SavingsFloorOk,
+    negativeAmortizationYears: simulation.negativeAmortizationYears,
+    peakMortgageBalance: simulation.peakMortgageBalance,
+  };
+
+  return {
+    minLiquidBufferPost2032: simulation.minLiquidBufferPost2032,
+    cashEnd: simulation.cashEnd,
+    finalPropertyValue: simulation.finalPropertyValue,
+    post2032SavingsFloorOk: simulation.post2032SavingsFloorOk,
+    cashBufferOk: simulation.cashBufferOk,
+    canBuyHouse2IfChosen: simulation.canBuyHouse2IfChosen,
+    houseValueRuleOk: passesOptimizerHouseValueRule(evaluation),
+    negativeAmortizationYears: simulation.negativeAmortizationYears,
+    peakMortgageBalance: simulation.peakMortgageBalance,
+    overallPass: getOverallFeasible(evaluation),
+  };
+};
+
 const simulateStrategyScenario = (strategy, scenario) => {
   const simulation = simulateFinancialPlan({
     ...standardOptimizerVariant.baseParams,
@@ -1314,6 +1367,7 @@ const serializeStrategyMetric = (metric, rank = null) => ({
       ? OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE
       : OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE,
   },
+  defaultApplyScenarioCheck: buildDefaultApplyScenarioCheck(metric.strategy),
 });
 
 const { strategies, grid: strategyGrid } = collectStrategyCandidates();
