@@ -263,6 +263,7 @@ const simulateFinancialPlan = (params) => {
     child1AnnualCost,
     child2AnnualCost,
     emergencyFundAnnual,
+    pensionContributionRate,
     visaCostPreSecondHouse,
     visaCostAtSecondHouse,
     carCost,
@@ -340,7 +341,8 @@ const simulateFinancialPlan = (params) => {
     const takeHome1 = calculateTakeHomePayFn(income1, yearsFromStart);
     const takeHome2 = calculateTakeHomePayFn(income2, yearsFromStart);
     const netBeforePension = takeHome1 + takeHome2;
-    const netIncome = netBeforePension;
+    const pensionContribution = grossIncome * (pensionContributionRate / 100);
+    const netIncome = Math.max(0, netBeforePension - pensionContribution);
     const totalPostTax = netIncome;
 
     const isRecessionYearFlag = [recessionYear, secondRecessionYear, thirdRecessionYear]
@@ -600,6 +602,9 @@ const App = () => {
   const [child1AnnualCost, setChild1AnnualCost] = useState(initialScenario?.child1AnnualCost ?? 30000);
   const [child2AnnualCost, setChild2AnnualCost] = useState(initialScenario?.child2AnnualCost ?? 20000);
   const [emergencyFundAnnual, setEmergencyFundAnnual] = useState(initialScenario?.emergencyFundAnnual ?? 5000);
+  const [pensionContributionRate, setPensionContributionRate] = useState(
+    initialScenario?.pensionContributionRate ?? 5,
+  );
 
   const [visaCostPreSecondHouse, setVisaCostPreSecondHouse] = useState(initialScenario?.visaCostPreSecondHouse ?? 2200);
   const [visaCostAtSecondHouse, setVisaCostAtSecondHouse] = useState(initialScenario?.visaCostAtSecondHouse ?? 2500);
@@ -617,7 +622,7 @@ const App = () => {
 
   const [initialCash, setInitialCash] = useState(initialScenario?.initialCash ?? 300000);
 
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(initialScenario?.showAdvanced ?? false);
 
   const [lockHouseLink, setLockHouseLink] = useState(initialScenario?.lockHouseLink ?? false);
   const [depositPool, setDepositPool] = useState(
@@ -636,7 +641,7 @@ const App = () => {
   const [showPieChart, setShowPieChart] = useState(initialScenario?.showPieChart ?? false);
   const [showAssumptions, setShowAssumptions] = useState(initialScenario?.showAssumptions ?? false);
 
-  const [presetName, setPresetName] = useState('');
+  const [presetName, setPresetName] = useState(initialScenario?.presetName ?? '');
   const [savedPresets, setSavedPresets] = useState(loadSavedPresets);
   const [selectedPreset, setSelectedPreset] = useState('');
   const [linkCopyStatus, setLinkCopyStatus] = useState('');
@@ -801,6 +806,7 @@ const App = () => {
     child1AnnualCost,
     child2AnnualCost,
     emergencyFundAnnual,
+    pensionContributionRate,
     visaCostPreSecondHouse,
     visaCostAtSecondHouse,
     carCost,
@@ -821,6 +827,8 @@ const App = () => {
     startYear,
     firstHousePurchaseYear,
     enableSecondHouse,
+    presetName,
+    showAdvanced,
   }), [
     mortgageRate,
     salaryMortgageEarly,
@@ -846,6 +854,7 @@ const App = () => {
     child1AnnualCost,
     child2AnnualCost,
     emergencyFundAnnual,
+    pensionContributionRate,
     visaCostPreSecondHouse,
     visaCostAtSecondHouse,
     carCost,
@@ -866,6 +875,8 @@ const App = () => {
     startYear,
     firstHousePurchaseYear,
     enableSecondHouse,
+    presetName,
+    showAdvanced,
   ]);
 
   const handleSavePreset = () => {
@@ -928,6 +939,7 @@ const App = () => {
     setChild1AnnualCost(p.child1AnnualCost);
     setChild2AnnualCost(p.child2AnnualCost);
     setEmergencyFundAnnual(p.emergencyFundAnnual);
+    setPensionContributionRate(p.pensionContributionRate ?? 5);
 
     setVisaCostPreSecondHouse(p.visaCostPreSecondHouse);
     setVisaCostAtSecondHouse(p.visaCostAtSecondHouse);
@@ -955,10 +967,12 @@ const App = () => {
     setShowMortgageBalanceLine(p.showMortgageBalanceLine ?? true);
     setShowPieChart(p.showPieChart ?? false);
     setShowAssumptions(p.showAssumptions ?? false);
+    setShowAdvanced(p.showAdvanced ?? false);
 
     setStartYear(nextStartYear);
     setFirstHousePurchaseYear(nextFirstHouseYear);
     setEnableSecondHouse(p.enableSecondHouse ?? true);
+    setPresetName(p.presetName ?? p.name ?? '');
   };
 
   const handleLoadPreset = () => {
@@ -1055,6 +1069,7 @@ const App = () => {
       child1AnnualCost,
       child2AnnualCost,
       emergencyFundAnnual,
+      pensionContributionRate,
       visaCostPreSecondHouse,
       visaCostAtSecondHouse,
       carCost,
@@ -1098,6 +1113,7 @@ const App = () => {
       child1AnnualCost,
       child2AnnualCost,
       emergencyFundAnnual,
+      pensionContributionRate,
       visaCostPreSecondHouse,
       visaCostAtSecondHouse,
       carCost,
@@ -1208,7 +1224,7 @@ const App = () => {
     `Tax and NI thresholds are assumed to shrink by ${TAX_THRESHOLD_DRAG_PCT}% a year in real terms as a smoothed fiscal-drag assumption.`,
     `Income rises by a fixed real cash increment until age ${CAREER_GROWTH_PEAK_AGE}, then that increment linearly tapers to zero by age ${CAREER_GROWTH_END_AGE}.`,
     `The model stops at age ${END_AGE}.`,
-    'Pensions are excluded from the model entirely.',
+    `Pension contributions are deducted from take-home cash at ${pensionContributionRate}%, but no pension pot or future pension income is modelled.`,
     `Partner 2 income falls by 50% in each birth year (${child1BirthYear} and ${child2BirthYear}).`,
     'Child costs start one year after birth and continue until age 21.',
     usePrivateSchool
@@ -1333,7 +1349,7 @@ const App = () => {
         </div>
 
         <p className="helper-text">
-          Save preset stores a named version only in this browser. The page URL updates with your current settings, so bookmarking or copying the current link will reopen the same scenario later, including on another device.
+          Save preset stores a named version only in this browser. The page URL stores the live scenario itself, so bookmarking or copying the current link will reopen the same setup on any browser, even without loading a local preset.
         </p>
 
         <div className="advanced-box">
@@ -1402,6 +1418,15 @@ const App = () => {
                 step={1000}
                 onChange={setEmergencyFundAnnual}
                 formatValue={formatCurrency}
+              />
+              <RangeSlider
+                label="Pension Contributions (% gross, no pot tracked)"
+                value={pensionContributionRate}
+                min={0}
+                max={20}
+                step={0.5}
+                onChange={setPensionContributionRate}
+                formatValue={v => `${v}%`}
               />
 
               <RangeSlider
