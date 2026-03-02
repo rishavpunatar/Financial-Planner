@@ -82,6 +82,11 @@ const MARKET_MORTGAGE_RATE_SHIFT = {
   'market-high': -0.2,
 };
 
+const REDUNDANCY_SINGLE_EVENT_PROBABILITY = 0.22;
+const REDUNDANCY_DOUBLE_EVENT_PROBABILITY = 0.08;
+const COST_GROWTH_VOLATILITY = 0.45;
+const RECESSION_YEAR_SHIFT_RANGE = 2;
+
 const core = await loadPlannerCore({ moduleName: 'robustness-core' });
 
 const {
@@ -394,12 +399,43 @@ const buildScenarioPaths = ({ incomeCase, marketCase, privateSchool, drawIndex }
   const propertyGrowthPath = {};
   const income1Path = {};
   const income2Path = {};
+  const baseParams = standardOptimizerVariant.baseParams;
 
   let globalShock = 0;
   let isaShock = 0;
   let propertyShock = 0;
   let mortgageShock = 0;
   let incomeShock = 0;
+  const costGrowthShift =
+    (marketCase.id === 'market-low' ? 0.25 : 0)
+    + (marketCase.id === 'market-high' ? -0.15 : 0)
+    + (randomNormal(rng) * COST_GROWTH_VOLATILITY);
+  const realGrowthCosts = clamp(baseParams.realGrowthCosts + costGrowthShift, 0.5, 4.0);
+  const redundancyRoll = rng();
+  const hasDoubleRedundancy = redundancyRoll < REDUNDANCY_DOUBLE_EVENT_PROBABILITY;
+  const hasSingleRedundancy = !hasDoubleRedundancy
+    && redundancyRoll < (REDUNDANCY_DOUBLE_EVENT_PROBABILITY + REDUNDANCY_SINGLE_EVENT_PROBABILITY);
+  const redundancyYearBase = startYear + 2 + Math.floor((maxYear - startYear - 10) * rng());
+  const redundancyYear = clamp(redundancyYearBase, startYear + 1, maxYear - 6);
+  const secondRedundancyYear = hasDoubleRedundancy
+    ? clamp(redundancyYear + 4 + Math.floor(rng() * 8), redundancyYear + 3, maxYear - 2)
+    : null;
+  const shiftRecessionYear = (baseYear, minYear, maxYearLimit) => clamp(
+    baseYear + Math.round((rng() * RECESSION_YEAR_SHIFT_RANGE * 2) - RECESSION_YEAR_SHIFT_RANGE),
+    minYear,
+    maxYearLimit,
+  );
+  const recessionYear = shiftRecessionYear(baseParams.recessionYear, startYear + 1, maxYear - 8);
+  const secondRecessionYear = shiftRecessionYear(
+    baseParams.secondRecessionYear,
+    recessionYear + 2,
+    maxYear - 4,
+  );
+  const thirdRecessionYear = shiftRecessionYear(
+    baseParams.thirdRecessionYear,
+    secondRecessionYear + 2,
+    maxYear,
+  );
   const discreteIncomeShockYear = rng() < 0.14
     ? Math.floor(startYear + 2 + (maxYear - startYear - 10) * rng())
     : null;
@@ -453,6 +489,13 @@ const buildScenarioPaths = ({ incomeCase, marketCase, privateSchool, drawIndex }
     propertyGrowthPath,
     income1Path,
     income2Path,
+    realGrowthCosts,
+    enableRedundancy: hasSingleRedundancy || hasDoubleRedundancy,
+    redundancyYear,
+    secondRedundancyYear,
+    recessionYear,
+    secondRecessionYear,
+    thirdRecessionYear,
   };
 };
 
@@ -502,7 +545,7 @@ const getOverallFeasible = (evaluation) => (
   && evaluation.peakMortgageBalance <= OPTIMIZER_MAX_TOTAL_MORTGAGE
 );
 
-const buildDefaultApplyScenarioCheck = (strategy) => {
+const buildDefaultApplyScenarioCheck = (strategy, usePrivateSchool = false) => {
   const simulation = simulateFinancialPlan({
     ...standardOptimizerVariant.baseParams,
     startAge: baseStartAge,
@@ -525,7 +568,7 @@ const buildDefaultApplyScenarioCheck = (strategy) => {
     incomeGrowth: defaultApplyIncomeCase.growth,
     isaGrowth: defaultApplyMarketCase.isaGrowth,
     realGrowthProperty: defaultApplyMarketCase.propertyGrowth,
-    usePrivateSchool: false,
+    usePrivateSchool,
     calculateTakeHomePayFn: calculateRealTermsTakeHomePay,
   });
 
@@ -535,7 +578,7 @@ const buildDefaultApplyScenarioCheck = (strategy) => {
     secondHousePurchasePrice: simulation.secondHousePurchasePrice ?? 0,
     cashBufferOk: simulation.cashBufferOk,
     canBuyHouse2IfChosen: simulation.canBuyHouse2IfChosen,
-    privateSchoolAffordable: simulation.privateSchoolAffordable,
+    privateSchoolAffordable: usePrivateSchool ? simulation.privateSchoolAffordable : true,
     post2032SavingsFloorOk: simulation.post2032SavingsFloorOk,
     negativeAmortizationYears: simulation.negativeAmortizationYears,
     peakMortgageBalance: simulation.peakMortgageBalance,
@@ -551,6 +594,7 @@ const buildDefaultApplyScenarioCheck = (strategy) => {
     houseValueRuleOk: passesOptimizerHouseValueRule(evaluation),
     negativeAmortizationYears: simulation.negativeAmortizationYears,
     peakMortgageBalance: simulation.peakMortgageBalance,
+    usePrivateSchool,
     overallPass: getOverallFeasible(evaluation),
   };
 };
@@ -578,8 +622,15 @@ const simulateStrategyScenario = (strategy, scenario) => {
     incomeGrowth: scenario.incomeCase.growth,
     isaGrowth: scenario.marketCase.isaGrowth,
     realGrowthProperty: scenario.marketCase.propertyGrowth,
+    realGrowthCosts: scenario.realGrowthCosts,
     mortgageRate: standardOptimizerVariant.baseParams.mortgageRate,
     usePrivateSchool: scenario.privateSchool,
+    enableRedundancy: scenario.enableRedundancy,
+    redundancyYear: scenario.redundancyYear,
+    secondRedundancyYear: scenario.secondRedundancyYear,
+    recessionYear: scenario.recessionYear,
+    secondRecessionYear: scenario.secondRecessionYear,
+    thirdRecessionYear: scenario.thirdRecessionYear,
     mortgageRatePath: scenario.mortgageRatePath,
     isaGrowthPath: scenario.isaGrowthPath,
     propertyGrowthPath: scenario.propertyGrowthPath,
@@ -1444,7 +1495,8 @@ const serializeStrategyMetric = (metric, rank = null) => ({
       ? OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE
       : OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE,
   },
-  defaultApplyScenarioCheck: buildDefaultApplyScenarioCheck(metric.strategy),
+  defaultApplyScenarioCheck: buildDefaultApplyScenarioCheck(metric.strategy, false),
+  privateSchoolApplyScenarioCheck: buildDefaultApplyScenarioCheck(metric.strategy, true),
 });
 
 const { strategies: explicitStrategies, grid: strategyGrid } = buildExplicitStrategyGrid();
@@ -1654,8 +1706,8 @@ const reportJson = {
       marketCases: OPTIMIZER_MARKET_CASES.length,
       privateSchoolStates: 2,
       drawsPerBucket: SCENARIO_DRAWS_PER_BUCKET,
-      description: `Scenarios are sampled as 3 income cases x 3 market cases x 2 private-school states x ${SCENARIO_DRAWS_PER_BUCKET.toLocaleString()} random path draws per bucket.`,
-      whyNotEveryScenario: 'The housing grid is finite, but the future-path generator is continuous year by year. Once annual income, ISA, property, and mortgage-rate shocks are random, there is no finite master list of all possible futures to enumerate.',
+      description: `Scenarios are sampled as 3 income cases x 3 market cases x 2 private-school states x ${SCENARIO_DRAWS_PER_BUCKET.toLocaleString()} random path draws per bucket. Inside each bucket, the run also perturbs yearly mortgage, ISA, property, and income paths, plus living-cost growth, recession timing, and one-or-two redundancy shocks for person 1.`,
+      whyNotEveryScenario: 'The housing grid is finite, but the future-path generator is continuous year by year. Once annual income, ISA, property, mortgage-rate, cost-growth, redundancy, and recession-timing shocks are random, there is no finite master list of all possible futures to enumerate.',
     },
     strategySampling: {
       description: `Housing strategies now start from an explicit coarse grid across the allowed deposit, mortgage, year, and salary-payment ranges. A smaller screening run ranks that full grid first, then the strongest and most representative candidates are carried into the full ${scenarios.length.toLocaleString()}-scenario robustness run.`,
@@ -1674,7 +1726,7 @@ const reportJson = {
       pathCounts: strategyPathCounts,
       originCounts: strategyOriginCounts,
     },
-    weightingExplanation: 'Each simulated future belongs to one income bucket, one market bucket, and one private-school state. Those buckets do not all count equally: medium cases carry more weight by design, and private-school futures only get the chosen private-school probability. A weighted share is therefore the share of total probability mass, not just the raw share of rows.',
+    weightingExplanation: 'Each simulated future belongs to one income bucket, one market bucket, and one private-school state. Those buckets do not all count equally: medium cases carry more weight by design, and private-school futures only get the chosen private-school probability. Within each bucket, the run also varies path shocks, cost growth, redundancy, and recession timing. A weighted share is therefore the share of total probability mass, not just the raw share of rows.',
   },
   baseParams: standardOptimizerVariant.baseParams,
   recommendation,
