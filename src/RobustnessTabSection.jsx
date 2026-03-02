@@ -43,6 +43,16 @@ const RobustnessTabSection = ({
     OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE,
     POST_2032_MIN_TOTAL_SAVINGS,
   } = constants;
+  const plateauCellCount = robustnessRecommendation?.plateauRegion?.plateauCellCount ?? 0;
+  const hasPlateauRegion = plateauCellCount > 1;
+  const firstDepositPoints = robustnessMeta?.strategySampling?.firstDepositPoints ?? [];
+  const firstMortgagePoints = robustnessMeta?.strategySampling?.firstMortgagePoints ?? [];
+  const oneHomePctPoints = robustnessMeta?.strategySampling?.oneHomeEarlyPctPoints ?? [];
+  const twoHomeEarlyPctPoints = robustnessMeta?.strategySampling?.twoHomeEarlyPctPoints ?? [];
+  const laterPctPoints = robustnessMeta?.strategySampling?.laterPctPoints ?? [];
+  const secondDepositPoints = robustnessMeta?.strategySampling?.secondDepositPoints ?? [];
+  const secondMortgagePoints = robustnessMeta?.strategySampling?.secondMortgagePoints ?? [];
+  const secondYearPoints = robustnessMeta?.strategySampling?.secondYearPoints ?? [];
 
   return (
     <div className="chart-card">
@@ -67,39 +77,41 @@ const RobustnessTabSection = ({
         <>
           <div className="summary-grid robustness-summary-grid">
             <div className="summary-card summary-accent-cyan">
-              <div className="summary-label">Scenario Sample</div>
+              <div className="summary-label">Future Paths Tested</div>
               <div className="summary-value">{robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'}</div>
               <div className="summary-sub">
-                {robustnessMeta?.sampleMethod ?? 'Weighted stratified Monte Carlo'}
+                Different plausible year-by-year futures for income, markets, rates, costs, and shocks
               </div>
             </div>
             <div className="summary-card summary-accent-blue">
-              <div className="summary-label">Candidate Strategies</div>
+              <div className="summary-label">Setups Fully Tested</div>
               <div className="summary-value">{robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'}</div>
               <div className="summary-sub">
-                Housing decision vectors tested across the scenario sample
+                Shortlisted starting setups carried into the full stress test
               </div>
             </div>
             <div className="summary-card summary-accent-green">
-              <div className="summary-label">Robust Region</div>
+              <div className="summary-label">{hasPlateauRegion ? 'Robust Region' : 'Robust Setup'}</div>
               <div className="summary-value">
                 {robustnessRecommendation
                   ? `${formatCurrency(robustnessRecommendation.plateauRegion.deposit1Min)} / ${formatCurrency(robustnessRecommendation.plateauRegion.mortgage1Min)}`
                   : '—'}
               </div>
               <div className="summary-sub">
-                First deposit / first mortgage at the strongest plateau start
+                {hasPlateauRegion
+                  ? 'First deposit / first mortgage at the start of the strongest stable neighborhood'
+                  : 'First deposit / first mortgage for the single strongest stable starting point'}
               </div>
             </div>
             <div className="summary-card summary-accent-cyan">
-              <div className="summary-label">Path Mix</div>
+              <div className="summary-label">One vs Two Home</div>
               <div className="summary-value">
                 {(robustnessMeta?.strategySampling?.pathCounts?.oneHome ?? 0).toLocaleString()}
                 {' / '}
                 {(robustnessMeta?.strategySampling?.pathCounts?.twoHome ?? 0).toLocaleString()}
               </div>
               <div className="summary-sub">
-                One-home / two-home strategies in the robustness catalog
+                One-home / two-home setups inside the fully tested shortlist
               </div>
             </div>
           </div>
@@ -111,10 +123,19 @@ const RobustnessTabSection = ({
             </div>
             <div className="optimizer-detail-list">
               <div>
-                What was sampled: {robustnessMeta?.scenarioSampling?.bucketCount?.toLocaleString() ?? '—'} top-level buckets from income x market x private-school states, with {robustnessMeta?.scenarioSampling?.drawsPerBucket?.toLocaleString() ?? '—'} random yearly paths inside each bucket, for a total of {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'} weighted futures.
+                How the futures were built: the model starts with {robustnessMeta?.scenarioSampling?.bucketCount?.toLocaleString() ?? '—'} top-level buckets from income level x market level x private-school on/off. Inside each bucket it then generates {robustnessMeta?.scenarioSampling?.drawsPerBucket?.toLocaleString() ?? '—'} different year-by-year life paths by varying income, ISA returns, property growth, mortgage rates, cost growth, tax drag, recessions, and redundancy timing. That creates {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'} futures in total.
               </div>
               <div>
-                What strategies were tested: {robustnessMeta?.strategySampling?.explicitGridCount?.toLocaleString() ?? '—'} housing combinations were screened first, then {robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'} carried-forward strategies were fully tested, for {robustnessMeta?.strategySampling?.fullEvaluationCount?.toLocaleString() ?? '—'} full simulations.
+                How the {robustnessMeta?.strategySampling?.explicitGridCount?.toLocaleString() ?? '—'} starting setups were created: the model crossed the allowed first deposit points ({firstDepositPoints.map((value) => formatCurrency(value)).join(', ') || '—'}), first mortgage points ({firstMortgagePoints.map((value) => formatCurrency(value)).join(', ') || '—'}), one-home mortgage % points ({oneHomePctPoints.join('%, ')}{oneHomePctPoints.length ? '%' : ''}), and for two-home paths also the second-home year ({secondYearPoints.join(', ') || '—'}), extra deposit ({secondDepositPoints.map((value) => formatCurrency(value)).join(', ') || '—'}), extra mortgage ({secondMortgagePoints.map((value) => formatCurrency(value)).join(', ') || '—'}), early mortgage % ({twoHomeEarlyPctPoints.join('%, ')}{twoHomeEarlyPctPoints.length ? '%' : ''}), and later mortgage % ({laterPctPoints.join('%, ')}{laterPctPoints.length ? '%' : ''}). It then dropped combinations that broke your hard rules, such as house-value floors, timing rules, and mortgage caps. The survivors are the {robustnessMeta?.strategySampling?.explicitGridCount?.toLocaleString() ?? '—'} screened setups.
+              </div>
+              <div>
+                Why only {robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'} were fully tested: after the first pass, the model kept the strongest and most different-looking setups rather than carrying every similar setup into the expensive full run. That smaller set is what was stress-tested in depth.
+              </div>
+              <div>
+                What one simulation means: one chosen housing setup is run through one full future path year by year until age 70. The model records end net worth, cash left, property value, mortgage balance, interest paid, and whether any hard rule broke on the way.
+              </div>
+              <div>
+                What the {robustnessMeta?.strategySampling?.fullEvaluationCount?.toLocaleString() ?? '—'} full simulations were used for: every one of the {robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'} carried-forward setups was run through all {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'} futures. Those results were then summarised into the table and charts: expected net worth, success rate, private-school success, regret, and the shortlist/frontier.
               </div>
               <div>
                 What weighted percentages mean: a weighted success rate is probability-weighted, not raw-row-count weighted. Medium futures count more than low/high by design, and private-school futures only count by the private-school probability. So a 60% success rate means the plan survives 60% of the modelled probability mass.
@@ -138,9 +159,11 @@ const RobustnessTabSection = ({
           </div>
 
           <div className="robustness-card">
-            <div className="optimizer-result-title">Recommended robust starting region</div>
+            <div className="optimizer-result-title">{hasPlateauRegion ? 'Recommended robust starting region' : 'Recommended robust starting setup'}</div>
             <div className="optimizer-result-sub">
-              {robustnessRecommendation?.headline}
+              {hasPlateauRegion
+                ? robustnessRecommendation?.headline
+                : `This run does not show a broad plateau. It shows one strongest starting point: first deposit ${formatCurrency(robustnessRecommendation?.plateauRegion?.deposit1Min ?? 0)} and first mortgage ${formatCurrency(robustnessRecommendation?.plateauRegion?.mortgage1Min ?? 0)}.`}
             </div>
             <div className="optimizer-detail-list">
               {robustnessRecommendation?.notes?.map((note) => (
