@@ -1106,7 +1106,7 @@ const App = () => {
   const robustnessMeta = robustnessReport?.meta ?? null;
   const robustnessCharts = robustnessReport?.charts ?? null;
   const robustnessCoverageNotes = robustnessMeta?.coverageNotes ?? null;
-  const robustnessObjectiveDefinitions = robustnessMeta?.objectiveDefinitions ?? [
+  const robustnessObjectiveDefinitionsRaw = robustnessMeta?.objectiveDefinitions ?? [
     {
       id: 'robust',
       label: 'Balanced robustness',
@@ -1133,6 +1133,33 @@ const App = () => {
       description: 'Highest weighted success rate inside the private-school futures.',
     },
   ];
+  const robustnessObjectiveDefinitions = robustnessObjectiveDefinitionsRaw.map((objective) => {
+    if (objective.id === 'robust') {
+      return {
+        ...objective,
+        label: 'Best all-round',
+        description: 'Best all-round option after combining success rate, downside protection, and expected end wealth.',
+      };
+    }
+
+    if (objective.id === 'bigFirstHouse') {
+      return {
+        ...objective,
+        label: `Closest to ${formatCurrency(OPTIMIZER_BIG_FIRST_HOUSE_TARGET)} first house`,
+        description: `Closest to a ${formatCurrency(OPTIMIZER_BIG_FIRST_HOUSE_TARGET)} first house. This does not mean “largest possible first house.”`,
+      };
+    }
+
+    if (objective.id === 'privateSchoolSuccess') {
+      return {
+        ...objective,
+        label: 'Private school resilience',
+        description: 'Best success rate inside the private-school futures, with overall resilience used as tie-breakers.',
+      };
+    }
+
+    return objective;
+  });
   const strategyApplyModeDefinitions = STRATEGY_APPLY_MODE_DEFINITIONS;
   const selectedStrategyApplyModeDefinition = strategyApplyModeDefinitions.find(
     (mode) => mode.id === strategyApplyMode,
@@ -1222,17 +1249,17 @@ const App = () => {
 
     if (robustnessObjective === 'cashEnd') {
       return [
-        `This strategy ranks first on weighted cash left at the end: ${formatCurrency(strategy.metrics.expectedCashEnd)} after the age-${END_AGE} mortgage payoff.`,
-        `It still keeps a weighted success rate of ${formatProbability(strategy.metrics.feasibilityProbability)}, so the extra cash is not coming from a fragile low-success path.`,
-        `Its downside regret remains ${formatCurrency(strategy.metrics.regretCvar10)} in the worst 10% regret tail.`,
+        `It leaves the most cash at the end: ${formatCurrency(strategy.metrics.expectedCashEnd)} after the age-${END_AGE} mortgage payoff.`,
+        `It still works in ${formatProbability(strategy.metrics.feasibilityProbability)} of weighted futures.`,
+        `Its regret CVaR 10% is ${formatCurrency(strategy.metrics.regretCvar10)}, so the extra cash is not coming only from a fragile tail outcome.`,
       ];
     }
 
     if (robustnessObjective === 'propertyValue') {
       return [
-        `This strategy ranks first on weighted end property value: ${formatCurrency(strategy.metrics.expectedFinalPropertyValue)}.`,
-        `It still keeps a weighted success rate of ${formatProbability(strategy.metrics.feasibilityProbability)} while getting there.`,
-        `Its expected end net worth is ${formatCurrency(strategy.metrics.expectedEndNetWorth)}, so the higher property value is not being achieved by ignoring overall wealth entirely.`,
+        `It finishes with the highest expected property value: ${formatCurrency(strategy.metrics.expectedFinalPropertyValue)}.`,
+        `It still works in ${formatProbability(strategy.metrics.feasibilityProbability)} of weighted futures.`,
+        `Expected end net worth is ${formatCurrency(strategy.metrics.expectedEndNetWorth)}, so the higher property value is not being bought at any cost.`,
       ];
     }
 
@@ -1240,24 +1267,24 @@ const App = () => {
       const firstHouseValue = strategy.decisionVector.deposit1 + strategy.decisionVector.mortgage1;
       const distance = Math.abs(firstHouseValue - OPTIMIZER_BIG_FIRST_HOUSE_TARGET);
       return [
-        `Its first house value is ${formatCurrency(firstHouseValue)}, which is ${formatCurrency(distance)} away from the ${formatCurrency(OPTIMIZER_BIG_FIRST_HOUSE_TARGET)} target.`,
-        `Among the strategies closest to that target, it has the strongest weighted success rate at ${formatProbability(strategy.metrics.feasibilityProbability)}.`,
-        `Its expected end net worth is ${formatCurrency(strategy.metrics.expectedEndNetWorth)}, which is used as a later tie-breaker once the first-house target fit is satisfied.`,
+        `This objective targets closeness to ${formatCurrency(OPTIMIZER_BIG_FIRST_HOUSE_TARGET)}, not the biggest possible first house.`,
+        `This setup starts at ${formatCurrency(firstHouseValue)}, which is ${formatCurrency(distance)} away from that target.`,
+        `Among the setups closest to the target, it then wins on success rate and expected end wealth.`,
       ];
     }
 
     if (robustnessObjective === 'privateSchoolSuccess') {
       return [
-        `This strategy ranks first on private-school success rate: ${formatProbability(strategy.metrics.privateSchoolFeasibilityProbability)} inside the private-school futures.`,
-        `It still keeps an overall weighted success rate of ${formatProbability(strategy.metrics.feasibilityProbability)} across the full future set.`,
-        `Its downside regret remains ${formatCurrency(strategy.metrics.regretCvar10)}, so it is not only a school-fee specialist with weak downside behavior elsewhere.`,
+        `It has the strongest private-school survival rate in the sampled school-on futures: ${formatProbability(strategy.metrics.privateSchoolFeasibilityProbability)}.`,
+        `Across all weighted futures, overall success rate is ${formatProbability(strategy.metrics.feasibilityProbability)}.`,
+        `Regret CVaR 10% is ${formatCurrency(strategy.metrics.regretCvar10)}, so this is not just a school-fee specialist with extreme downside elsewhere.`,
       ];
     }
 
     return [
-      `This strategy has the highest composite robust score at ${strategy.metrics.compositeRobustScore.toFixed(1)}.`,
-      `Its weighted success rate is ${formatProbability(strategy.metrics.feasibilityProbability)}, with regret CVaR 10% of ${formatCurrency(strategy.metrics.regretCvar10)}.`,
-      `Its weighted expected end net worth is ${formatCurrency(strategy.metrics.expectedEndNetWorth)}, so it balances survivability, downside control, and long-run wealth better than the nearby alternatives.`,
+      `It is the best all-round option on the current robustness ranking.`,
+      `Success rate ${formatProbability(strategy.metrics.feasibilityProbability)} means it stays inside all hard rules in that share of weighted futures.`,
+      `Regret CVaR 10% of ${formatCurrency(strategy.metrics.regretCvar10)} means that in the worst 10% regret tail, it trails the best tested strategy in that same future by about that amount on average.`,
     ];
   }, [formatCurrency, formatProbability, robustnessObjective]);
 

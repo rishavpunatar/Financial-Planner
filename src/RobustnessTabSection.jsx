@@ -37,13 +37,13 @@ const RobustnessTabSection = ({
 }) => {
   const {
     OPTIMIZER_FIXED_FIRST_HOUSE_YEAR,
-    OPTIMIZER_INCOME_CASES,
-    OPTIMIZER_MARKET_CASES,
     OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE,
     OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE,
     POST_2032_MIN_TOTAL_SAVINGS,
   } = constants;
-  const plateauCellCount = robustnessRecommendation?.plateauRegion?.plateauCellCount ?? 0;
+
+  const plateauRegion = robustnessRecommendation?.plateauRegion ?? null;
+  const plateauCellCount = plateauRegion?.plateauCellCount ?? 0;
   const hasPlateauRegion = plateauCellCount > 1;
   const firstDepositPoints = robustnessMeta?.strategySampling?.firstDepositPoints ?? [];
   const firstMortgagePoints = robustnessMeta?.strategySampling?.firstMortgagePoints ?? [];
@@ -53,12 +53,50 @@ const RobustnessTabSection = ({
   const secondDepositPoints = robustnessMeta?.strategySampling?.secondDepositPoints ?? [];
   const secondMortgagePoints = robustnessMeta?.strategySampling?.secondMortgagePoints ?? [];
   const secondYearPoints = robustnessMeta?.strategySampling?.secondYearPoints ?? [];
+  const strategyCatalog = robustnessReport?.strategyCatalog ?? [];
+  const privateSchoolBaseCasePassCount = strategyCatalog.filter(
+    (strategy) => strategy.privateSchoolApplyScenarioCheck?.overallPass === true,
+  ).length;
+  const bestPrivateSchoolSuccess = strategyCatalog.length
+    ? Math.max(...strategyCatalog.map((strategy) => strategy.metrics?.privateSchoolFeasibilityProbability ?? 0))
+    : 0;
+  const robustScoreWeights = robustnessMeta?.robustScoreWeights ?? null;
+
+  const recommendationTitle = hasPlateauRegion
+    ? 'Current recommendation: robust region'
+    : 'Current recommendation: best tested setup';
+  const recommendationSummary = hasPlateauRegion
+    ? `The tested grid found ${plateauCellCount} nearby first-house starting points that all scored similarly well.`
+    : 'This run did not find a broad stable neighborhood. It found one strongest tested starting point.';
+  const objectiveHelperText = (() => {
+    if (robustnessObjective === 'robust') {
+      return 'This is the all-round ranking. It tries to favor setups that survive more often, lose by less when they fail, and still end up wealthy.';
+    }
+
+    if (robustnessObjective === 'cashEnd') {
+      return 'This ranking prefers the most liquid cash left at the end, not the best all-round resilience.';
+    }
+
+    if (robustnessObjective === 'propertyValue') {
+      return 'This ranking prefers the highest end property value, even if another setup is more balanced overall.';
+    }
+
+    if (robustnessObjective === 'bigFirstHouse') {
+      return `This does not mean “largest possible first house”. It means “closest to ${formatCurrency(800000)} first house”, then success rate, then expected wealth.`;
+    }
+
+    if (privateSchoolBaseCasePassCount === 0) {
+      return `No tested setup survives the stricter private-school base-case filter in this run. So this ranking shows the least-bad school-on options inside the sampled futures, not a guaranteed viable school-on plan.`;
+    }
+
+    return 'This ranking looks first at the school-on futures and asks which setup copes best there.';
+  })();
 
   return (
     <div className="chart-card">
       <h2 className="panel-title">Robustness Analysis</h2>
       <p className="helper-text">
-        This tab answers a different question from the optimizer: not “what wins in one assumed future?”, but “what still looks sensible across many plausible futures?”
+        This tab asks a different question from the optimizer: not “what wins in one assumed future?”, but “what still looks sensible across many plausible futures?”
       </p>
 
       {robustnessError && !robustnessReport && (
@@ -87,20 +125,20 @@ const RobustnessTabSection = ({
               <div className="summary-label">Setups Fully Tested</div>
               <div className="summary-value">{robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'}</div>
               <div className="summary-sub">
-                Shortlisted starting setups carried into the full stress test
+                The shortlist that made it into the full stress test
               </div>
             </div>
             <div className="summary-card summary-accent-green">
-              <div className="summary-label">{hasPlateauRegion ? 'Robust Region' : 'Robust Setup'}</div>
+              <div className="summary-label">{hasPlateauRegion ? 'Stable Region' : 'Best Setup'}</div>
               <div className="summary-value">
-                {robustnessRecommendation
-                  ? `${formatCurrency(robustnessRecommendation.plateauRegion.deposit1Min)} / ${formatCurrency(robustnessRecommendation.plateauRegion.mortgage1Min)}`
+                {plateauRegion
+                  ? `${formatCurrency(plateauRegion.deposit1Min)} / ${formatCurrency(plateauRegion.mortgage1Min)}`
                   : '—'}
               </div>
               <div className="summary-sub">
                 {hasPlateauRegion
-                  ? 'First deposit / first mortgage at the start of the strongest stable neighborhood'
-                  : 'First deposit / first mortgage for the single strongest stable starting point'}
+                  ? 'First deposit / first mortgage at the start of the strongest neighborhood'
+                  : 'First deposit / first mortgage for the single strongest tested point'}
               </div>
             </div>
             <div className="summary-card summary-accent-cyan">
@@ -111,82 +149,166 @@ const RobustnessTabSection = ({
                 {(robustnessMeta?.strategySampling?.pathCounts?.twoHome ?? 0).toLocaleString()}
               </div>
               <div className="summary-sub">
-                One-home / two-home setups inside the fully tested shortlist
+                One-home / two-home setups in the full robustness shortlist
               </div>
             </div>
           </div>
 
           <div className="robustness-card">
-            <div className="optimizer-result-title">How to use this page</div>
-            <div className="optimizer-result-sub">
-              This page is a stress test. It is asking which housing setup still looks acceptable across many plausible futures, not which setup wins in one single forecast.
+            <div className="optimizer-result-title">Quick guide</div>
+            <div className="robustness-explainer-grid">
+              <div className="robustness-explainer-card">
+                <div className="optimizer-result-title">What was tested</div>
+                <div className="optimizer-result-sub">
+                  The model first created a wide set of legal starting setups, then stress-tested the strongest ones across many different future paths.
+                </div>
+                <div className="optimizer-detail-list">
+                  <div>
+                    Screened starting setups: {robustnessMeta?.strategySampling?.explicitGridCount?.toLocaleString() ?? '—'}.
+                  </div>
+                  <div>
+                    Fully tested setups: {robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'}.
+                  </div>
+                  <div>
+                    Full simulations run: {robustnessMeta?.strategySampling?.fullEvaluationCount?.toLocaleString() ?? '—'}.
+                  </div>
+                </div>
+              </div>
+              <div className="robustness-explainer-card">
+                <div className="optimizer-result-title">How the future paths were built</div>
+                <div className="optimizer-result-sub">
+                  {robustnessMeta?.scenarioSampling?.bucketCount?.toLocaleString() ?? '—'} top-level buckets were created from income level x market level x private-school on/off, then {robustnessMeta?.scenarioSampling?.drawsPerBucket?.toLocaleString() ?? '—'} year-by-year draws were generated inside each bucket.
+                </div>
+                <div className="optimizer-detail-list">
+                  <div>Total future paths tested: {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'}.</div>
+                  <div>
+                    One simulation means one setup run through one full future path until age 70.
+                  </div>
+                </div>
+              </div>
+              <div className="robustness-explainer-card">
+                <div className="optimizer-result-title">How the starting setups were built</div>
+                <div className="optimizer-result-sub">
+                  The screened set came from crossing the allowed first deposit, first mortgage, mortgage-payment %, and optional second-home ranges, then dropping combinations that broke your hard rules.
+                </div>
+                <div className="optimizer-detail-list">
+                  <div>
+                    First deposit points: {firstDepositPoints.map((value) => formatCurrency(value)).join(', ') || '—'}.
+                  </div>
+                  <div>
+                    First mortgage points: {firstMortgagePoints.map((value) => formatCurrency(value)).join(', ') || '—'}.
+                  </div>
+                  <div>
+                    One-home mortgage % points: {oneHomePctPoints.join('%, ')}{oneHomePctPoints.length ? '%' : ''}.
+                  </div>
+                  <div>
+                    Two-home paths also varied upgrade year ({secondYearPoints.join(', ') || '—'}), extra deposit ({secondDepositPoints.map((value) => formatCurrency(value)).join(', ') || '—'}), extra mortgage ({secondMortgagePoints.map((value) => formatCurrency(value)).join(', ') || '—'}), and early/later mortgage % ({twoHomeEarlyPctPoints.join('%, ')}{twoHomeEarlyPctPoints.length ? '%' : ''} / {laterPctPoints.join('%, ')}{laterPctPoints.length ? '%' : ''}).
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="robustness-explainer-grid">
+              <div className="robustness-explainer-card">
+                <div className="optimizer-result-title">Success rate</div>
+                <div className="optimizer-result-sub">
+                  The weighted share of futures where the full plan still works.
+                </div>
+                <div className="optimizer-detail-list">
+                  <div>
+                    “Works” means it preserves the {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} post-2032 liquid-savings floor, passes mortgage rules, and meets the house-value rule.
+                  </div>
+                  <div>
+                    Weighted means medium futures count more than low/high, and private-school futures only count by the school probability.
+                  </div>
+                </div>
+              </div>
+              <div className="robustness-explainer-card">
+                <div className="optimizer-result-title">Regret CVaR 10%</div>
+                <div className="optimizer-result-sub">
+                  A downside measure. Lower is better.
+                </div>
+                <div className="optimizer-detail-list">
+                  <div>
+                    In each future, the model compares one setup with the best tested setup in that same future.
+                  </div>
+                  <div>
+                    It then averages the worst 10% of those “miss by” gaps.
+                  </div>
+                </div>
+              </div>
+              <div className="robustness-explainer-card">
+                <div className="optimizer-result-title">Private-school success</div>
+                <div className="optimizer-result-sub">
+                  This only looks inside the private-school futures.
+                </div>
+                <div className="optimizer-detail-list">
+                  <div>
+                    It asks what share of the school-on futures still stays feasible and can afford school fees.
+                  </div>
+                  <div>
+                    Best sampled private-school success in this run: {formatProbability(bestPrivateSchoolSuccess)}.
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="optimizer-detail-list">
-              <div>
-                How the futures were built: the model starts with {robustnessMeta?.scenarioSampling?.bucketCount?.toLocaleString() ?? '—'} top-level buckets from income level x market level x private-school on/off. Inside each bucket it then generates {robustnessMeta?.scenarioSampling?.drawsPerBucket?.toLocaleString() ?? '—'} different year-by-year life paths by varying income, ISA returns, property growth, mortgage rates, cost growth, tax drag, recessions, and redundancy timing. That creates {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'} futures in total.
-              </div>
-              <div>
-                How the {robustnessMeta?.strategySampling?.explicitGridCount?.toLocaleString() ?? '—'} starting setups were created: the model crossed the allowed first deposit points ({firstDepositPoints.map((value) => formatCurrency(value)).join(', ') || '—'}), first mortgage points ({firstMortgagePoints.map((value) => formatCurrency(value)).join(', ') || '—'}), one-home mortgage % points ({oneHomePctPoints.join('%, ')}{oneHomePctPoints.length ? '%' : ''}), and for two-home paths also the second-home year ({secondYearPoints.join(', ') || '—'}), extra deposit ({secondDepositPoints.map((value) => formatCurrency(value)).join(', ') || '—'}), extra mortgage ({secondMortgagePoints.map((value) => formatCurrency(value)).join(', ') || '—'}), early mortgage % ({twoHomeEarlyPctPoints.join('%, ')}{twoHomeEarlyPctPoints.length ? '%' : ''}), and later mortgage % ({laterPctPoints.join('%, ')}{laterPctPoints.length ? '%' : ''}). It then dropped combinations that broke your hard rules, such as house-value floors, timing rules, and mortgage caps. The survivors are the {robustnessMeta?.strategySampling?.explicitGridCount?.toLocaleString() ?? '—'} screened setups.
-              </div>
-              <div>
-                Why only {robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'} were fully tested: after the first pass, the model kept the strongest and most different-looking setups rather than carrying every similar setup into the expensive full run. That smaller set is what was stress-tested in depth.
-              </div>
-              <div>
-                What one simulation means: one chosen housing setup is run through one full future path year by year until age 70. The model records end net worth, cash left, property value, mortgage balance, interest paid, and whether any hard rule broke on the way.
-              </div>
-              <div>
-                What the {robustnessMeta?.strategySampling?.fullEvaluationCount?.toLocaleString() ?? '—'} full simulations were used for: every one of the {robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'} carried-forward setups was run through all {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'} futures. Those results were then summarised into the table and charts: expected net worth, success rate, private-school success, regret, and the shortlist/frontier.
-              </div>
-              <div>
-                What weighted percentages mean: a weighted success rate is probability-weighted, not raw-row-count weighted. Medium futures count more than low/high by design, and private-school futures only count by the private-school probability. So a 60% success rate means the plan survives 60% of the modelled probability mass.
-              </div>
-              <div>
-                What success rate means: the plan stays valid overall, including the post-2032 {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} liquid-savings floor, the mortgage limits, and the one-home or two-home house-value rules.
-              </div>
-              <div>
-                What private school success means: after looking only at private-school futures, what share still stays feasible and can still afford school fees.
-              </div>
-              <div>
-                What regret CVaR 10% means: in each future, the model compares a strategy with the best tested strategy in that same future. It then averages the worst 10% of those gaps. Lower is better because it means the strategy is less painful when it loses.
-              </div>
               <div>
                 What is estimated versus exact: {robustnessCoverageNotes?.winnerScope ?? 'Winner-scope note unavailable.'} {robustnessCoverageNotes?.scenarioScope ?? 'Scenario-scope note unavailable.'} {robustnessCoverageNotes?.regretScope ?? 'Regret-scope note unavailable.'}
               </div>
-              <div>
-                How to use it: pick an objective, compare the best overall / one-home / two-home cards, then use the scatter and CDF charts to shortlist. Use the heatmap and sensitivity chart as stability checks, not as the final decision on their own.
-              </div>
             </div>
           </div>
 
           <div className="robustness-card">
-            <div className="optimizer-result-title">{hasPlateauRegion ? 'Recommended robust starting region' : 'Recommended robust starting setup'}</div>
+            <div className="optimizer-result-title">{recommendationTitle}</div>
             <div className="optimizer-result-sub">
-              {hasPlateauRegion
-                ? robustnessRecommendation?.headline
-                : `This run does not show a broad plateau. It shows one strongest starting point: first deposit ${formatCurrency(robustnessRecommendation?.plateauRegion?.deposit1Min ?? 0)} and first mortgage ${formatCurrency(robustnessRecommendation?.plateauRegion?.mortgage1Min ?? 0)}.`}
+              {recommendationSummary}
             </div>
-            <div className="optimizer-detail-list">
-              {robustnessRecommendation?.notes?.map((note) => (
-                <div key={note}>{note}</div>
-              ))}
-            </div>
-            <div className="optimizer-detail-list">
-              <div>
-                House-value rule in this run: one-home paths need a first house of at least {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} in {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}; two-home paths need the second house purchase value to reach at least {formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)}.
+            <div className="robustness-explainer-grid">
+              <div className="robustness-explainer-card">
+                <div className="optimizer-result-title">Recommendation summary</div>
+                <div className="optimizer-detail-list">
+                  <div>
+                    First deposit: {plateauRegion ? formatCurrency(plateauRegion.deposit1Min) : '—'}
+                    {hasPlateauRegion ? ` to ${formatCurrency(plateauRegion.deposit1Max)}` : ''}.
+                  </div>
+                  <div>
+                    First mortgage: {plateauRegion ? formatCurrency(plateauRegion.mortgage1Min) : '—'}
+                    {hasPlateauRegion ? ` to ${formatCurrency(plateauRegion.mortgage1Max)}` : ''}.
+                  </div>
+                  <div>
+                    {hasPlateauRegion
+                      ? `${formatProbability(plateauRegion?.twoHomeShare ?? 0)} of the stable neighborhood resolves to a two-home path.`
+                      : 'This is a single strongest tested point, not a broad stable neighborhood.'}
+                  </div>
+                </div>
               </div>
-              <div>
-                Default weighting: medium cases {formatProbability(robustnessMeta?.defaultMediumWeight ?? 0)}
-                {' '}and private school probability {formatProbability(robustnessMeta?.defaultPrivateSchoolProbability ?? 0)}.
+              <div className="robustness-explainer-card">
+                <div className="optimizer-result-title">Rules used in this run</div>
+                <div className="optimizer-detail-list">
+                  <div>
+                    One-home paths need a first house of at least {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} in {OPTIMIZER_FIXED_FIRST_HOUSE_YEAR}.
+                  </div>
+                  <div>
+                    Two-home paths need the second house purchase value to reach at least {formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)}.
+                  </div>
+                  <div>
+                    Default weighting: medium futures {formatProbability(robustnessMeta?.defaultMediumWeight ?? 0)} and private-school probability {formatProbability(robustnessMeta?.defaultPrivateSchoolProbability ?? 0)}.
+                  </div>
+                </div>
               </div>
-              <div>
-                Starting incomes baked into this robustness run: {formatCurrency(robustnessMeta?.optimizerStartingIncomes?.person1 ?? 0)}
-                {' '}and {formatCurrency(robustnessMeta?.optimizerStartingIncomes?.person2 ?? 0)}.
-              </div>
-              <div>
-                Apply-to-planner default view: {robustnessMeta?.defaultApplyScenario?.incomeLabel ?? 'Medium income'} / {robustnessMeta?.defaultApplyScenario?.marketLabel ?? 'Medium market'}
-                {' '}with income growth {robustnessMeta?.defaultApplyScenario?.incomeGrowth ?? 0}%,
-                {' '}ISA growth {robustnessMeta?.defaultApplyScenario?.isaGrowth ?? 0}%,
-                {' '}property growth {robustnessMeta?.defaultApplyScenario?.propertyGrowth ?? 0}%.
+              <div className="robustness-explainer-card">
+                <div className="optimizer-result-title">Apply-to-planner baseline</div>
+                <div className="optimizer-detail-list">
+                  <div>
+                    {robustnessMeta?.defaultApplyScenario?.incomeLabel ?? 'Medium income'} / {robustnessMeta?.defaultApplyScenario?.marketLabel ?? 'Medium market'}.
+                  </div>
+                  <div>
+                    Income growth {robustnessMeta?.defaultApplyScenario?.incomeGrowth ?? 0}% | ISA growth {robustnessMeta?.defaultApplyScenario?.isaGrowth ?? 0}% | property growth {robustnessMeta?.defaultApplyScenario?.propertyGrowth ?? 0}%.
+                  </div>
+                  <div>
+                    Starting incomes: {formatCurrency(robustnessMeta?.optimizerStartingIncomes?.person1 ?? 0)} and {formatCurrency(robustnessMeta?.optimizerStartingIncomes?.person2 ?? 0)}.
+                  </div>
+                </div>
               </div>
             </div>
             <div className="robustness-links">
@@ -204,9 +326,9 @@ const RobustnessTabSection = ({
           </div>
 
           <div className="robustness-card">
-            <div className="optimizer-result-title">Robustness objective</div>
+            <div className="optimizer-result-title">Choose what “best” means</div>
             <div className="optimizer-result-sub">
-              Choose what the robustness tab should prefer when it picks the “best” strategy from the same weighted future sample.
+              Switching this changes the winner cards, the table ranking, the scatter chart, and the CDF chart.
             </div>
             <div className="view-tabs robustness-path-tabs">
               {robustnessObjectiveDefinitions.map((objective) => (
@@ -220,16 +342,19 @@ const RobustnessTabSection = ({
                 </button>
               ))}
             </div>
-            <div className="optimizer-detail-list">
-              <div>{selectedRobustnessObjectiveDefinition.description}</div>
-              <div>
-                The scatter plot and CDF below follow this objective. The heatmap and sensitivity plot stay on the balanced-robustness view because they are meant to show whether the broader recommendation is stable, not to pick a winner for every objective.
-              </div>
-              <div>
-                Displayed winners are also filtered to strategies that pass the {robustnessApplyFilterDescription} hard rules, including the post-2032 {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} liquid-savings floor.
-              </div>
-              <div>
-                {robustnessCoverageNotes?.heatmapScope ?? 'Heatmap scope note unavailable.'}
+            <div className="robustness-objective-note">
+              <div className="optimizer-result-title">{selectedRobustnessObjectiveDefinition.label}</div>
+              <div className="optimizer-result-sub">{objectiveHelperText}</div>
+              <div className="optimizer-detail-list">
+                <div>{selectedRobustnessObjectiveDefinition.description}</div>
+                <div>
+                  Displayed winners are filtered to strategies that pass the {robustnessApplyFilterDescription} hard rules, including the post-2032 {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} liquid-savings floor.
+                </div>
+                {robustnessObjective === 'robust' && robustScoreWeights && (
+                  <div>
+                    All-round score weights in this run: success rate {(robustScoreWeights.overallFeasibility * 100).toFixed(0)}%, private-school success {(robustScoreWeights.privateSchoolFeasibility * 100).toFixed(0)}%, downside protection {(robustScoreWeights.inverseRegretCvar * 100).toFixed(0)}%, expected wealth {(robustScoreWeights.meanNetWorth * 100).toFixed(0)}%.
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -256,7 +381,7 @@ const RobustnessTabSection = ({
           <div className="robustness-card">
             <div className="optimizer-result-title">Best strategy by path type</div>
             <div className="optimizer-result-sub">
-              These three cards now follow the selected robustness objective, so you can compare the best overall strategy with the strongest one-home and two-home strategies under that goal.
+              These cards follow the selected objective, so you can compare the best overall strategy with the strongest one-home and two-home strategies under that goal.
             </div>
             <div className="robustness-explainer-grid">
               {robustnessPathLeaderCards.map(({ key, label, strategy }) => (
@@ -267,18 +392,22 @@ const RobustnessTabSection = ({
                       <div className="optimizer-result-sub">
                         {strategy.strategyId} · {strategy.pathType}
                       </div>
-                      <div className="optimizer-detail-list">
-                        <div>
-                          Start: {formatCurrency(strategy.decisionVector.deposit1)} deposit / {formatCurrency(strategy.decisionVector.mortgage1)} mortgage
+                      <div className="robustness-metric-chip-row">
+                        <div className="robustness-metric-chip">
+                          <span>Start</span>
+                          <strong>{formatCurrency(strategy.decisionVector.deposit1)} / {formatCurrency(strategy.decisionVector.mortgage1)}</strong>
                         </div>
-                        <div>
-                          End net worth: {formatCurrency(strategy.metrics.expectedEndNetWorth)}
+                        <div className="robustness-metric-chip">
+                          <span>Success</span>
+                          <strong>{formatProbability(strategy.metrics.feasibilityProbability)}</strong>
                         </div>
-                        <div>
-                          Regret CVaR 10%: {formatCurrency(strategy.metrics.regretCvar10)}
+                        <div className="robustness-metric-chip">
+                          <span>Regret CVaR</span>
+                          <strong>{formatCurrency(strategy.metrics.regretCvar10)}</strong>
                         </div>
-                        <div>
-                          Success rate: {formatProbability(strategy.metrics.feasibilityProbability)}
+                        <div className="robustness-metric-chip">
+                          <span>End net worth</span>
+                          <strong>{formatCurrency(strategy.metrics.expectedEndNetWorth)}</strong>
                         </div>
                       </div>
                       <div className="optimizer-detail-list">
@@ -286,20 +415,22 @@ const RobustnessTabSection = ({
                           <div key={line}>{line}</div>
                         ))}
                       </div>
-                      <button
-                        type="button"
-                        className="preset-button preset-button-secondary"
-                        onClick={() => handleApplyRobustnessStrategy(strategy)}
-                      >
-                        Apply
-                      </button>
-                      <button
-                        type="button"
-                        className="preset-button preset-button-secondary"
-                        onClick={() => handleDownloadRobustnessSummary(strategy)}
-                      >
-                        Download
-                      </button>
+                      <div className="robustness-links">
+                        <button
+                          type="button"
+                          className="preset-button preset-button-secondary"
+                          onClick={() => handleApplyRobustnessStrategy(strategy)}
+                        >
+                          Apply
+                        </button>
+                        <button
+                          type="button"
+                          className="preset-button preset-button-secondary"
+                          onClick={() => handleDownloadRobustnessSummary(strategy)}
+                        >
+                          Download
+                        </button>
+                      </div>
                     </>
                   ) : (
                     <div className="optimizer-result-sub">
@@ -314,7 +445,7 @@ const RobustnessTabSection = ({
           <div className="robustness-card">
             <div className="optimizer-result-title">Robust strategy range</div>
             <div className="optimizer-result-sub">
-              Use the path toggle to switch between all strategies, one-home only, and two-home only. The table ranking also follows the selected robustness objective above, so you can see how the strongest strategies change under different goals.
+              Use the path toggle to switch between all strategies, one-home only, and two-home only. The table ranking follows the selected objective.
             </div>
             <div className="view-tabs robustness-path-tabs">
               {ROBUSTNESS_PATH_OPTIONS.map((option) => (
@@ -330,20 +461,6 @@ const RobustnessTabSection = ({
             </div>
             <div className="optimizer-result-sub">
               Showing the top {Math.min(15, robustnessEligibleStrategies.length)} of {robustnessEligibleStrategies.length} strategies in the selected path view after the {robustnessApplyFilterDescription} hard-rule filter.
-            </div>
-            <div className="optimizer-detail-list">
-              <div>
-                Expected net worth is the weighted average end result across the sampled futures.
-              </div>
-              <div>
-                Regret CVaR 10% is the average “how much this loses by” in the worst 10% of futures, relative to the best tested strategy in those same futures.
-              </div>
-              <div>
-                Success rate is the weighted probability that the full plan still works.
-              </div>
-              <div>
-                Private school success only looks inside the private-school futures and asks what share still works there.
-              </div>
             </div>
             <div className="robustness-table-wrap">
               <table className="robustness-table">
@@ -405,8 +522,9 @@ const RobustnessTabSection = ({
           <div className="robustness-chart-grid">
             <div className="robustness-chart-card">
               <div className="optimizer-result-title">Expected Net Worth vs Regret</div>
+              <div className="robustness-chart-badge">Decision use: High</div>
               <div className="optimizer-result-sub">
-                Most useful for decision making. Each dot is one tested strategy in the selected path view. Further right means higher expected end net worth. Lower means smaller downside regret. The frontier line is the shortlist of strategies that are not clearly worse on both measures at once. Use this to narrow down candidates before looking at the table or CDF.
+                Best chart for shortlisting. Each dot is one tested strategy in the selected path view. Further right means higher expected end net worth. Lower means smaller downside regret.
               </div>
               {robustnessSelectedScatter && (
                 <img
@@ -418,8 +536,9 @@ const RobustnessTabSection = ({
             </div>
             <div className="robustness-chart-card">
               <div className="optimizer-result-title">CDF of Top Strategies</div>
+              <div className="robustness-chart-badge">Decision use: High</div>
               <div className="optimizer-result-sub">
-                Also useful for decision making. Each line is one of the strongest strategies for the current objective and path view. A line further right usually means better end net worth. A line that drops more slowly is spending less probability in very weak outcomes. Use this when two shortlisted strategies have similar averages but different downside shapes.
+                Best chart for comparing shortlisted strategies. A line further right usually means better end net worth. A line that drops more slowly is spending less probability in weak outcomes.
               </div>
               {robustnessSelectedCdf && (
                 <img
@@ -431,21 +550,22 @@ const RobustnessTabSection = ({
             </div>
             <div className="robustness-chart-card">
               <div className="optimizer-result-title">Deposit vs Mortgage Plateau</div>
+              <div className="robustness-chart-badge robustness-chart-badge-muted">Decision use: Medium</div>
               <div className="optimizer-result-sub">
-                Useful as a stability check, not as the final chooser. This is the balanced-robustness screening heatmap across the explicit first-deposit and first-mortgage grid. Darker cells are stronger on the balanced robust score. The bold plateau is the safer neighborhood where nearby starting combinations behave similarly, so you are not relying on one fragile exact point.
+                Use this as a stability check. It shows whether nearby starting deposit / mortgage pairs behave similarly well, or whether the recommendation depends on one fragile point.
               </div>
               <div className="optimizer-detail-list">
                 <div>
-                  First-deposit points shown: {robustnessMeta?.strategySampling?.firstDepositPoints?.map((value) => formatCurrency(value)).join(', ') || '—'}
+                  First-deposit points shown: {firstDepositPoints.map((value) => formatCurrency(value)).join(', ') || '—'}.
                 </div>
                 <div>
-                  First-mortgage points shown: {robustnessMeta?.strategySampling?.firstMortgagePoints?.map((value) => formatCurrency(value)).join(', ') || '—'}
+                  First-mortgage points shown: {firstMortgagePoints.map((value) => formatCurrency(value)).join(', ') || '—'}.
                 </div>
                 <div>
-                  Grey cells mean that deposit/mortgage pair is in the plotted range, but no screened strategy combination survived there.
+                  Grey cells mean that deposit/mortgage pair was in the plotted range, but no screened strategy survived there.
                 </div>
                 <div>
-                  The number written inside each colored cell is the balanced composite robust score. It is only useful for comparing cells within this chart. It is not a cash amount and it is not directly comparable to the scatter or table numbers.
+                  The number written inside each colored cell is the all-round ranking score for that chart only. It is not a cash amount.
                 </div>
               </div>
               {robustnessCharts?.heatmap && (
@@ -458,18 +578,19 @@ const RobustnessTabSection = ({
             </div>
             <div className="robustness-chart-card">
               <div className="optimizer-result-title">Sensitivity</div>
+              <div className="robustness-chart-badge robustness-chart-badge-muted">Decision use: Low</div>
               <div className="optimizer-result-sub">
-                Useful only as a robustness check on your judgment calls. It does not rerun a new strategy search. It re-scores the same tested strategies while changing two assumptions: how heavily medium futures are weighted, and how likely private school is. If the winner stays similar across boxes, the recommendation is stable. If it flips a lot, your answer depends heavily on those assumptions.
+                Use this only as a check on how sensitive the all-round recommendation is to two judgment calls: how much weight to give medium futures, and how likely private school is.
               </div>
               <div className="optimizer-detail-list">
                 <div>
-                  Horizontal axis: the assumed probability of private school. Vertical axis: how much total weight is given to medium futures versus low/high futures.
+                  Horizontal axis: assumed private-school probability. Vertical axis: how much total weight goes to medium futures versus low/high futures.
                 </div>
                 <div>
-                  In each box, the top text is the winning strategy ID and the lower number is its balanced composite robust score under that weighting choice.
+                  In each box, the top text is the winning strategy ID and the lower number is its all-round ranking score under that weighting choice.
                 </div>
                 <div>
-                  That score is only a ranking score for this sensitivity chart. Higher is better within this chart, but it is not a pound value and it should not be compared directly with end net worth.
+                  That number is a ranking score for this chart only. Higher is better within the chart, but it is not a pound value.
                 </div>
               </div>
               {robustnessCharts?.sensitivity && (
