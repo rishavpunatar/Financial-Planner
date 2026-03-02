@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+  <rect width="960" height="560" fill="#ffffff"/>
+  <text x="90" y="24" font-size="20" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">Expected End Net Worth vs 10% CVaR Regret</text>
+  <text x="90" y="44" font-size="12" font-family="Arial, sans-serif" fill="#475569">One-home paths only. Highlighted labels follow the &quot;Balanced robustness&quot; objective.</text>
+  <line x1="90" y1="490" x2="920" y2="490" stroke="#94a3b8"/>
+  <line x1="90" y1="40" x2="90" y2="490" stroke="#94a3b8"/>
+  
+      <line x1="90" y1="40" x2="90" y2="490" stroke="#e2e8f0" stroke-dasharray="4 4"/>
+      <line x1="90" y1="490" x2="920" y2="490" stroke="#e2e8f0" stroke-dasharray="4 4"/>
+      <text x="90" y="512" text-anchor="middle" font-size="11" font-family="Arial, sans-serif" fill="#64748b">GBP 2.18m</text>
+      <text x="80" y="494" text-anchor="end" font-size="11" font-family="Arial, sans-serif" fill="#64748b">GBP 595k</text>
+    
+      <line x1="297.49999999999966" y1="40" x2="297.49999999999966" y2="490" stroke="#e2e8f0" stroke-dasharray="4 4"/>
+      <line x1="90" y1="377.49999999999994" x2="920" y2="377.49999999999994" stroke="#e2e8f0" stroke-dasharray="4 4"/>
+      <text x="297.49999999999966" y="512" text-anchor="middle" font-size="11" font-family="Arial, sans-serif" fill="#64748b">GBP 2.27m</text>
+      <text x="80" y="381.49999999999994" text-anchor="end" font-size="11" font-family="Arial, sans-serif" fill="#64748b">GBP 673k</text>
+    
+      <line x1="504.9999999999994" y1="40" x2="504.9999999999994" y2="490" stroke="#e2e8f0" stroke-dasharray="4 4"/>
+      <line x1="90" y1="265.0000000000001" x2="920" y2="265.0000000000001" stroke="#e2e8f0" stroke-dasharray="4 4"/>
+      <text x="504.9999999999994" y="512" text-anchor="middle" font-size="11" font-family="Arial, sans-serif" fill="#64748b">GBP 2.35m</text>
+      <text x="80" y="269.0000000000001" text-anchor="end" font-size="11" font-family="Arial, sans-serif" fill="#64748b">GBP 750k</text>
+    
+      <line x1="712.5000000000002" y1="40" x2="712.5000000000002" y2="490" stroke="#e2e8f0" stroke-dasharray="4 4"/>
+      <line x1="90" y1="152.50000000000006" x2="920" y2="152.50000000000006" stroke="#e2e8f0" stroke-dasharray="4 4"/>
+      <text x="712.5000000000002" y="512" text-anchor="middle" font-size="11" font-family="Arial, sans-serif" fill="#64748b">GBP 2.43m</text>
+      <text x="80" y="156.50000000000006" text-anchor="end" font-size="11" font-family="Arial, sans-serif" fill="#64748b">GBP 828k</text>
+    
+      <line x1="920" y1="40" x2="920" y2="490" stroke="#e2e8f0" stroke-dasharray="4 4"/>
+      <line x1="90" y1="40" x2="920" y2="40" stroke="#e2e8f0" stroke-dasharray="4 4"/>
+      <text x="920" y="512" text-anchor="middle" font-size="11" font-family="Arial, sans-serif" fill="#64748b">GBP 2.51m</text>
+      <text x="80" y="44" text-anchor="end" font-size="11" font-family="Arial, sans-serif" fill="#64748b">GBP 906k</text>
+    
+  <polyline points="897.3984543075712,490 920,464.19162870075525" fill="none" stroke="#0f766e" stroke-width="2.5"/>
+  <circle cx="354.7346997548976" cy="202.7774859698224" r="5" fill="#0f766e" opacity="0.95"/><text x="362.7346997548976" y="194.7774859698224" font-size="11" font-family="Arial, sans-serif" fill="#0f172a">S012</text><circle cx="318.8374907901744" cy="171.63217508191286" r="5" fill="#0f766e" opacity="0.95"/><text x="326.8374907901744" y="163.63217508191286" font-size="11" font-family="Arial, sans-serif" fill="#0f172a">S002</text><circle cx="461.0456553908594" cy="236.53682715275127" r="5" fill="#0f766e" opacity="0.95"/><text x="469.0456553908594" y="228.53682715275127" font-size="11" font-family="Arial, sans-serif" fill="#0f172a">S013</text><circle cx="431.20336031548476" cy="213.82553842222103" r="5" fill="#0f766e" opacity="0.95"/><text x="439.20336031548476" y="205.82553842222103" font-size="11" font-family="Arial, sans-serif" fill="#0f172a">S003</text><circle cx="191.21552527653427" cy="102.27122640485953" r="5" fill="#0f766e" opacity="0.95"/><text x="199.21552527653427" y="94.27122640485953" font-size="11" font-family="Arial, sans-serif" fill="#0f172a">S001</text><circle cx="90" cy="40" r="3" fill="#0f766e" opacity="0.55"/><circle cx="505.39257146223235" cy="243.85806569876422" r="3" fill="#0f766e" opacity="0.55"/><circle cx="521.9467388339788" cy="257.36975493135054" r="3" fill="#0f766e" opacity="0.55"/><circle cx="226.0766452513677" cy="49.722148525720854" r="3" fill="#0f766e" opacity="0.55"/><circle cx="536.7649005058042" cy="260.2856732559803" r="3" fill="#0f766e" opacity="0.55"/><circle cx="545.6757731428497" cy="261.56955766594393" r="3" fill="#0f766e" opacity="0.55"/><circle cx="347.1584445164671" cy="72.20564772081974" r="3" fill="#0f766e" opacity="0.55"/><circle cx="557.8988928727422" cy="268.8824465791886" r="3" fill="#0f766e" opacity="0.55"/><circle cx="570.2108423822903" cy="269.6810021178832" r="3" fill="#0f766e" opacity="0.55"/><circle cx="587.6228719163327" cy="286.35503648636416" r="3" fill="#0f766e" opacity="0.55"/><circle cx="432.45040811753563" cy="107.29114521486247" r="3" fill="#0f766e" opacity="0.55"/><circle cx="628.7393497142469" cy="313.66895490661426" r="3" fill="#0f766e" opacity="0.55"/><circle cx="679.6491101317048" cy="348.9102851072108" r="3" fill="#0f766e" opacity="0.55"/><circle cx="610.0187542505432" cy="295.10396039383625" r="3" fill="#0f766e" opacity="0.55"/><circle cx="736.7245041858796" cy="387.82711813985054" r="3" fill="#0f766e" opacity="0.55"/><circle cx="795.3825485410509" cy="422.0151170823247" r="3" fill="#0f766e" opacity="0.55"/><circle cx="486.24054800896874" cy="138.43104430127386" r="3" fill="#0f766e" opacity="0.55"/><circle cx="897.3984543075712" cy="490" r="3" fill="#0f766e" opacity="0.55"/><circle cx="920" cy="464.19162870075525" r="3" fill="#0f766e" opacity="0.55"/><circle cx="857.1585759221899" cy="447.6571748358326" r="3" fill="#0f766e" opacity="0.55"/><circle cx="823.9493971307558" cy="437.83461320290104" r="3" fill="#0f766e" opacity="0.55"/><circle cx="664.9946353164443" cy="335.7489162924689" r="3" fill="#0f766e" opacity="0.55"/><circle cx="793.5479731103876" cy="420.9002807843604" r="3" fill="#0f766e" opacity="0.55"/><circle cx="728.3524861692067" cy="381.6421316948117" r="3" fill="#0f766e" opacity="0.55"/><circle cx="750.1883295494545" cy="378.1420075767923" r="3" fill="#0f766e" opacity="0.55"/><circle cx="678.1804852779377" cy="315.1655702887519" r="3" fill="#0f766e" opacity="0.55"/><circle cx="607.878859915731" cy="247.5669971763321" r="3" fill="#0f766e" opacity="0.55"/><circle cx="542.016113671112" cy="183.88358246633908" r="3" fill="#0f766e" opacity="0.55"/>
+  <text x="480" y="544" text-anchor="middle" font-size="12" font-family="Arial, sans-serif" fill="#334155">Weighted mean end net worth</text>
+  <text x="18" y="280" transform="rotate(-90 18 280)" text-anchor="middle" font-size="12" font-family="Arial, sans-serif" fill="#334155">Weighted 10% CVaR regret</text>
+  <rect x="740" y="40" width="180" height="56" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+  <circle cx="760" cy="60" r="5" fill="#0f766e"/>
+  <text x="772" y="64" font-size="11" font-family="Arial, sans-serif" fill="#334155">One-home path</text>
+  <circle cx="760" cy="80" r="5" fill="#2563eb"/>
+  <text x="772" y="84" font-size="11" font-family="Arial, sans-serif" fill="#334155">Two-home path</text>
+</svg>
