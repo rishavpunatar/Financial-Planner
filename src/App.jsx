@@ -1176,20 +1176,6 @@ const App = () => {
       ? (strategy.privateSchoolApplyScenarioCheck ?? strategy.defaultApplyScenarioCheck)
       : strategy.defaultApplyScenarioCheck
   ), [usePrivateSchoolApplyFilter]);
-  const robustnessSelectedScatter = typeof robustnessCharts?.scatter === 'string'
-    ? robustnessCharts.scatter
-    : robustnessCharts?.scatter?.[robustnessObjective]?.[robustnessPathView]
-      ?? robustnessCharts?.scatter?.[robustnessObjective]?.all
-      ?? robustnessCharts?.scatter?.robust?.[robustnessPathView]
-      ?? robustnessCharts?.scatter?.robust?.all
-      ?? '';
-  const robustnessSelectedCdf = typeof robustnessCharts?.cdf === 'string'
-    ? robustnessCharts.cdf
-    : robustnessCharts?.cdf?.[robustnessObjective]?.[robustnessPathView]
-      ?? robustnessCharts?.cdf?.[robustnessObjective]?.all
-      ?? robustnessCharts?.cdf?.robust?.[robustnessPathView]
-      ?? robustnessCharts?.cdf?.robust?.all
-      ?? '';
   const robustnessFilteredStrategies = useMemo(() => {
     if (robustnessPathView === 'oneHome') {
       return robustnessStrategyCatalog.filter((strategy) => strategy.pathType === 'One-home path');
@@ -1756,8 +1742,6 @@ const App = () => {
     setRobustnessPathView,
     robustnessEligibleStrategies,
     robustnessDisplayedStrategies,
-    robustnessSelectedScatter,
-    robustnessSelectedCdf,
     robustnessApplyFilterDescription: usePrivateSchoolApplyFilter
       ? 'private-school apply scenario'
       : 'default apply scenario',

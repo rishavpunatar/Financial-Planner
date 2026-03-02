@@ -4,6 +4,203 @@ const ROBUSTNESS_PATH_OPTIONS = [
   { id: 'twoHome', label: 'Two-home only' },
 ];
 
+const PATH_COLOR_BY_TYPE = {
+  'One-home path': '#0f766e',
+  'Two-home path': '#2563eb',
+};
+
+const buildTicks = (min, max) => (
+  [0, 0.25, 0.5, 0.75, 1].map((tick) => min + ((max - min) * tick))
+);
+
+const getPaddedBounds = (values) => {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+
+  if (min === max) {
+    const padding = Math.max(1, Math.abs(min) * 0.05);
+    return [min - padding, max + padding];
+  }
+
+  const padding = (max - min) * 0.08;
+  return [min - padding, max + padding];
+};
+
+const RobustnessScatterSvg = ({
+  points,
+  title,
+  subtitle,
+  xAccessor,
+  yAccessor,
+  xLabel,
+  yLabel,
+  xFormatter,
+  yFormatter,
+  highlightedIds,
+  labelAll = false,
+}) => {
+  if (!points.length) {
+    return (
+      <div className="optimizer-empty">
+        No strategies available for this chart.
+      </div>
+    );
+  }
+
+  const width = 920;
+  const height = 520;
+  const padding = { top: 42, right: 36, bottom: 72, left: 92 };
+  const plotWidth = width - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+  const xValues = points.map(xAccessor);
+  const yValues = points.map(yAccessor);
+  const [minX, maxX] = getPaddedBounds(xValues);
+  const [minY, maxY] = getPaddedBounds(yValues);
+  const xTicks = buildTicks(minX, maxX);
+  const yTicks = buildTicks(minY, maxY);
+  const scaleX = (value) => padding.left + (((value - minX) / Math.max(1, maxX - minX)) * plotWidth);
+  const scaleY = (value) => padding.top + plotHeight - (((value - minY) / Math.max(1, maxY - minY)) * plotHeight);
+
+  return (
+    <svg
+      className="robustness-chart-svg"
+      viewBox={`0 0 ${width} ${height}`}
+      role="img"
+      aria-label={title}
+    >
+      <rect width={width} height={height} fill="#ffffff" />
+      <text x={padding.left} y={24} fontSize="20" fontFamily="Arial, sans-serif" fontWeight="700" fill="#0f172a">
+        {title}
+      </text>
+      <text x={padding.left} y={44} fontSize="12" fontFamily="Arial, sans-serif" fill="#475569">
+        {subtitle}
+      </text>
+      <line
+        x1={padding.left}
+        y1={padding.top + plotHeight}
+        x2={padding.left + plotWidth}
+        y2={padding.top + plotHeight}
+        stroke="#94a3b8"
+      />
+      <line
+        x1={padding.left}
+        y1={padding.top}
+        x2={padding.left}
+        y2={padding.top + plotHeight}
+        stroke="#94a3b8"
+      />
+      {xTicks.map((tickValue) => {
+        const x = scaleX(tickValue);
+        return (
+          <g key={`x-${tickValue}`}>
+            <line
+              x1={x}
+              y1={padding.top}
+              x2={x}
+              y2={padding.top + plotHeight}
+              stroke="#e2e8f0"
+              strokeDasharray="4 4"
+            />
+            <text
+              x={x}
+              y={padding.top + plotHeight + 22}
+              textAnchor="middle"
+              fontSize="11"
+              fontFamily="Arial, sans-serif"
+              fill="#64748b"
+            >
+              {xFormatter(tickValue)}
+            </text>
+          </g>
+        );
+      })}
+      {yTicks.map((tickValue) => {
+        const y = scaleY(tickValue);
+        return (
+          <g key={`y-${tickValue}`}>
+            <line
+              x1={padding.left}
+              y1={y}
+              x2={padding.left + plotWidth}
+              y2={y}
+              stroke="#e2e8f0"
+              strokeDasharray="4 4"
+            />
+            <text
+              x={padding.left - 10}
+              y={y + 4}
+              textAnchor="end"
+              fontSize="11"
+              fontFamily="Arial, sans-serif"
+              fill="#64748b"
+            >
+              {yFormatter(tickValue)}
+            </text>
+          </g>
+        );
+      })}
+      {points.map((point) => {
+        const highlighted = highlightedIds.has(point.strategyId);
+        const x = scaleX(xAccessor(point));
+        const y = scaleY(yAccessor(point));
+        const color = PATH_COLOR_BY_TYPE[point.pathType] ?? '#334155';
+        return (
+          <g key={point.strategyId}>
+            <circle
+              cx={x}
+              cy={y}
+              r={highlighted || labelAll ? 5 : 3}
+              fill={color}
+              opacity={highlighted || labelAll ? 0.95 : 0.6}
+            />
+            {(highlighted || labelAll) && (
+              <text
+                x={x + 8}
+                y={y - 8}
+                fontSize="11"
+                fontFamily="Arial, sans-serif"
+                fill="#0f172a"
+              >
+                {point.strategyId}
+              </text>
+            )}
+          </g>
+        );
+      })}
+      <text
+        x={width / 2}
+        y={height - 16}
+        textAnchor="middle"
+        fontSize="12"
+        fontFamily="Arial, sans-serif"
+        fill="#334155"
+      >
+        {xLabel}
+      </text>
+      <text
+        x="20"
+        y={height / 2}
+        transform={`rotate(-90 20 ${height / 2})`}
+        textAnchor="middle"
+        fontSize="12"
+        fontFamily="Arial, sans-serif"
+        fill="#334155"
+      >
+        {yLabel}
+      </text>
+      <rect x={width - 220} y={padding.top} width="180" height="56" rx="10" fill="#f8fafc" stroke="#cbd5e1" />
+      <circle cx={width - 200} cy={padding.top + 20} r="5" fill="#0f766e" />
+      <text x={width - 188} y={padding.top + 24} fontSize="11" fontFamily="Arial, sans-serif" fill="#334155">
+        One-home path
+      </text>
+      <circle cx={width - 200} cy={padding.top + 40} r="5" fill="#2563eb" />
+      <text x={width - 188} y={padding.top + 44} fontSize="11" fontFamily="Arial, sans-serif" fill="#334155">
+        Two-home path
+      </text>
+    </svg>
+  );
+};
+
 const RobustnessTabSection = ({
   constants,
   formatCurrency,
@@ -31,8 +228,6 @@ const RobustnessTabSection = ({
   setRobustnessPathView,
   robustnessEligibleStrategies,
   robustnessDisplayedStrategies,
-  robustnessSelectedScatter,
-  robustnessSelectedCdf,
   robustnessApplyFilterDescription,
 }) => {
   const {
@@ -53,13 +248,24 @@ const RobustnessTabSection = ({
     ? Math.max(...strategyCatalog.map((strategy) => strategy.metrics?.privateSchoolFeasibilityProbability ?? 0))
     : 0;
   const robustScoreWeights = robustnessMeta?.robustScoreWeights ?? null;
+  const scatterHighlightedIds = new Set(
+    robustnessDisplayedStrategies.slice(0, 5).map((strategy) => strategy.strategyId),
+  );
+  const topStrategyPlotPoints = robustnessDisplayedStrategies;
+  const cashLikelihoodYAxisLabel = robustnessObjective === 'privateSchoolSuccess'
+    ? 'Private-school success rate'
+    : 'Success rate';
+  const cashLikelihoodAccessor = (strategy) => (
+    robustnessObjective === 'privateSchoolSuccess'
+      ? strategy.metrics.privateSchoolFeasibilityProbability
+      : strategy.metrics.feasibilityProbability
+  );
+  const topStrategyIds = new Set(topStrategyPlotPoints.map((strategy) => strategy.strategyId));
 
-  const recommendationTitle = hasPlateauRegion
-    ? 'Current recommendation: robust region'
-    : 'Current recommendation: best tested setup';
+  const recommendationTitle = 'Recommended starting point from this run';
   const recommendationSummary = hasPlateauRegion
-    ? `The tested grid found ${plateauCellCount} nearby first-house starting points that all scored similarly well.`
-    : 'This run did not find a broad stable neighborhood. It found one strongest tested starting point.';
+    ? `The tested grid found ${plateauCellCount} nearby starting points with similar results, so this is a real range rather than one fragile point estimate.`
+    : 'This run found one strongest tested starting point rather than a broad stable range.';
   const objectiveHelperText = (() => {
     if (robustnessObjective === 'robust') {
       return 'This is the all-round ranking. It tries to favor setups that survive more often, lose by less when they fail, and still end up wealthy.';
@@ -121,7 +327,7 @@ const RobustnessTabSection = ({
               </div>
             </div>
             <div className="summary-card summary-accent-green">
-              <div className="summary-label">{hasPlateauRegion ? 'Stable Region' : 'Best Setup'}</div>
+              <div className="summary-label">Recommended Start</div>
               <div className="summary-value">
                 {plateauRegion
                   ? `${formatCurrency(plateauRegion.deposit1Min)} / ${formatCurrency(plateauRegion.mortgage1Min)}`
@@ -129,7 +335,7 @@ const RobustnessTabSection = ({
               </div>
               <div className="summary-sub">
                 {hasPlateauRegion
-                  ? 'First deposit / first mortgage at the start of the strongest neighborhood'
+                  ? 'First deposit / first mortgage at the start of the strongest tested range'
                   : 'First deposit / first mortgage for the single strongest tested point'}
               </div>
             </div>
@@ -188,6 +394,9 @@ const RobustnessTabSection = ({
               <div>
                 What is estimated versus exact: {robustnessCoverageNotes?.winnerScope ?? 'Winner-scope note unavailable.'} {robustnessCoverageNotes?.scenarioScope ?? 'Scenario-scope note unavailable.'} {robustnessCoverageNotes?.regretScope ?? 'Regret-scope note unavailable.'}
               </div>
+              <div>
+                How to read the charts below: each dot is one fully tested housing setup. The first two charts show all {robustnessEligibleStrategies.length.toLocaleString()} eligible setups in the selected path view after the {robustnessApplyFilterDescription} filter, with only the current top {Math.min(5, robustnessDisplayedStrategies.length)} labeled. The third chart shows just the current top {topStrategyPlotPoints.length} setups, with every dot labeled so you can compare the shortlisted winners directly.
+              </div>
             </div>
           </div>
 
@@ -210,8 +419,8 @@ const RobustnessTabSection = ({
                   </div>
                   <div>
                     {hasPlateauRegion
-                      ? `${formatProbability(plateauRegion?.twoHomeShare ?? 0)} of the stable neighborhood resolves to a two-home path.`
-                      : 'This is a single strongest tested point, not a broad stable neighborhood.'}
+                      ? `${formatProbability(plateauRegion?.twoHomeShare ?? 0)} of this recommended range resolves to a two-home path.`
+                      : 'This is a single strongest tested point, not a broad stable range.'}
                   </div>
                 </div>
               </div>
@@ -261,7 +470,7 @@ const RobustnessTabSection = ({
           <div className="robustness-card">
             <div className="optimizer-result-title">Choose what “best” means</div>
             <div className="optimizer-result-sub">
-              Switching this changes the winner cards, the table ranking, the scatter chart, and the CDF chart.
+              Switching this changes the winner cards, the table ranking, and the charts below.
             </div>
             <div className="view-tabs robustness-path-tabs">
               {robustnessObjectiveDefinitions.map((objective) => (
@@ -454,85 +663,64 @@ const RobustnessTabSection = ({
 
           <div className="robustness-chart-grid">
             <div className="robustness-chart-card">
-              <div className="optimizer-result-title">Expected Net Worth vs Regret</div>
+              <div className="optimizer-result-title">All eligible setups: Cash End vs Likelihood</div>
               <div className="robustness-chart-badge">Decision use: High</div>
               <div className="optimizer-result-sub">
-                Best chart for shortlisting. Each dot is one tested strategy in the selected path view. Further right means higher expected end net worth. Lower means smaller downside regret.
+                This chart shows {robustnessEligibleStrategies.length} dots: one for each fully tested setup in the selected path view after the {robustnessApplyFilterDescription} filter. The labeled dots are the current top {Math.min(5, robustnessDisplayedStrategies.length)} strategies for the selected objective.
               </div>
-              {robustnessSelectedScatter && (
-                <img
-                  className="robustness-chart-image"
-                  src={`${import.meta.env.BASE_URL}${robustnessSelectedScatter}`}
-                  alt="Scatter plot of expected net worth vs regret CVaR"
-                />
-              )}
+              <RobustnessScatterSvg
+                points={robustnessEligibleStrategies}
+                title="All eligible setups: Expected Cash End vs Likelihood"
+                subtitle={robustnessObjective === 'privateSchoolSuccess'
+                  ? 'Higher means better private-school survival across the weighted future paths.'
+                  : 'Higher means a larger share of weighted future paths stay feasible.'}
+                xAccessor={(strategy) => strategy.metrics.expectedCashEnd}
+                yAccessor={cashLikelihoodAccessor}
+                xLabel="Expected cash left at end"
+                yLabel={cashLikelihoodYAxisLabel}
+                xFormatter={formatCurrency}
+                yFormatter={formatProbability}
+                highlightedIds={scatterHighlightedIds}
+              />
             </div>
             <div className="robustness-chart-card">
-              <div className="optimizer-result-title">CDF of Top Strategies</div>
+              <div className="optimizer-result-title">All eligible setups: Cash End vs Downside</div>
               <div className="robustness-chart-badge">Decision use: High</div>
               <div className="optimizer-result-sub">
-                Best chart for comparing shortlisted strategies. A line further right usually means better end net worth. A line that drops more slowly is spending less probability in weak outcomes.
+                This uses the same {robustnessEligibleStrategies.length} eligible setups. Further right means more expected end cash. Lower means smaller downside regret in weak futures.
               </div>
-              {robustnessSelectedCdf && (
-                <img
-                  className="robustness-chart-image"
-                  src={`${import.meta.env.BASE_URL}${robustnessSelectedCdf}`}
-                  alt="CDF of top robust strategies"
-                />
-              )}
+              <RobustnessScatterSvg
+                points={robustnessEligibleStrategies}
+                title="All eligible setups: Expected Cash End vs Regret CVaR 10%"
+                subtitle="Lower on the vertical axis is better. The labeled dots are the current top 5 setups."
+                xAccessor={(strategy) => strategy.metrics.expectedCashEnd}
+                yAccessor={(strategy) => strategy.metrics.regretCvar10}
+                xLabel="Expected cash left at end"
+                yLabel="Regret CVaR 10%"
+                xFormatter={formatCurrency}
+                yFormatter={formatCurrency}
+                highlightedIds={scatterHighlightedIds}
+              />
             </div>
             <div className="robustness-chart-card">
-              <div className="optimizer-result-title">Deposit vs Mortgage Plateau</div>
-              <div className="robustness-chart-badge robustness-chart-badge-muted">Decision use: Medium</div>
+              <div className="optimizer-result-title">Shortlisted winners: Cash End vs Total End Wealth</div>
+              <div className="robustness-chart-badge">Decision use: Medium</div>
               <div className="optimizer-result-sub">
-                Use this as a stability check. It shows whether nearby starting deposit / mortgage pairs behave similarly well, or whether the recommendation depends on one fragile point.
+                This chart only shows the current top {topStrategyPlotPoints.length} shortlisted setups from the table. It is useful once you have already narrowed down the field and want to compare the likely cash-versus-wealth trade-off between the leading options.
               </div>
-              <div className="optimizer-detail-list">
-                <div>
-                  First-deposit points shown: {robustnessMeta?.strategySampling?.firstDepositPoints?.map((value) => formatCurrency(value)).join(', ') || '—'}.
-                </div>
-                <div>
-                  First-mortgage points shown: {robustnessMeta?.strategySampling?.firstMortgagePoints?.map((value) => formatCurrency(value)).join(', ') || '—'}.
-                </div>
-                <div>
-                  Grey cells mean that deposit/mortgage pair was in the plotted range, but no screened strategy survived there.
-                </div>
-                <div>
-                  The number written inside each colored cell is the all-round ranking score for that chart only. It is not a cash amount.
-                </div>
-              </div>
-              {robustnessCharts?.heatmap && (
-                <img
-                  className="robustness-chart-image"
-                  src={`${import.meta.env.BASE_URL}${robustnessCharts.heatmap}`}
-                  alt="Heatmap of robust score by first deposit and first mortgage"
-                />
-              )}
-            </div>
-            <div className="robustness-chart-card">
-              <div className="optimizer-result-title">Sensitivity</div>
-              <div className="robustness-chart-badge robustness-chart-badge-muted">Decision use: Low</div>
-              <div className="optimizer-result-sub">
-                Use this only as a check on how sensitive the all-round recommendation is to two judgment calls: how much weight to give medium futures, and how likely private school is.
-              </div>
-              <div className="optimizer-detail-list">
-                <div>
-                  Horizontal axis: assumed private-school probability. Vertical axis: how much total weight goes to medium futures versus low/high futures.
-                </div>
-                <div>
-                  In each box, the top text is the winning strategy ID and the lower number is its all-round ranking score under that weighting choice.
-                </div>
-                <div>
-                  That number is a ranking score for this chart only. Higher is better within the chart, but it is not a pound value.
-                </div>
-              </div>
-              {robustnessCharts?.sensitivity && (
-                <img
-                  className="robustness-chart-image"
-                  src={`${import.meta.env.BASE_URL}${robustnessCharts.sensitivity}`}
-                  alt="Sensitivity of the top robust strategy to medium-weight and private-school probability"
-                />
-              )}
+              <RobustnessScatterSvg
+                points={topStrategyPlotPoints}
+                title="Shortlisted winners: Expected Cash End vs Expected End Net Worth"
+                subtitle="Every shortlisted dot is labeled so you can see how the current leaders differ."
+                xAccessor={(strategy) => strategy.metrics.expectedCashEnd}
+                yAccessor={(strategy) => strategy.metrics.expectedEndNetWorth}
+                xLabel="Expected cash left at end"
+                yLabel="Expected end net worth"
+                xFormatter={formatCurrency}
+                yFormatter={formatCurrency}
+                highlightedIds={topStrategyIds}
+                labelAll
+              />
             </div>
           </div>
         </>
