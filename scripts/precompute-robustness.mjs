@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import loadPlannerCore from './load-planner-core.mjs';
+import * as core from '../src/plannerModel.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,8 +86,10 @@ const REDUNDANCY_SINGLE_EVENT_PROBABILITY = 0.22;
 const REDUNDANCY_DOUBLE_EVENT_PROBABILITY = 0.08;
 const COST_GROWTH_VOLATILITY = 0.45;
 const RECESSION_YEAR_SHIFT_RANGE = 2;
-
-const core = await loadPlannerCore({ moduleName: 'robustness-core' });
+const RECESSION_HIT_VOLATILITY = 5;
+const TAX_DRAG_VOLATILITY = 0.5;
+const REDUNDANCY_PEAK_AGE = 42;
+const REDUNDANCY_AGE_SPREAD = 11;
 
 const {
   BASE_BIRTH_YEAR,
@@ -99,6 +101,7 @@ const {
   OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE,
   OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE,
   OPTIMIZER_MAX_TOTAL_MORTGAGE,
+  TAX_THRESHOLD_DRAG_PCT,
   getOptimizerUpgradeYearMax,
   passesOptimizerHouseValueRule,
   calculateCareerIncome,
@@ -170,6 +173,35 @@ const hashText = (value) => Array.from(value).reduce(
   (hash, char) => ((hash * 31) + char.charCodeAt(0)) >>> 0,
   2166136261,
 );
+
+const pickAgeWeightedYear = ({
+  rng,
+  minYear,
+  maxYearLimit,
+  peakAge = REDUNDANCY_PEAK_AGE,
+  spread = REDUNDANCY_AGE_SPREAD,
+}) => {
+  const yearWeights = [];
+  let totalWeight = 0;
+
+  for (let year = minYear; year <= maxYearLimit; year += 1) {
+    const age = baseStartAge + (year - startYear);
+    const distance = (age - peakAge) / spread;
+    const weight = Math.max(0.05, Math.exp(-(distance ** 2) / 2));
+    totalWeight += weight;
+    yearWeights.push({ year, weight });
+  }
+
+  let draw = rng() * totalWeight;
+  for (const entry of yearWeights) {
+    draw -= entry.weight;
+    if (draw <= 0) {
+      return entry.year;
+    }
+  }
+
+  return yearWeights[yearWeights.length - 1]?.year ?? minYear;
+};
 
 const getDecisionVectorKey = (result) => [
   result.enableSecondHouse ? 'two' : 'one',
@@ -411,14 +443,29 @@ const buildScenarioPaths = ({ incomeCase, marketCase, privateSchool, drawIndex }
     + (marketCase.id === 'market-high' ? -0.15 : 0)
     + (randomNormal(rng) * COST_GROWTH_VOLATILITY);
   const realGrowthCosts = clamp(baseParams.realGrowthCosts + costGrowthShift, 0.5, 4.0);
+  const baseTaxThresholdDragPct = baseParams.taxThresholdDragPct ?? TAX_THRESHOLD_DRAG_PCT;
+  const taxThresholdDragPct = clamp(
+    baseTaxThresholdDragPct + (randomNormal(rng) * TAX_DRAG_VOLATILITY),
+    0.5,
+    3.25,
+  );
   const redundancyRoll = rng();
   const hasDoubleRedundancy = redundancyRoll < REDUNDANCY_DOUBLE_EVENT_PROBABILITY;
   const hasSingleRedundancy = !hasDoubleRedundancy
     && redundancyRoll < (REDUNDANCY_DOUBLE_EVENT_PROBABILITY + REDUNDANCY_SINGLE_EVENT_PROBABILITY);
-  const redundancyYearBase = startYear + 2 + Math.floor((maxYear - startYear - 10) * rng());
-  const redundancyYear = clamp(redundancyYearBase, startYear + 1, maxYear - 6);
+  const redundancyYear = pickAgeWeightedYear({
+    rng,
+    minYear: startYear + 1,
+    maxYearLimit: maxYear - 6,
+  });
   const secondRedundancyYear = hasDoubleRedundancy
-    ? clamp(redundancyYear + 4 + Math.floor(rng() * 8), redundancyYear + 3, maxYear - 2)
+    ? pickAgeWeightedYear({
+      rng,
+      minYear: Math.min(maxYear - 2, redundancyYear + 3),
+      maxYearLimit: maxYear - 2,
+      peakAge: REDUNDANCY_PEAK_AGE + 6,
+      spread: REDUNDANCY_AGE_SPREAD,
+    })
     : null;
   const shiftRecessionYear = (baseYear, minYear, maxYearLimit) => clamp(
     baseYear + Math.round((rng() * RECESSION_YEAR_SHIFT_RANGE * 2) - RECESSION_YEAR_SHIFT_RANGE),
@@ -435,6 +482,11 @@ const buildScenarioPaths = ({ incomeCase, marketCase, privateSchool, drawIndex }
     baseParams.thirdRecessionYear,
     secondRecessionYear + 2,
     maxYear,
+  );
+  const recessionHitPct = clamp(
+    baseParams.recessionHitPct + (randomNormal(rng) * RECESSION_HIT_VOLATILITY),
+    8,
+    35,
   );
   const discreteIncomeShockYear = rng() < 0.14
     ? Math.floor(startYear + 2 + (maxYear - startYear - 10) * rng())
@@ -490,12 +542,14 @@ const buildScenarioPaths = ({ incomeCase, marketCase, privateSchool, drawIndex }
     income1Path,
     income2Path,
     realGrowthCosts,
+    taxThresholdDragPct,
     enableRedundancy: hasSingleRedundancy || hasDoubleRedundancy,
     redundancyYear,
     secondRedundancyYear,
     recessionYear,
     secondRecessionYear,
     thirdRecessionYear,
+    recessionHitPct,
   };
 };
 
@@ -569,6 +623,7 @@ const buildDefaultApplyScenarioCheck = (strategy, usePrivateSchool = false) => {
     isaGrowth: defaultApplyMarketCase.isaGrowth,
     realGrowthProperty: defaultApplyMarketCase.propertyGrowth,
     usePrivateSchool,
+    taxThresholdDragPct: standardOptimizerVariant.baseParams.taxThresholdDragPct,
     calculateTakeHomePayFn: calculateRealTermsTakeHomePay,
   });
 
@@ -623,7 +678,9 @@ const simulateStrategyScenario = (strategy, scenario) => {
     isaGrowth: scenario.marketCase.isaGrowth,
     realGrowthProperty: scenario.marketCase.propertyGrowth,
     realGrowthCosts: scenario.realGrowthCosts,
+    taxThresholdDragPct: scenario.taxThresholdDragPct,
     mortgageRate: standardOptimizerVariant.baseParams.mortgageRate,
+    recessionHitPct: scenario.recessionHitPct,
     usePrivateSchool: scenario.privateSchool,
     enableRedundancy: scenario.enableRedundancy,
     redundancyYear: scenario.redundancyYear,
@@ -1706,11 +1763,22 @@ const reportJson = {
       marketCases: OPTIMIZER_MARKET_CASES.length,
       privateSchoolStates: 2,
       drawsPerBucket: SCENARIO_DRAWS_PER_BUCKET,
-      description: `Scenarios are sampled as 3 income cases x 3 market cases x 2 private-school states x ${SCENARIO_DRAWS_PER_BUCKET.toLocaleString()} random path draws per bucket. Inside each bucket, the run also perturbs yearly mortgage, ISA, property, and income paths, plus living-cost growth, recession timing, and one-or-two redundancy shocks for person 1.`,
-      whyNotEveryScenario: 'The housing grid is finite, but the future-path generator is continuous year by year. Once annual income, ISA, property, mortgage-rate, cost-growth, redundancy, and recession-timing shocks are random, there is no finite master list of all possible futures to enumerate.',
+      description: `Scenarios are sampled as 3 income cases x 3 market cases x 2 private-school states x ${SCENARIO_DRAWS_PER_BUCKET.toLocaleString()} random path draws per bucket. Inside each bucket, the run perturbs yearly mortgage, ISA, property, and income paths, plus living-cost growth, fiscal-drag tax thresholds, recession timing and severity, and one-or-two age-biased redundancy shocks for person 1.`,
+      whyNotEveryScenario: 'The housing grid is finite, but the future-path generator is continuous year by year. Once annual income, ISA, property, mortgage-rate, cost-growth, tax-drag, redundancy, and recession shocks are random, there is no finite master list of all possible futures to enumerate.',
+      sampledDimensions: [
+        'income path shocks',
+        'ISA return path shocks',
+        'property growth path shocks',
+        'mortgage-rate path shocks',
+        'living-cost growth regimes',
+        'tax-threshold drag regimes',
+        'recession timing and severity',
+        'age-biased redundancy years',
+        'private school on/off',
+      ],
     },
     strategySampling: {
-      description: `Housing strategies now start from an explicit coarse grid across the allowed deposit, mortgage, year, and salary-payment ranges. A smaller screening run ranks that full grid first, then the strongest and most representative candidates are carried into the full ${scenarios.length.toLocaleString()}-scenario robustness run.`,
+      description: `Housing strategies start from an explicit grid across the allowed deposit, mortgage, year, and salary-payment ranges. A smaller screening run ranks that grid first, then the strongest and most representative candidates are carried into the full ${scenarios.length.toLocaleString()}-scenario robustness run.`,
       firstDepositPoints: strategyGrid.depositPoints,
       firstMortgagePoints: strategyGrid.mortgagePoints,
       oneHomeEarlyPctPoints: strategyGrid.oneHomeEarlyPctPoints,
@@ -1726,7 +1794,13 @@ const reportJson = {
       pathCounts: strategyPathCounts,
       originCounts: strategyOriginCounts,
     },
-    weightingExplanation: 'Each simulated future belongs to one income bucket, one market bucket, and one private-school state. Those buckets do not all count equally: medium cases carry more weight by design, and private-school futures only get the chosen private-school probability. Within each bucket, the run also varies path shocks, cost growth, redundancy, and recession timing. A weighted share is therefore the share of total probability mass, not just the raw share of rows.',
+    weightingExplanation: 'Each simulated future belongs to one income bucket, one market bucket, and one private-school state. Those buckets do not all count equally: medium cases carry more weight by design, and private-school futures only get the chosen private-school probability. Within each bucket, the run also varies path shocks, cost growth, tax drag, redundancy, and recession timing/severity. A weighted share is therefore the share of total probability mass, not just the raw share of rows.',
+    coverageNotes: {
+      winnerScope: 'Robustness winners are the best strategies inside the screened candidate catalog carried into the full run, not across every theoretical housing strategy.',
+      regretScope: 'Regret is measured against the best tested strategy in that screened catalog for each sampled future, not an unknowable global optimum.',
+      scenarioScope: `${scenarios.length.toLocaleString()} weighted futures were sampled; this is a Monte Carlo estimate, not an exhaustive list of every possible future.`,
+      heatmapScope: 'The plateau heatmap is a balanced-robustness screening view over the explicit first-deposit / first-mortgage grid.',
+    },
   },
   baseParams: standardOptimizerVariant.baseParams,
   recommendation,
@@ -1821,7 +1895,15 @@ Generated: ${reportJson.generatedAt}
 - Default private-school probability: ${formatPercent(reportJson.meta.defaultPrivateSchoolProbability, 0)}
 - Starting incomes baked into the robustness run: ${formatCurrency(OPTIMIZER_STARTING_INCOME_1)} for person 1 and ${formatCurrency(OPTIMIZER_STARTING_INCOME_2)} for person 2
 - House-value rule: one-home first house at least ${formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} in ${standardOptimizerVariant.baseParams.firstHousePurchaseYear}; two-home second purchase at least ${formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)}
+- Sampled dimensions: ${reportJson.meta.scenarioSampling.sampledDimensions.join(', ')}
 - Why not every scenario: ${reportJson.meta.scenarioSampling.whyNotEveryScenario}
+
+## Confidence and scope
+
+- ${reportJson.meta.coverageNotes.winnerScope}
+- ${reportJson.meta.coverageNotes.regretScope}
+- ${reportJson.meta.coverageNotes.scenarioScope}
+- ${reportJson.meta.coverageNotes.heatmapScope}
 
 ## Recommendation
 

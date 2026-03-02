@@ -1,11 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import loadPlannerCore from '../scripts/load-planner-core.mjs';
-
-const {
+import {
   applyTerminalMortgagePayoff,
   simulateFinancialPlan,
-} = await loadPlannerCore({ moduleName: 'planner-test-core' });
+} from '../src/plannerModel.js';
 
 const createBaseParams = (overrides = {}) => ({
   startYear: 2033,
@@ -167,4 +165,34 @@ test('negative amortization is flagged when the mortgage budget does not cover i
 
   assert.ok(result.negativeAmortizationYears > 0);
   assert.ok(result.capitalizedInterestTotal > 0);
+});
+
+test('deterministic one-home scenario stays stable on key end metrics', () => {
+  const result = simulateFinancialPlan(createBaseParams({
+    startYear: 2027,
+    firstHousePurchaseYear: 2027,
+    startAge: 29,
+    maxYear: 2032,
+    initialDeposit: 550000,
+    initialMortgage: 300000,
+    isaSeed: 50000,
+    income1Start: 70000,
+    income2Start: 90000,
+    incomeGrowth: 3.5,
+    enableSecondHouse: false,
+    secondMortgage: 0,
+    secondHouseDeposit: 0,
+    child1BirthYear: 2035,
+    child2BirthYear: 2037,
+    kid1GiftYear: 2062,
+    kid2GiftYear: 2064,
+    visaCostPreSecondHouse: 2200,
+    visaCostAtSecondHouse: 2500,
+  }));
+
+  assert.equal(Math.round(result.cashEnd), 102291);
+  assert.equal(Math.round(result.netWorthEnd), 1040759);
+  assert.equal(Math.round(result.finalPropertyValue), 938469);
+  assert.equal(Math.round(result.totalMortgagePayments), 187920);
+  assert.equal(Math.round(result.lifetimeInterestPaid), 33137);
 });

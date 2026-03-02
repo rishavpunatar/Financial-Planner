@@ -14,6 +14,7 @@ const RobustnessTabSection = ({
   robustnessMeta,
   robustnessRecommendation,
   robustnessCharts,
+  robustnessCoverageNotes,
   robustnessObjectiveDefinitions,
   robustnessObjective,
   setRobustnessObjective,
@@ -25,6 +26,7 @@ const RobustnessTabSection = ({
   robustnessPathLeaderCards,
   buildRobustnessWhyLines,
   handleApplyRobustnessStrategy,
+  handleDownloadRobustnessSummary,
   robustnessPathView,
   setRobustnessPathView,
   robustnessEligibleStrategies,
@@ -87,6 +89,20 @@ const RobustnessTabSection = ({
               <div className="optimizer-result-title">Why not every scenario</div>
               <div className="optimizer-result-sub">
                 {robustnessMeta?.scenarioSampling?.whyNotEveryScenario ?? 'The future-path generator is continuous year by year, so there is no finite master list of all possible scenarios to enumerate.'}
+              </div>
+            </div>
+            <div className="robustness-explainer-card">
+              <div className="optimizer-result-title">What is exact vs estimated</div>
+              <div className="optimizer-result-sub">
+                {robustnessCoverageNotes?.winnerScope ?? 'Winner-scope note unavailable.'}
+                {' '}
+                {robustnessCoverageNotes?.scenarioScope ?? 'Scenario-scope note unavailable.'}
+              </div>
+            </div>
+            <div className="robustness-explainer-card">
+              <div className="optimizer-result-title">What regret is relative to</div>
+              <div className="optimizer-result-sub">
+                {robustnessCoverageNotes?.regretScope ?? 'Regret-scope note unavailable.'}
               </div>
             </div>
           </div>
@@ -186,6 +202,9 @@ const RobustnessTabSection = ({
                   <div>
                     Market cases: {OPTIMIZER_MARKET_CASES.map((item) => `${item.shortLabel} ISA ${item.isaGrowth}% / Property ${item.propertyGrowth}%`).join(', ')}
                   </div>
+                  <div>
+                    Extra sampled shocks: {robustnessMeta?.scenarioSampling?.sampledDimensions?.join(', ') || '—'}
+                  </div>
                 </div>
               </div>
               <div className="robustness-explainer-card">
@@ -253,6 +272,9 @@ const RobustnessTabSection = ({
               <div>
                 Displayed winners are also filtered to strategies that pass the {robustnessApplyFilterDescription} hard rules, including the post-2032 {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} liquid-savings floor.
               </div>
+              <div>
+                {robustnessCoverageNotes?.heatmapScope ?? 'Heatmap scope note unavailable.'}
+              </div>
             </div>
           </div>
 
@@ -314,6 +336,13 @@ const RobustnessTabSection = ({
                         onClick={() => handleApplyRobustnessStrategy(strategy)}
                       >
                         Apply
+                      </button>
+                      <button
+                        type="button"
+                        className="preset-button preset-button-secondary"
+                        onClick={() => handleDownloadRobustnessSummary(strategy)}
+                      >
+                        Download
                       </button>
                     </>
                   ) : (
@@ -407,6 +436,13 @@ const RobustnessTabSection = ({
                           onClick={() => handleApplyRobustnessStrategy(result)}
                         >
                           Apply
+                        </button>
+                        <button
+                          type="button"
+                          className="preset-button preset-button-secondary"
+                          onClick={() => handleDownloadRobustnessSummary(result)}
+                        >
+                          Download
                         </button>
                       </td>
                     </tr>

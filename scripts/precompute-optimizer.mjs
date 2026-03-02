@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import loadPlannerCore from './load-planner-core.mjs';
+import * as optimizerCore from '../src/plannerModel.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,7 +19,6 @@ const OPTIMIZER_MAX_UPGRADE_VALUE = 600000;
 const PRECOMPUTED_TOP_RESULTS_PER_CASE = 20;
 
 await mkdir(tempDir, { recursive: true });
-const optimizerCore = await loadPlannerCore({ moduleName: 'optimizer-core' });
 
 const {
   BASE_BIRTH_YEAR,
@@ -33,6 +32,7 @@ const {
   OPTIMIZER_LATE_UPGRADE_YEAR_MAX,
   OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE,
   OPTIMIZER_MAX_TOTAL_MORTGAGE,
+  TAX_THRESHOLD_DRAG_PCT,
   buildSteppedPoints,
   getOptimizerUpgradeYearMax,
   compareOptimizerResults,
@@ -52,6 +52,7 @@ const defaultScenario = {
   salaryMortgageEarly: 18,
   salaryMortgageLater: 10,
   realGrowthCosts: 2,
+  taxThresholdDragPct: TAX_THRESHOLD_DRAG_PCT,
   realGrowthProperty: 2,
   isaGrowth: 3,
   initialMortgage: 300000,
@@ -443,6 +444,7 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
       firstHousePurchaseYear: baseParams.firstHousePurchaseYear,
       mortgageRate: baseParams.mortgageRate,
       realGrowthCosts: baseParams.realGrowthCosts,
+      taxThresholdDragPct: baseParams.taxThresholdDragPct,
       child1BirthYear: baseParams.child1BirthYear,
       child2BirthYear: baseParams.child2BirthYear,
       baseLivingCost: baseParams.baseLivingCost,
@@ -473,6 +475,10 @@ const runFullHousingOptimizer = ({ baseParams, searchConfig }) => {
       testedScenarioCount: caseResults.reduce((count, caseResult) => count + caseResult.scenariosTested, 0),
       feasibleScenarioCount: caseResults.reduce((count, caseResult) => count + caseResult.feasibleCount, 0),
       startingCashPool,
+      coverageNotes: {
+        winnerScope: 'Winners are exact only within the frozen search ranges and step sizes used in this precompute run.',
+        assumptionScope: 'The precomputed winners keep the stored baseline assumptions fixed apart from the searched housing levers and the 9 income/market assumption cases.',
+      },
     },
     caseResults,
   };

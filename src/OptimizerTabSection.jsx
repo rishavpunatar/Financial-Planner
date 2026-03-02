@@ -8,6 +8,7 @@ const OptimizerTabSection = ({
   optimizerModeLabel,
   optimizerModeDescription,
   displayOptimizerSearchMeta,
+  optimizerCoverageNotes,
   optimizerPropertyMode,
   setOptimizerPropertyMode,
   optimizerObjectiveDefinitions,
@@ -71,6 +72,7 @@ const OptimizerTabSection = ({
   setStrategyApplyMode,
   selectedStrategyApplyModeDefinition,
   handleApplyOptimizerResult,
+  handleDownloadOptimizerSummary,
   precomputedOptimizerGeneratedAt,
   showAllFeasibleResults,
   setShowAllFeasibleResults,
@@ -154,6 +156,11 @@ const OptimizerTabSection = ({
               {`"Tested" means the number of housing combinations the optimizer actually ran for that assumption case. "Success rate" means the share that passed every hard rule: positive liquid cash before the age-${END_AGE} mortgage payoff, `}
               one-home plans needing at least {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} on the first house, two-home plans needing at least {formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)} on the second purchase value, no funding gap, no cumulative shortfall, no capitalised interest, and mortgage balances within the caps.
             </p>
+            <div className="optimizer-detail-list">
+              {optimizerCoverageNotes.map((note) => (
+                <div key={note}>{note}</div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -540,6 +547,13 @@ const OptimizerTabSection = ({
             onClick={() => handleApplyOptimizerResult(selectedOptimizerResult)}
           >
             Apply selected combination to planner
+          </button>
+          <button
+            type="button"
+            className="preset-button preset-button-secondary"
+            onClick={handleDownloadOptimizerSummary}
+          >
+            Download selected summary
           </button>
         </div>
       )}
