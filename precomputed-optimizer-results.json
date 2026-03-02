@@ -1,13 +1,14 @@
 {
-  "generatedAt": "2026-03-02T18:38:43.548Z",
+  "generatedAt": "2026-03-02T19:08:12.239Z",
   "variants": {
     "standard": {
-      "generatedAt": "2026-03-02T18:38:31.495Z",
+      "generatedAt": "2026-03-02T19:07:50.512Z",
       "baseParams": {
         "startYear": 2027,
         "firstHousePurchaseYear": 2027,
         "mortgageRate": 2.3,
         "realGrowthCosts": 2,
+        "taxThresholdDragPct": 1.85,
         "child1BirthYear": 2032,
         "child2BirthYear": 2034,
         "baseLivingCost": 40000,
@@ -55,7 +56,11 @@
         "exactScenarioCount": 1491336,
         "testedScenarioCount": 1491336,
         "feasibleScenarioCount": 18633,
-        "startingCashPool": 300000
+        "startingCashPool": 300000,
+        "coverageNotes": {
+          "winnerScope": "Winners are exact only within the frozen search ranges and step sizes used in this precompute run.",
+          "assumptionScope": "The precomputed winners keep the stored baseline assumptions fixed apart from the searched housing levers and the 9 income/market assumption cases."
+        }
       },
       "caseResults": [
         {
@@ -39985,12 +39990,13 @@
       }
     },
     "privateSchool": {
-      "generatedAt": "2026-03-02T18:38:43.548Z",
+      "generatedAt": "2026-03-02T19:08:12.239Z",
       "baseParams": {
         "startYear": 2027,
         "firstHousePurchaseYear": 2027,
         "mortgageRate": 2.3,
         "realGrowthCosts": 2,
+        "taxThresholdDragPct": 1.85,
         "child1BirthYear": 2032,
         "child2BirthYear": 2034,
         "baseLivingCost": 40000,
@@ -40038,7 +40044,11 @@
         "exactScenarioCount": 1491336,
         "testedScenarioCount": 1491336,
         "feasibleScenarioCount": 29,
-        "startingCashPool": 300000
+        "startingCashPool": 300000,
+        "coverageNotes": {
+          "winnerScope": "Winners are exact only within the frozen search ranges and step sizes used in this precompute run.",
+          "assumptionScope": "The precomputed winners keep the stored baseline assumptions fixed apart from the searched housing levers and the 9 income/market assumption cases."
+        }
       },
       "caseResults": [
         {
