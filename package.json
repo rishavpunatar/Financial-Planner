@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test": "node --test tests/*.test.mjs",
     "preview": "vite preview",
     "precompute:optimizer": "node scripts/precompute-optimizer.mjs",
     "precompute:robustness": "node scripts/precompute-robustness.mjs",

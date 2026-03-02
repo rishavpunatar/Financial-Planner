@@ -1,15 +1,13 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
+import loadPlannerCore from './load-planner-core.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
-const appPath = path.join(repoRoot, 'src', 'App.jsx');
 const optimizerPayloadPath = path.join(repoRoot, 'public', 'precomputed-optimizer-results.json');
 const robustnessDir = path.join(repoRoot, 'public', 'robustness-analysis');
-const tempDir = path.join(repoRoot, '.tmp');
-const tempModulePath = path.join(tempDir, 'robustness-core.mjs');
 const reportJsonPath = path.join(robustnessDir, 'report.json');
 const reportMarkdownPath = path.join(robustnessDir, 'report.md');
 const scatterOverallChartPath = path.join(robustnessDir, 'scatter-net-worth-vs-regret-overall.svg');
@@ -31,10 +29,16 @@ const TOP_CDF_STRATEGY_COUNT = 5;
 const HEATMAP_PLATEAU_THRESHOLD = 0.97;
 const HEATMAP_FEASIBILITY_SLACK = 0.02;
 const STRATEGY_STEP = 50000;
-const DEFAULT_FIRST_HOUSE_MORTGAGE_MAX = 600000;
-const DEFAULT_ROBUSTNESS_FIRST_DEPOSIT = 300000;
-const DEFAULT_ROBUSTNESS_FIRST_MORTGAGE = 300000;
-const DEFAULT_ROBUSTNESS_EARLY_MORTGAGE_PCT = 18;
+const STRATEGY_SCREENING_DRAWS_PER_BUCKET = 8;
+const SCREENING_EARLY_PCT_POINT_COUNT = 3;
+const SCREENING_LATER_PCT_POINT_COUNT = 3;
+const SCREENING_SECOND_YEAR_POINT_COUNT = 4;
+const SCREENING_SECOND_MORTGAGE_POINT_COUNT = 3;
+const FINAL_OVERALL_CANDIDATES_PER_OBJECTIVE = 18;
+const FINAL_PATH_CANDIDATES_PER_OBJECTIVE = 8;
+const EXPLICIT_GRID_TOP_ONE_HOME_PER_CELL = 2;
+const EXPLICIT_GRID_TOP_TWO_HOME_PER_CELL = 3;
+const HEATMAP_BALANCED_OBJECTIVE_ID = 'robust';
 const ROBUSTNESS_BIG_FIRST_HOUSE_TARGET = 800000;
 
 const ROBUSTNESS_OBJECTIVE_DEFINITIONS = [
@@ -78,41 +82,7 @@ const MARKET_MORTGAGE_RATE_SHIFT = {
   'market-high': -0.2,
 };
 
-const appSource = await readFile(appPath, 'utf8');
-const startToken = 'const calculateStampDuty';
-const endToken = 'const App = () => {';
-const startIndex = appSource.indexOf(startToken);
-const endIndex = appSource.indexOf(endToken);
-
-if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-  throw new Error('Could not extract robustness core from src/App.jsx');
-}
-
-const moduleSource = `${appSource.slice(startIndex, endIndex)}
-
-export {
-  BASE_BIRTH_YEAR,
-  END_AGE,
-  OPTIMIZER_INCOME_CASES,
-  OPTIMIZER_MARKET_CASES,
-  OPTIMIZER_ASSUMPTION_CASES,
-  OPTIMIZER_STARTING_INCOME_1,
-  OPTIMIZER_STARTING_INCOME_2,
-  OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE,
-  OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE,
-  OPTIMIZER_MAX_TOTAL_MORTGAGE,
-  passesOptimizerHouseValueRule,
-  calculateCareerIncome,
-  calculateRealTermsTakeHomePay,
-  compareOptimizerResults,
-  simulateFinancialPlan,
-};
-`;
-
-await mkdir(tempDir, { recursive: true });
-await writeFile(tempModulePath, moduleSource);
-
-const core = await import(`${pathToFileURL(tempModulePath).href}?ts=${Date.now()}`);
+const core = await loadPlannerCore({ moduleName: 'robustness-core' });
 
 const {
   BASE_BIRTH_YEAR,
@@ -124,6 +94,7 @@ const {
   OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE,
   OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE,
   OPTIMIZER_MAX_TOTAL_MORTGAGE,
+  getOptimizerUpgradeYearMax,
   passesOptimizerHouseValueRule,
   calculateCareerIncome,
   calculateRealTermsTakeHomePay,
@@ -207,54 +178,91 @@ const getDecisionVectorKey = (result) => [
   result.secondMortgage ?? 0,
 ].join('|');
 
-const buildSupplementalOneHomeCandidates = () => {
-  const baseParams = standardOptimizerVariant.baseParams;
-  const baseInitialDeposit = Number.isFinite(baseParams.initialDeposit)
-    ? baseParams.initialDeposit
-    : DEFAULT_ROBUSTNESS_FIRST_DEPOSIT;
-  const baseInitialMortgage = Number.isFinite(baseParams.initialMortgage)
-    ? baseParams.initialMortgage
-    : DEFAULT_ROBUSTNESS_FIRST_MORTGAGE;
-  const baseIsaSeed = Number.isFinite(baseParams.isaSeed) ? baseParams.isaSeed : 0;
-  const baseSalaryMortgageEarly = Number.isFinite(baseParams.salaryMortgageEarly)
-    ? baseParams.salaryMortgageEarly
-    : DEFAULT_ROBUSTNESS_EARLY_MORTGAGE_PCT;
-  const startingCashPool = standardOptimizerVariant.searchMeta?.startingCashPool
-    ?? (baseInitialDeposit + baseIsaSeed);
-  const firstHouseDepositMin = Math.max(
-    0,
-    roundToStep(Math.max(baseInitialDeposit, STRATEGY_STEP) * 0.75, STRATEGY_STEP),
-  );
-  const firstHouseDepositMax = Math.max(
-    firstHouseDepositMin,
-    roundToStep(Math.max(baseInitialDeposit, STRATEGY_STEP) * 1.25, STRATEGY_STEP),
-  );
-  const firstHouseMortgageMin = Math.max(
-    0,
-    roundToStep(Math.max(baseInitialMortgage, 100000) * 0.75, STRATEGY_STEP),
-  );
-  const firstHouseMortgageMax = Math.max(
-    firstHouseMortgageMin,
-    DEFAULT_FIRST_HOUSE_MORTGAGE_MAX,
-    roundToStep(Math.max(baseInitialMortgage, 100000) * 1.25, STRATEGY_STEP),
-  );
-  const earlyMortgagePctMin = clamp(baseSalaryMortgageEarly - 5, 5, 35);
-  const earlyMortgagePctMax = clamp(baseSalaryMortgageEarly + 5, 5, 35);
+const buildRepresentativePoints = (points, targetCount) => {
+  if (points.length <= targetCount) return points;
 
-  const depositPoints = buildSteppedPoints(firstHouseDepositMin, firstHouseDepositMax, STRATEGY_STEP)
-    .filter((deposit) => deposit <= startingCashPool);
-  const mortgagePoints = buildSteppedPoints(firstHouseMortgageMin, firstHouseMortgageMax, STRATEGY_STEP);
-  const allPctPoints = buildSteppedPoints(earlyMortgagePctMin, earlyMortgagePctMax, 1);
-  const pctPoints = Array.from(new Set([
-    allPctPoints[0],
-    allPctPoints[Math.floor(allPctPoints.length / 2)],
-    allPctPoints[allPctPoints.length - 1],
-  ].filter((value) => typeof value === 'number'))).sort((left, right) => left - right);
+  const indices = new Set([0, points.length - 1]);
+  const intervals = Math.max(1, targetCount - 1);
+
+  for (let index = 0; index < targetCount; index += 1) {
+    const rawIndex = Math.round(((points.length - 1) * index) / intervals);
+    indices.add(rawIndex);
+  }
+
+  return Array.from(indices)
+    .sort((left, right) => left - right)
+    .map((index) => points[index]);
+};
+
+const buildStrategyKeyFromDecisionVector = (strategy) => getDecisionVectorKey({
+  enableSecondHouse: strategy.enableSecondHouse,
+  firstHousePurchaseYear: strategy.buyYear1,
+  initialDeposit: strategy.deposit1,
+  initialMortgage: strategy.mortgage1,
+  salaryMortgageEarly: strategy.salaryMortgageEarly,
+  salaryMortgageLater: strategy.salaryMortgageLater,
+  secondHouseYear: strategy.buyYear2,
+  secondHouseDeposit: strategy.deposit2,
+  secondMortgage: strategy.mortgage2,
+});
+
+const buildExplicitStrategyGrid = () => {
+  const searchConfig = standardOptimizerVariant.searchConfig ?? {};
+  const baseParams = standardOptimizerVariant.baseParams;
+  const startingCashPool = standardOptimizerVariant.searchMeta?.startingCashPool
+    ?? ((baseParams.initialDeposit ?? 0) + (baseParams.isaSeed ?? 0));
+
+  const depositPoints = buildSteppedPoints(
+    searchConfig.firstHouseDepositMin,
+    searchConfig.firstHouseDepositMax,
+    STRATEGY_STEP,
+  ).filter((deposit) => deposit <= startingCashPool);
+  const mortgagePoints = buildSteppedPoints(
+    searchConfig.firstHouseMortgageMin,
+    searchConfig.firstHouseMortgageMax,
+    STRATEGY_STEP,
+  );
+  const oneHomeEarlyPctPoints = buildSteppedPoints(
+    searchConfig.earlyMortgagePctMin,
+    searchConfig.earlyMortgagePctMax,
+    1,
+  );
+  const twoHomeEarlyPctPoints = buildRepresentativePoints(
+    oneHomeEarlyPctPoints,
+    SCREENING_EARLY_PCT_POINT_COUNT,
+  );
+  const laterPctPoints = buildRepresentativePoints(
+    buildSteppedPoints(searchConfig.laterMortgagePctMin, searchConfig.laterMortgagePctMax, 1),
+    SCREENING_LATER_PCT_POINT_COUNT,
+  );
+  const secondDepositPoints = buildSteppedPoints(
+    searchConfig.secondHouseDepositMin,
+    searchConfig.secondHouseDepositMax,
+    STRATEGY_STEP,
+  );
+  const secondMortgagePoints = buildRepresentativePoints(
+    buildSteppedPoints(
+      searchConfig.secondHouseMortgageMin,
+      searchConfig.secondHouseMortgageMax,
+      STRATEGY_STEP,
+    ),
+    SCREENING_SECOND_MORTGAGE_POINT_COUNT,
+  );
+  const secondYearPoints = buildRepresentativePoints(
+    buildSteppedPoints(searchConfig.secondHouseYearMin, searchConfig.secondHouseYearMax, 1),
+    SCREENING_SECOND_YEAR_POINT_COUNT,
+  );
 
   const candidates = [];
+
   depositPoints.forEach((deposit1) => {
     mortgagePoints.forEach((mortgage1) => {
-      pctPoints.forEach((salaryMortgageEarly) => {
+      const firstHouseValue = deposit1 + mortgage1;
+      const optimizerIsaSeed = Math.max(0, startingCashPool - deposit1);
+
+      oneHomeEarlyPctPoints.forEach((salaryMortgageEarly) => {
+        if (firstHouseValue < OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE) return;
+
         candidates.push({
           enableSecondHouse: false,
           firstHousePurchaseYear: baseParams.firstHousePurchaseYear,
@@ -266,102 +274,56 @@ const buildSupplementalOneHomeCandidates = () => {
           deposit2: 0,
           mortgage2: 0,
           buyYear2: null,
-          optimizerIsaSeed: Math.max(0, startingCashPool - deposit1),
-          firstHouseValue: deposit1 + mortgage1,
+          optimizerIsaSeed,
+          firstHouseValue,
           secondUpgradeValue: 0,
-          strategyOrigin: 'supplemental-one-home',
+          strategyOrigin: 'explicit-grid-one-home',
+        });
+      });
+
+      secondYearPoints.forEach((buyYear2) => {
+        const minimumFirstHouseValue = buyYear2 <= 2035 ? 400000 : 500000;
+        if (firstHouseValue < minimumFirstHouseValue) return;
+        if (buyYear2 > getOptimizerUpgradeYearMax(firstHouseValue)) return;
+
+        secondDepositPoints.forEach((deposit2) => {
+          secondMortgagePoints.forEach((mortgage2) => {
+            const secondUpgradeValue = deposit2 + mortgage2;
+            if (secondUpgradeValue < 200000 || secondUpgradeValue > 600000) return;
+
+            twoHomeEarlyPctPoints.forEach((salaryMortgageEarly) => {
+              laterPctPoints.forEach((salaryMortgageLater) => {
+                candidates.push({
+                  enableSecondHouse: true,
+                  firstHousePurchaseYear: baseParams.firstHousePurchaseYear,
+                  deposit1,
+                  mortgage1,
+                  buyYear1: baseParams.firstHousePurchaseYear,
+                  salaryMortgageEarly,
+                  salaryMortgageLater,
+                  deposit2,
+                  mortgage2,
+                  buyYear2,
+                  optimizerIsaSeed,
+                  firstHouseValue,
+                  secondUpgradeValue,
+                  strategyOrigin: 'explicit-grid-two-home',
+                });
+              });
+            });
+          });
         });
       });
     });
   });
 
-  return {
-    candidates,
-    grid: {
-      depositPoints,
-      mortgagePoints,
-      salaryMortgageEarlyPoints: pctPoints,
-      startingCashPool,
-    },
-  };
-};
-
-const collectStrategyCandidates = () => {
-  const rawResults = [
-    ...(standardOptimizerVariant.caseResults ?? []),
-    ...((privateSchoolOptimizerVariant?.caseResults) ?? []),
-  ].flatMap((caseResult) => [
-    caseResult.bestResult,
-    ...(caseResult.topResults ?? []),
-  ].filter(Boolean));
-
-  const strategyMap = new Map();
-
-  rawResults.forEach((result) => {
-    const key = getDecisionVectorKey(result);
-    const existing = strategyMap.get(key);
-    if (!existing || compareOptimizerResults(result, existing.sourceResult) < 0) {
-      strategyMap.set(key, {
-        sourceResult: result,
-        key,
-      });
-    }
-  });
-
-  const supplementalOneHome = buildSupplementalOneHomeCandidates();
-  supplementalOneHome.candidates.forEach((candidate) => {
-    const key = getDecisionVectorKey({
-      enableSecondHouse: candidate.enableSecondHouse,
-      firstHousePurchaseYear: candidate.buyYear1,
-      initialDeposit: candidate.deposit1,
-      initialMortgage: candidate.mortgage1,
-      salaryMortgageEarly: candidate.salaryMortgageEarly,
-      salaryMortgageLater: candidate.salaryMortgageLater,
-      secondHouseYear: candidate.buyYear2,
-      secondHouseDeposit: candidate.deposit2,
-      secondMortgage: candidate.mortgage2,
-    });
-
-    if (!strategyMap.has(key)) {
-      strategyMap.set(key, {
-        key,
-        sourceResult: null,
-        supplementalCandidate: candidate,
-      });
-    }
-  });
-
-  const strategies = Array.from(strategyMap.values())
-    .map(({ sourceResult, supplementalCandidate, key }, index) => {
-      if (sourceResult) {
-        return {
-          strategyId: `S${String(index + 1).padStart(3, '0')}`,
-          key,
-          enableSecondHouse: sourceResult.enableSecondHouse,
-          firstHousePurchaseYear: sourceResult.firstHousePurchaseYear,
-          deposit1: sourceResult.initialDeposit,
-          mortgage1: sourceResult.initialMortgage,
-          buyYear1: sourceResult.firstHousePurchaseYear,
-          salaryMortgageEarly: sourceResult.salaryMortgageEarly,
-          salaryMortgageLater: sourceResult.salaryMortgageLater,
-          deposit2: sourceResult.secondHouseDeposit ?? 0,
-          mortgage2: sourceResult.secondMortgage ?? 0,
-          buyYear2: sourceResult.secondHouseYear ?? null,
-          optimizerIsaSeed: sourceResult.optimizerIsaSeed,
-          firstHouseValue: sourceResult.firstHouseValue,
-          secondUpgradeValue: sourceResult.secondUpgradeValue ?? 0,
-          strategyOrigin: 'optimizer-ranked',
-          sourceResult,
-        };
-      }
-
-      return {
-        strategyId: `S${String(index + 1).padStart(3, '0')}`,
-        key,
-        ...supplementalCandidate,
-        sourceResult: null,
-      };
-    })
+  const strategies = candidates
+    .map((candidate, index) => ({
+      strategyId: `S${String(index + 1).padStart(3, '0')}`,
+      key: buildStrategyKeyFromDecisionVector(candidate),
+      ...candidate,
+      sourceResult: null,
+    }))
     .sort((left, right) => {
       if (left.enableSecondHouse !== right.enableSecondHouse) {
         return Number(left.enableSecondHouse) - Number(right.enableSecondHouse);
@@ -370,12 +332,29 @@ const collectStrategyCandidates = () => {
       if (left.mortgage1 !== right.mortgage1) return left.mortgage1 - right.mortgage1;
       if (left.deposit2 !== right.deposit2) return left.deposit2 - right.deposit2;
       if (left.mortgage2 !== right.mortgage2) return left.mortgage2 - right.mortgage2;
+      if ((left.buyYear2 ?? 0) !== (right.buyYear2 ?? 0)) return (left.buyYear2 ?? 0) - (right.buyYear2 ?? 0);
       return left.strategyId.localeCompare(right.strategyId);
     });
 
   return {
     strategies,
-    grid: supplementalOneHome.grid,
+    grid: {
+      depositPoints,
+      mortgagePoints,
+      oneHomeEarlyPctPoints,
+      twoHomeEarlyPctPoints,
+      laterPctPoints,
+      secondDepositPoints,
+      secondMortgagePoints,
+      secondYearPoints,
+      startingCashPool,
+      explicitCandidateCount: strategies.length,
+      pathCounts: strategies.reduce((counts, strategy) => {
+        const key = strategy.enableSecondHouse ? 'twoHome' : 'oneHome';
+        counts[key] += 1;
+        return counts;
+      }, { oneHome: 0, twoHome: 0 }),
+    },
   };
 };
 
@@ -405,7 +384,7 @@ const getScenarioWeight = (scenario, mediumWeight, privateSchoolProbability) => 
     ? privateSchoolProbability
     : (1 - privateSchoolProbability);
 
-  return (incomeWeight * marketWeight * schoolWeight) / SCENARIO_DRAWS_PER_BUCKET;
+  return (incomeWeight * marketWeight * schoolWeight) / (scenario.drawsPerBucket ?? SCENARIO_DRAWS_PER_BUCKET);
 };
 
 const buildScenarioPaths = ({ incomeCase, marketCase, privateSchool, drawIndex }) => {
@@ -477,13 +456,13 @@ const buildScenarioPaths = ({ incomeCase, marketCase, privateSchool, drawIndex }
   };
 };
 
-const buildScenarioSample = () => {
+const buildScenarioSample = (drawsPerBucket = SCENARIO_DRAWS_PER_BUCKET) => {
   const scenarios = [];
 
   OPTIMIZER_INCOME_CASES.forEach((incomeCase) => {
     OPTIMIZER_MARKET_CASES.forEach((marketCase) => {
       [false, true].forEach((privateSchool) => {
-        for (let drawIndex = 0; drawIndex < SCENARIO_DRAWS_PER_BUCKET; drawIndex += 1) {
+        for (let drawIndex = 0; drawIndex < drawsPerBucket; drawIndex += 1) {
           const paths = buildScenarioPaths({
             incomeCase,
             marketCase,
@@ -497,6 +476,7 @@ const buildScenarioSample = () => {
             marketCase,
             privateSchool,
             drawIndex,
+            drawsPerBucket,
             ...paths,
           });
         }
@@ -923,6 +903,103 @@ const compareRobustnessMetricsForObjective = (objectiveId, left, right) => {
   return right.weightedMeanNetWorth - left.weightedMeanNetWorth;
 };
 
+const selectFinalCandidateStrategies = ({
+  strategies,
+  screeningMetrics,
+}) => {
+  const selectedIds = new Set();
+
+  const addTopMetrics = (metricsSubset, objectiveId, count) => {
+    [...metricsSubset]
+      .sort((left, right) => compareRobustnessMetricsForObjective(objectiveId, left, right))
+      .slice(0, count)
+      .forEach((metric) => {
+        selectedIds.add(metric.strategyId);
+      });
+  };
+
+  ROBUSTNESS_OBJECTIVE_DEFINITIONS.forEach(({ id }) => {
+    addTopMetrics(screeningMetrics, id, FINAL_OVERALL_CANDIDATES_PER_OBJECTIVE);
+    addTopMetrics(
+      screeningMetrics.filter((metric) => !metric.strategy.enableSecondHouse),
+      id,
+      FINAL_PATH_CANDIDATES_PER_OBJECTIVE,
+    );
+    addTopMetrics(
+      screeningMetrics.filter((metric) => metric.strategy.enableSecondHouse),
+      id,
+      FINAL_PATH_CANDIDATES_PER_OBJECTIVE,
+    );
+  });
+
+  const balancedCellWinners = new Map();
+  screeningMetrics.forEach((metric) => {
+    const cellKey = [
+      metric.strategy.deposit1,
+      metric.strategy.mortgage1,
+      metric.strategy.enableSecondHouse ? 'twoHome' : 'oneHome',
+    ].join('|');
+    const existing = balancedCellWinners.get(cellKey);
+    if (
+      !existing
+      || compareRobustnessMetricsForObjective(HEATMAP_BALANCED_OBJECTIVE_ID, metric, existing) < 0
+    ) {
+      balancedCellWinners.set(cellKey, metric);
+    }
+  });
+
+  Array.from(balancedCellWinners.values())
+    .filter((metric) => !metric.strategy.enableSecondHouse)
+    .sort((left, right) => compareRobustnessMetricsForObjective(HEATMAP_BALANCED_OBJECTIVE_ID, left, right))
+    .slice(0, screeningMetrics.length)
+    .forEach((metric) => selectedIds.add(metric.strategyId));
+
+  Array.from(balancedCellWinners.values())
+    .filter((metric) => metric.strategy.enableSecondHouse)
+    .sort((left, right) => compareRobustnessMetricsForObjective(HEATMAP_BALANCED_OBJECTIVE_ID, left, right))
+    .slice(0, screeningMetrics.length)
+    .forEach((metric) => selectedIds.add(metric.strategyId));
+
+  screeningMetrics
+    .filter((metric) => !metric.strategy.enableSecondHouse)
+    .sort((left, right) => compareRobustnessMetricsForObjective(HEATMAP_BALANCED_OBJECTIVE_ID, left, right))
+    .slice(0, EXPLICIT_GRID_TOP_ONE_HOME_PER_CELL * 16)
+    .forEach((metric) => selectedIds.add(metric.strategyId));
+
+  screeningMetrics
+    .filter((metric) => metric.strategy.enableSecondHouse)
+    .sort((left, right) => compareRobustnessMetricsForObjective(HEATMAP_BALANCED_OBJECTIVE_ID, left, right))
+    .slice(0, EXPLICIT_GRID_TOP_TWO_HOME_PER_CELL * 24)
+    .forEach((metric) => selectedIds.add(metric.strategyId));
+
+  const finalStrategies = strategies
+    .filter((strategy) => selectedIds.has(strategy.strategyId))
+    .sort((left, right) => {
+      if (left.enableSecondHouse !== right.enableSecondHouse) {
+        return Number(left.enableSecondHouse) - Number(right.enableSecondHouse);
+      }
+      if (left.deposit1 !== right.deposit1) return left.deposit1 - right.deposit1;
+      if (left.mortgage1 !== right.mortgage1) return left.mortgage1 - right.mortgage1;
+      if (left.deposit2 !== right.deposit2) return left.deposit2 - right.deposit2;
+      if (left.mortgage2 !== right.mortgage2) return left.mortgage2 - right.mortgage2;
+      if ((left.buyYear2 ?? 0) !== (right.buyYear2 ?? 0)) return (left.buyYear2 ?? 0) - (right.buyYear2 ?? 0);
+      return left.key.localeCompare(right.key);
+    })
+    .map((strategy, index) => ({
+      ...strategy,
+      strategyId: `S${String(index + 1).padStart(3, '0')}`,
+      screeningStrategyId: strategy.strategyId,
+    }));
+
+  return {
+    strategies: finalStrategies,
+    selectionSummary: {
+      screenedCandidateCount: strategies.length,
+      selectedCandidateCount: finalStrategies.length,
+    },
+  };
+};
+
 const buildParetoFrontier = (metrics) => (
   metrics
     .filter((candidate) => !metrics.some((other) => (
@@ -1247,8 +1324,8 @@ const buildHeatmapSvg = ({ cells }) => {
   const populatedCells = cells.filter((cell) => typeof cell.compositeRobustScore === 'number');
   if (!populatedCells.length) {
     return buildEmptyChartSvg({
-      title: 'Robust Score Plateau by First Deposit vs First Mortgage',
-      subtitle: 'No populated heatmap cells were available for the current robustness candidate set.',
+      title: 'Balanced Robustness Screening by First Deposit vs First Mortgage',
+      subtitle: 'No populated heatmap cells were available for the current explicit strategy grid.',
       message: 'No sampled strategies landed inside the plotted first-deposit / first-mortgage grid.',
     });
   }
@@ -1261,8 +1338,8 @@ const buildHeatmapSvg = ({ cells }) => {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <rect width="${width}" height="${height}" fill="#ffffff"/>
-  <text x="${padding.left}" y="28" font-size="20" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">Robust Score Plateau by First Deposit vs First Mortgage</text>
-  <text x="${padding.left}" y="48" font-size="12" font-family="Arial, sans-serif" fill="#475569">Each cell shows the best strategy available for that starting deposit and mortgage pair. Grey cells mean that pair was in the overall search range but not included in the robustness candidate set. Bold outline marks the plateau region.</text>
+  <text x="${padding.left}" y="28" font-size="20" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">Balanced Robustness Screening by First Deposit vs First Mortgage</text>
+  <text x="${padding.left}" y="48" font-size="12" font-family="Arial, sans-serif" fill="#475569">Each cell shows the best screened strategy available for that starting deposit and mortgage pair under the balanced robustness score. Grey cells mean that pair was in the plotted range but no screened strategy survived there. Bold outline marks the plateau region.</text>
   ${cells.map((cell) => {
     const x = getX(cell.deposit1);
     const y = getY(cell.mortgage1);
@@ -1304,8 +1381,8 @@ const buildSensitivitySvg = ({ cells }) => {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <rect width="${width}" height="${height}" fill="#ffffff"/>
-  <text x="${padding.left}" y="28" font-size="20" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">Sensitivity of the Top Robust Strategy</text>
-  <text x="${padding.left}" y="48" font-size="12" font-family="Arial, sans-serif" fill="#475569">This shows which strategy wins as the medium-case weight and private-school probability change.</text>
+  <text x="${padding.left}" y="28" font-size="20" font-family="Arial, sans-serif" font-weight="700" fill="#0f172a">Sensitivity of the Top Balanced-Robust Strategy</text>
+  <text x="${padding.left}" y="48" font-size="12" font-family="Arial, sans-serif" fill="#475569">This shows which balanced-robust strategy wins as the medium-case weight and private-school probability change.</text>
   ${cells.map((cell) => {
     const x = getX(cell.privateSchoolProbability);
     const y = getY(cell.mediumWeight);
@@ -1370,7 +1447,29 @@ const serializeStrategyMetric = (metric, rank = null) => ({
   defaultApplyScenarioCheck: buildDefaultApplyScenarioCheck(metric.strategy),
 });
 
-const { strategies, grid: strategyGrid } = collectStrategyCandidates();
+const { strategies: explicitStrategies, grid: strategyGrid } = buildExplicitStrategyGrid();
+const screeningScenarios = buildScenarioSample(STRATEGY_SCREENING_DRAWS_PER_BUCKET);
+const {
+  strategyOutcomes: screeningOutcomes,
+  scenarioBestNetWorth: screeningScenarioBestNetWorth,
+} = evaluateStrategies({
+  strategies: explicitStrategies,
+  scenarios: screeningScenarios,
+});
+const screeningMetrics = computeMetricSet({
+  strategyOutcomes: screeningOutcomes,
+  scenarios: screeningScenarios,
+  scenarioBestNetWorth: screeningScenarioBestNetWorth,
+  mediumWeight: DEFAULT_MEDIUM_WEIGHT,
+  privateSchoolProbability: DEFAULT_PRIVATE_SCHOOL_PROBABILITY,
+});
+const {
+  strategies,
+  selectionSummary,
+} = selectFinalCandidateStrategies({
+  strategies: explicitStrategies,
+  screeningMetrics,
+});
 const scenarios = buildScenarioSample();
 const { strategyOutcomes, scenarioBestNetWorth } = evaluateStrategies({
   strategies,
@@ -1395,17 +1494,38 @@ const metricsById = new Map(metrics.map((metric) => [metric.strategyId, metric])
 const outcomesByStrategyId = new Map(
   strategyOutcomes.map((strategyOutcome) => [strategyOutcome.strategy.strategyId, strategyOutcome]),
 );
-const paretoFrontier = buildParetoFrontier(metrics);
-const topStrategies = metrics.slice(0, TOP_STRATEGY_COUNT);
-const topCdfStrategies = topStrategies.slice(0, TOP_CDF_STRATEGY_COUNT);
 const oneHomeMetrics = metrics.filter((metric) => !metric.strategy.enableSecondHouse);
 const twoHomeMetrics = metrics.filter((metric) => metric.strategy.enableSecondHouse);
-const topOneHomeStrategies = oneHomeMetrics.slice(0, TOP_CDF_STRATEGY_COUNT);
-const topTwoHomeStrategies = twoHomeMetrics.slice(0, TOP_CDF_STRATEGY_COUNT);
-const oneHomeFrontier = buildParetoFrontier(oneHomeMetrics);
-const twoHomeFrontier = buildParetoFrontier(twoHomeMetrics);
+const pathMetricsByView = {
+  all: metrics,
+  oneHome: oneHomeMetrics,
+  twoHome: twoHomeMetrics,
+};
+const frontierByView = {
+  all: buildParetoFrontier(metrics),
+  oneHome: buildParetoFrontier(oneHomeMetrics),
+  twoHome: buildParetoFrontier(twoHomeMetrics),
+};
+const objectiveRankings = Object.fromEntries(
+  ROBUSTNESS_OBJECTIVE_DEFINITIONS.map((objective) => {
+    const objectiveSorter = (left, right) => compareRobustnessMetricsForObjective(objective.id, left, right);
+    const allRanked = [...metrics].sort(objectiveSorter);
+    const oneHomeRanked = [...oneHomeMetrics].sort(objectiveSorter);
+    const twoHomeRanked = [...twoHomeMetrics].sort(objectiveSorter);
+
+    return [
+      objective.id,
+      {
+        all: allRanked,
+        oneHome: oneHomeRanked,
+        twoHome: twoHomeRanked,
+      },
+    ];
+  }),
+);
+const topStrategies = objectiveRankings.robust.all.slice(0, TOP_STRATEGY_COUNT);
 const heatmapCells = buildHeatmapCells({
-  metrics,
+  metrics: screeningMetrics,
   depositGrid: strategyGrid.depositPoints,
   mortgageGrid: strategyGrid.mortgagePoints,
 });
@@ -1416,48 +1536,62 @@ const sensitivityGrid = buildSensitivityGrid({
   scenarioBestNetWorth,
 });
 
-const scatterOverallSvg = buildScatterSvg({
-  metrics,
-  frontier: paretoFrontier,
-  topStrategies,
-  title: 'Expected End Net Worth vs 10% CVaR Regret',
-  subtitle: 'All sampled strategies. Further right is better expected wealth; lower is better downside regret.',
-});
-const cdfOverallSvg = buildCdfSvg({
-  topStrategies: topCdfStrategies,
-  outcomesByStrategyId,
-  defaultWeights: defaultScenarioWeights,
-  title: 'CDF of End Net Worth for Top Robust Strategies',
-  subtitle: 'All sampled strategies. Further right means higher end net worth across the distribution.',
-});
-const scatterOneHomeSvg = buildScatterSvg({
-  metrics: oneHomeMetrics,
-  frontier: oneHomeFrontier,
-  topStrategies: topOneHomeStrategies,
-  title: 'Expected End Net Worth vs 10% CVaR Regret',
-  subtitle: 'One-home paths only. This isolates keep-one-home strategies from the upgrade paths.',
-});
-const cdfOneHomeSvg = buildCdfSvg({
-  topStrategies: topOneHomeStrategies,
-  outcomesByStrategyId,
-  defaultWeights: defaultScenarioWeights,
-  title: 'CDF of End Net Worth for Top One-home Strategies',
-  subtitle: 'One-home paths only. Each line is one of the strongest keep-one-home strategies.',
-});
-const scatterTwoHomeSvg = buildScatterSvg({
-  metrics: twoHomeMetrics,
-  frontier: twoHomeFrontier,
-  topStrategies: topTwoHomeStrategies,
-  title: 'Expected End Net Worth vs 10% CVaR Regret',
-  subtitle: 'Two-home paths only. This isolates buy-then-upgrade strategies from the one-home set.',
-});
-const cdfTwoHomeSvg = buildCdfSvg({
-  topStrategies: topTwoHomeStrategies,
-  outcomesByStrategyId,
-  defaultWeights: defaultScenarioWeights,
-  title: 'CDF of End Net Worth for Top Two-home Strategies',
-  subtitle: 'Two-home paths only. Each line is one of the strongest upgrade-path strategies.',
-});
+const scatterSvgsByObjective = Object.fromEntries(
+  ROBUSTNESS_OBJECTIVE_DEFINITIONS.map((objective) => ([
+    objective.id,
+    {
+      all: buildScatterSvg({
+        metrics: pathMetricsByView.all,
+        frontier: frontierByView.all,
+        topStrategies: objectiveRankings[objective.id].all.slice(0, TOP_CDF_STRATEGY_COUNT),
+        title: 'Expected End Net Worth vs 10% CVaR Regret',
+        subtitle: `All sampled strategies. Highlighted labels follow the "${objective.label}" objective.`,
+      }),
+      oneHome: buildScatterSvg({
+        metrics: pathMetricsByView.oneHome,
+        frontier: frontierByView.oneHome,
+        topStrategies: objectiveRankings[objective.id].oneHome.slice(0, TOP_CDF_STRATEGY_COUNT),
+        title: 'Expected End Net Worth vs 10% CVaR Regret',
+        subtitle: `One-home paths only. Highlighted labels follow the "${objective.label}" objective.`,
+      }),
+      twoHome: buildScatterSvg({
+        metrics: pathMetricsByView.twoHome,
+        frontier: frontierByView.twoHome,
+        topStrategies: objectiveRankings[objective.id].twoHome.slice(0, TOP_CDF_STRATEGY_COUNT),
+        title: 'Expected End Net Worth vs 10% CVaR Regret',
+        subtitle: `Two-home paths only. Highlighted labels follow the "${objective.label}" objective.`,
+      }),
+    },
+  ])),
+);
+const cdfSvgsByObjective = Object.fromEntries(
+  ROBUSTNESS_OBJECTIVE_DEFINITIONS.map((objective) => ([
+    objective.id,
+    {
+      all: buildCdfSvg({
+        topStrategies: objectiveRankings[objective.id].all.slice(0, TOP_CDF_STRATEGY_COUNT),
+        outcomesByStrategyId,
+        defaultWeights: defaultScenarioWeights,
+        title: `CDF of End Net Worth for ${objective.label}`,
+        subtitle: 'All sampled strategies. Further right means higher end net worth across the distribution.',
+      }),
+      oneHome: buildCdfSvg({
+        topStrategies: objectiveRankings[objective.id].oneHome.slice(0, TOP_CDF_STRATEGY_COUNT),
+        outcomesByStrategyId,
+        defaultWeights: defaultScenarioWeights,
+        title: `CDF of End Net Worth for ${objective.label}`,
+        subtitle: 'One-home paths only. Each line is one of the strongest strategies for the selected objective.',
+      }),
+      twoHome: buildCdfSvg({
+        topStrategies: objectiveRankings[objective.id].twoHome.slice(0, TOP_CDF_STRATEGY_COUNT),
+        outcomesByStrategyId,
+        defaultWeights: defaultScenarioWeights,
+        title: `CDF of End Net Worth for ${objective.label}`,
+        subtitle: 'Two-home paths only. Each line is one of the strongest strategies for the selected objective.',
+      }),
+    },
+  ])),
+);
 const heatmapSvg = buildHeatmapSvg({ cells: heatmapCells });
 const sensitivitySvg = buildSensitivitySvg({ cells: sensitivityGrid });
 
@@ -1483,6 +1617,10 @@ const recommendation = {
     `Robust ranking uses weighted feasibility first, then regret CVaR, then expected end net worth.`,
   ],
 };
+
+const paretoFrontier = frontierByView.all;
+const topOneHomeStrategies = objectiveRankings.robust.oneHome.slice(0, TOP_CDF_STRATEGY_COUNT);
+const topTwoHomeStrategies = objectiveRankings.robust.twoHome.slice(0, TOP_CDF_STRATEGY_COUNT);
 
 const reportJson = {
   generatedAt: new Date().toISOString(),
@@ -1520,11 +1658,19 @@ const reportJson = {
       whyNotEveryScenario: 'The housing grid is finite, but the future-path generator is continuous year by year. Once annual income, ISA, property, and mortgage-rate shocks are random, there is no finite master list of all possible futures to enumerate.',
     },
     strategySampling: {
-      description: 'Candidate strategies come from the optimizer-ranked housing plans plus a supplemental one-home grid across the full first deposit and first mortgage search range.',
+      description: `Housing strategies now start from an explicit coarse grid across the allowed deposit, mortgage, year, and salary-payment ranges. A smaller screening run ranks that full grid first, then the strongest and most representative candidates are carried into the full ${scenarios.length.toLocaleString()}-scenario robustness run.`,
       firstDepositPoints: strategyGrid.depositPoints,
       firstMortgagePoints: strategyGrid.mortgagePoints,
-      salaryMortgageEarlyPoints: strategyGrid.salaryMortgageEarlyPoints,
+      oneHomeEarlyPctPoints: strategyGrid.oneHomeEarlyPctPoints,
+      twoHomeEarlyPctPoints: strategyGrid.twoHomeEarlyPctPoints,
+      laterPctPoints: strategyGrid.laterPctPoints,
+      secondDepositPoints: strategyGrid.secondDepositPoints,
+      secondMortgagePoints: strategyGrid.secondMortgagePoints,
+      secondYearPoints: strategyGrid.secondYearPoints,
       startingCashPool: strategyGrid.startingCashPool,
+      explicitGridCount: strategyGrid.explicitCandidateCount,
+      screeningDrawsPerBucket: STRATEGY_SCREENING_DRAWS_PER_BUCKET,
+      screenedToCandidateCount: selectionSummary.selectedCandidateCount,
       pathCounts: strategyPathCounts,
       originCounts: strategyOriginCounts,
     },
@@ -1548,36 +1694,58 @@ const reportJson = {
     },
     oneHome: {
       candidateCount: oneHomeMetrics.length,
-      bestStrategyId: oneHomeMetrics[0]?.strategyId ?? null,
+      bestStrategyId: objectiveRankings.robust.oneHome[0]?.strategyId ?? null,
       topStrategies: topOneHomeStrategies.map((metric) => metric.strategyId),
     },
     twoHome: {
       candidateCount: twoHomeMetrics.length,
-      bestStrategyId: twoHomeMetrics[0]?.strategyId ?? null,
+      bestStrategyId: objectiveRankings.robust.twoHome[0]?.strategyId ?? null,
       topStrategies: topTwoHomeStrategies.map((metric) => metric.strategyId),
     },
   },
+  objectiveLeaders: Object.fromEntries(
+    ROBUSTNESS_OBJECTIVE_DEFINITIONS.map((objective) => ([
+      objective.id,
+      {
+        all: objectiveRankings[objective.id].all[0]?.strategyId ?? null,
+        oneHome: objectiveRankings[objective.id].oneHome[0]?.strategyId ?? null,
+        twoHome: objectiveRankings[objective.id].twoHome[0]?.strategyId ?? null,
+      },
+    ])),
+  ),
   strategyCatalog: metrics.map((metric) => serializeStrategyMetric(metric)),
   heatmap: {
     cells: heatmapCells,
     plateauRegion,
+    objectiveId: HEATMAP_BALANCED_OBJECTIVE_ID,
   },
   sensitivity: {
     mediumWeightGrid: MEDIUM_WEIGHT_GRID,
     privateSchoolProbabilityGrid: PRIVATE_SCHOOL_PROBABILITY_GRID,
     cells: sensitivityGrid,
+    objectiveId: HEATMAP_BALANCED_OBJECTIVE_ID,
   },
   charts: {
-    scatter: {
-      all: 'robustness-analysis/scatter-net-worth-vs-regret-overall.svg',
-      oneHome: 'robustness-analysis/scatter-net-worth-vs-regret-one-home.svg',
-      twoHome: 'robustness-analysis/scatter-net-worth-vs-regret-two-home.svg',
-    },
-    cdf: {
-      all: 'robustness-analysis/cdf-top-robust-strategies-overall.svg',
-      oneHome: 'robustness-analysis/cdf-top-robust-strategies-one-home.svg',
-      twoHome: 'robustness-analysis/cdf-top-robust-strategies-two-home.svg',
-    },
+    scatter: Object.fromEntries(
+      ROBUSTNESS_OBJECTIVE_DEFINITIONS.map((objective) => ([
+        objective.id,
+        {
+          all: `robustness-analysis/scatter-net-worth-vs-regret-${objective.id}-overall.svg`,
+          oneHome: `robustness-analysis/scatter-net-worth-vs-regret-${objective.id}-one-home.svg`,
+          twoHome: `robustness-analysis/scatter-net-worth-vs-regret-${objective.id}-two-home.svg`,
+        },
+      ])),
+    ),
+    cdf: Object.fromEntries(
+      ROBUSTNESS_OBJECTIVE_DEFINITIONS.map((objective) => ([
+        objective.id,
+        {
+          all: `robustness-analysis/cdf-top-robust-strategies-${objective.id}-overall.svg`,
+          oneHome: `robustness-analysis/cdf-top-robust-strategies-${objective.id}-one-home.svg`,
+          twoHome: `robustness-analysis/cdf-top-robust-strategies-${objective.id}-two-home.svg`,
+        },
+      ])),
+    ),
     heatmap: 'robustness-analysis/heatmap-deposit-vs-mortgage.svg',
     sensitivity: 'robustness-analysis/sensitivity-medium-weight-vs-private-school.svg',
     markdown: 'robustness-analysis/report.md',
@@ -1595,6 +1763,8 @@ Generated: ${reportJson.generatedAt}
 - Candidate strategies: ${reportJson.meta.candidateStrategyCount}
 - Scenario sampling: ${reportJson.meta.scenarioSampling.description}
 - Strategy sampling: ${reportJson.meta.strategySampling.description}
+- Explicit strategy grid before screening: ${reportJson.meta.strategySampling.explicitGridCount}
+- Strategies carried into the full robustness run: ${reportJson.meta.strategySampling.screenedToCandidateCount}
 - Default medium-case weight: ${formatPercent(reportJson.meta.defaultMediumWeight, 0)}
 - Default private-school probability: ${formatPercent(reportJson.meta.defaultPrivateSchoolProbability, 0)}
 - Starting incomes baked into the robustness run: ${formatCurrency(OPTIMIZER_STARTING_INCOME_1)} for person 1 and ${formatCurrency(OPTIMIZER_STARTING_INCOME_2)} for person 2
@@ -1639,23 +1809,28 @@ ${buildMarkdownTable({
 
 ## Charts
 
-- [Scatter: all strategies](./scatter-net-worth-vs-regret-overall.svg)
-- [Scatter: one-home only](./scatter-net-worth-vs-regret-one-home.svg)
-- [Scatter: two-home only](./scatter-net-worth-vs-regret-two-home.svg)
-- [CDF: all top strategies](./cdf-top-robust-strategies-overall.svg)
-- [CDF: one-home top strategies](./cdf-top-robust-strategies-one-home.svg)
-- [CDF: two-home top strategies](./cdf-top-robust-strategies-two-home.svg)
+- [Scatter: balanced robustness, all strategies](./scatter-net-worth-vs-regret-robust-overall.svg)
+- [Scatter: balanced robustness, one-home only](./scatter-net-worth-vs-regret-robust-one-home.svg)
+- [Scatter: balanced robustness, two-home only](./scatter-net-worth-vs-regret-robust-two-home.svg)
+- [CDF: balanced robustness, all strategies](./cdf-top-robust-strategies-robust-overall.svg)
+- [CDF: balanced robustness, one-home only](./cdf-top-robust-strategies-robust-one-home.svg)
+- [CDF: balanced robustness, two-home only](./cdf-top-robust-strategies-robust-two-home.svg)
 - [Heatmap: first deposit vs first mortgage](./heatmap-deposit-vs-mortgage.svg)
 - [Sensitivity: medium weight vs private-school probability](./sensitivity-medium-weight-vs-private-school.svg)
 `;
 
 await mkdir(robustnessDir, { recursive: true });
-await writeFile(scatterOverallChartPath, scatterOverallSvg);
-await writeFile(scatterOneHomeChartPath, scatterOneHomeSvg);
-await writeFile(scatterTwoHomeChartPath, scatterTwoHomeSvg);
-await writeFile(cdfOverallChartPath, cdfOverallSvg);
-await writeFile(cdfOneHomeChartPath, cdfOneHomeSvg);
-await writeFile(cdfTwoHomeChartPath, cdfTwoHomeSvg);
+for (const objective of ROBUSTNESS_OBJECTIVE_DEFINITIONS) {
+  const scatterChartSet = reportJson.charts.scatter[objective.id];
+  const cdfChartSet = reportJson.charts.cdf[objective.id];
+
+  await writeFile(path.join(repoRoot, 'public', scatterChartSet.all), scatterSvgsByObjective[objective.id].all);
+  await writeFile(path.join(repoRoot, 'public', scatterChartSet.oneHome), scatterSvgsByObjective[objective.id].oneHome);
+  await writeFile(path.join(repoRoot, 'public', scatterChartSet.twoHome), scatterSvgsByObjective[objective.id].twoHome);
+  await writeFile(path.join(repoRoot, 'public', cdfChartSet.all), cdfSvgsByObjective[objective.id].all);
+  await writeFile(path.join(repoRoot, 'public', cdfChartSet.oneHome), cdfSvgsByObjective[objective.id].oneHome);
+  await writeFile(path.join(repoRoot, 'public', cdfChartSet.twoHome), cdfSvgsByObjective[objective.id].twoHome);
+}
 await writeFile(heatmapChartPath, heatmapSvg);
 await writeFile(sensitivityChartPath, sensitivitySvg);
 await writeFile(reportMarkdownPath, markdown);

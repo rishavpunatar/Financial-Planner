@@ -1,13 +1,12 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
+import loadPlannerCore from './load-planner-core.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
-const appPath = path.join(repoRoot, 'src', 'App.jsx');
 const tempDir = path.join(repoRoot, '.tmp');
-const tempModulePath = path.join(tempDir, 'optimizer-core.mjs');
 const outputPath = path.join(repoRoot, 'public', 'precomputed-optimizer-results.json');
 const OPTIMIZER_PRECOMPUTE_VARIANTS = [
   { key: 'standard', label: 'Private school off', usePrivateSchool: false },
@@ -19,52 +18,8 @@ const OPTIMIZER_EARLY_UPGRADE_YEAR_CUTOFF = 2035;
 const OPTIMIZER_MAX_UPGRADE_VALUE = 600000;
 const PRECOMPUTED_TOP_RESULTS_PER_CASE = 20;
 
-const appSource = await readFile(appPath, 'utf8');
-const startToken = 'const calculateStampDuty';
-const endToken = 'const App = () => {';
-const startIndex = appSource.indexOf(startToken);
-const endIndex = appSource.indexOf(endToken);
-
-if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-  throw new Error('Could not extract optimizer core from src/App.jsx');
-}
-
-const moduleSource = `${appSource.slice(startIndex, endIndex)}
-
-export {
-  BASE_BIRTH_YEAR,
-  OPTIMIZER_ASSUMPTION_CASES,
-  OPTIMIZER_OBJECTIVE_DEFINITIONS,
-  OPTIMIZER_STARTING_INCOME_1,
-  OPTIMIZER_STARTING_INCOME_2,
-  OPTIMIZER_MIN_FIRST_PROPERTY_VALUE,
-  OPTIMIZER_MIN_UPGRADE_VALUE,
-  OPTIMIZER_FIXED_FIRST_HOUSE_YEAR,
-  OPTIMIZER_FIRST_HOUSE_FAST_UPGRADE_THRESHOLD,
-  OPTIMIZER_FAST_UPGRADE_YEAR_MAX,
-  OPTIMIZER_LATE_UPGRADE_YEAR_MAX,
-  OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE,
-  OPTIMIZER_MAX_TOTAL_MORTGAGE,
-  calculateStampDuty,
-  calculateRealTermsTakeHomePay,
-  calculateCareerIncome,
-  buildSteppedPoints,
-  getOptimizerUpgradeYearMax,
-  compareOptimizerResults,
-  compareOptimizerResultsForObjective,
-  createOptimizerFailureCounts,
-  recordOptimizerFailures,
-  summarizeOptimizerFailureCounts,
-  roundToStep,
-  clampValue,
-  simulateFinancialPlan,
-};
-`;
-
 await mkdir(tempDir, { recursive: true });
-await writeFile(tempModulePath, moduleSource);
-
-const optimizerCore = await import(`${pathToFileURL(tempModulePath).href}?ts=${Date.now()}`);
+const optimizerCore = await loadPlannerCore({ moduleName: 'optimizer-core' });
 
 const {
   BASE_BIRTH_YEAR,

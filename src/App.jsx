@@ -76,16 +76,34 @@ const calculateStampDuty = (propertyValue, isAdditionalProperty = false) => {
   return Math.round(stampDuty);
 };
 
+const SCENARIO_SCHEMA_VERSION = 2;
+
 const saveFiltersToURL = (filters) => {
-  const encodedFilters = encodeURIComponent(JSON.stringify(filters));
+  const payload = {
+    schemaVersion: SCENARIO_SCHEMA_VERSION,
+    payload: filters,
+  };
+  const encodedFilters = encodeURIComponent(JSON.stringify(payload));
   const newURL = `${window.location.origin}${window.location.pathname}?filters=${encodedFilters}`;
   window.history.replaceState(null, '', newURL);
 };
 
 const loadFiltersFromURL = () => {
-  const params = new URLSearchParams(window.location.search);
-  const filters = params.get('filters');
-  return filters ? JSON.parse(decodeURIComponent(filters)) : null;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const filters = params.get('filters');
+
+    if (!filters) return null;
+
+    const parsed = JSON.parse(decodeURIComponent(filters));
+    if (parsed && typeof parsed === 'object' && 'payload' in parsed) {
+      return parsed.payload ?? null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
 };
 
 const loadStoredScenario = () => {
@@ -238,6 +256,23 @@ const OPTIMIZER_OBJECTIVE_DEFINITIONS = [
     label: 'Big first house',
     shortLabel: 'Big first house',
     description: `First house value as close as possible to about ${`£${(OPTIMIZER_BIG_FIRST_HOUSE_TARGET / 1000).toFixed(0)}k`}, with larger first houses preferred on ties.`,
+  },
+];
+const STRATEGY_APPLY_MODE_DEFINITIONS = [
+  {
+    id: 'defaultScenario',
+    label: 'Reset to model baseline',
+    description: 'Apply the stored baseline assumptions from the optimizer or robustness report, then copy the housing strategy in.',
+  },
+  {
+    id: 'currentPlanner',
+    label: 'Keep current planner assumptions',
+    description: 'Keep the current planner settings and only replace the housing strategy levers.',
+  },
+  {
+    id: 'privateSchoolOn',
+    label: 'Baseline + private school on',
+    description: 'Use the stored baseline assumptions, but force private school on when copying the strategy in.',
   },
 ];
 const TAX_YEAR_LABEL = '2025/26';
@@ -774,14 +809,28 @@ const simulateFinancialPlan = (params) => {
   let privateSchoolAffordable = true;
   let finalSnapshot = null;
 
+  const recordLiquiditySnapshot = (year) => {
+    const liquidBuffer = isaTotal + surplusPot;
+    minIsaBalance = Math.min(minIsaBalance, isaTotal);
+    minLiquidBuffer = Math.min(minLiquidBuffer, liquidBuffer);
+
+    if (year >= POST_2032_SAVINGS_FLOOR_START_YEAR) {
+      minLiquidBufferPost2032 = Math.min(minLiquidBufferPost2032, liquidBuffer);
+    }
+  };
+
   for (let year = startYear; year <= maxYear; year++) {
-    if (!hasFirstHouse && year === firstHousePurchaseYear) {
+    const buysFirstHouseThisYear = !hasFirstHouse && year === firstHousePurchaseYear;
+
+    if (buysFirstHouseThisYear) {
       hasFirstHouse = true;
       propertyValue = initialPropertyValue;
       firstMortgageBalance = initialMortgage;
     }
 
-    if (hasFirstHouse) {
+    recordLiquiditySnapshot(year);
+
+    if (hasFirstHouse && !buysFirstHouseThisYear) {
       const propertyGrowthRate = getYearPathValue(
         propertyGrowthPath,
         year,
@@ -848,6 +897,7 @@ const simulateFinancialPlan = (params) => {
       }
       isaTotal *= recessionFactor;
       surplusPot *= recessionFactor;
+      recordLiquiditySnapshot(year);
     }
 
     let purchaseLumpSum = 0;
@@ -870,6 +920,7 @@ const simulateFinancialPlan = (params) => {
         secondHouseFundingGapLocal += depositGap;
         cumulativeShortfall += depositGap;
       }
+      recordLiquiditySnapshot(year);
       secondMortgageBalance = secondMortgage;
       propertyValue = plannedSecondHouseValue;
       secondHouseValueAtMoveLocal = propertyValue;
@@ -1022,6 +1073,8 @@ const simulateFinancialPlan = (params) => {
           privateSchoolAffordable = false;
         }
       }
+
+      recordLiquiditySnapshot(year);
     }
 
     const isaContribution = Math.min(Math.max(0, totalLeft), isaContributionCap);
@@ -1033,13 +1086,9 @@ const simulateFinancialPlan = (params) => {
     const grossGrowth = surplusPot * growthRate;
     const afterTaxGrowth = grossGrowth * (1 - cgtRate);
     surplusPot = surplusPot + afterTaxGrowth + surplusContribution;
+    recordLiquiditySnapshot(year);
 
     const isaBelowThreshold = isaTotal < 60000;
-    minIsaBalance = Math.min(minIsaBalance, isaTotal);
-    minLiquidBuffer = Math.min(minLiquidBuffer, isaTotal + surplusPot);
-    if (year >= POST_2032_SAVINGS_FLOOR_START_YEAR) {
-      minLiquidBufferPost2032 = Math.min(minLiquidBufferPost2032, isaTotal + surplusPot);
-    }
 
     let displayMortgagePayments = cumulativeMortgageRepayment;
     let displayInterestPaid = cumulativeMortgageInterest;
@@ -1624,6 +1673,9 @@ const App = () => {
   const [presetName, setPresetName] = useState(initialScenario?.presetName ?? '');
   const [linkCopyStatus, setLinkCopyStatus] = useState('');
   const [activeTab, setActiveTab] = useState(initialScenario?.activeTab ?? 'planner');
+  const [strategyApplyMode, setStrategyApplyMode] = useState(
+    initialScenario?.strategyApplyMode ?? 'defaultScenario',
+  );
 
   const [startYear, setStartYear] = useState(initialScenario?.startYear ?? 2027);
   const [firstHousePurchaseYear, setFirstHousePurchaseYear] = useState(initialScenario?.firstHousePurchaseYear ?? 2027);
@@ -1936,6 +1988,7 @@ const App = () => {
     presetName,
     showAdvanced,
     activeTab,
+    strategyApplyMode,
     optimizerPropertyMode,
     optimizerUsePrivateSchool,
     showOptimizerIntro,
@@ -2009,6 +2062,7 @@ const App = () => {
     presetName,
     showAdvanced,
     activeTab,
+    strategyApplyMode,
     optimizerPropertyMode,
     optimizerUsePrivateSchool,
     showOptimizerIntro,
@@ -2443,6 +2497,8 @@ const App = () => {
   }, [displayOptimizerResults, selectedOptimizerResultKey]);
 
   const applyPlannerBaseParams = useCallback((appliedBaseParams, fallbackPrivateSchool = false) => {
+    const forcedPrivateSchool = strategyApplyMode === 'privateSchoolOn';
+
     if (appliedBaseParams) {
       setStartYear(appliedBaseParams.startYear);
       setMortgageRate(appliedBaseParams.mortgageRate);
@@ -2469,22 +2525,26 @@ const App = () => {
       setEnableRedundancy(appliedBaseParams.enableRedundancy);
       setRedundancyYear(appliedBaseParams.redundancyYear);
       setSecondRedundancyYear(appliedBaseParams.secondRedundancyYear);
-      setUsePrivateSchool(appliedBaseParams.usePrivateSchool);
+      setUsePrivateSchool(forcedPrivateSchool || appliedBaseParams.usePrivateSchool);
     } else {
-      setUsePrivateSchool(fallbackPrivateSchool);
+      setUsePrivateSchool(forcedPrivateSchool || fallbackPrivateSchool);
     }
-  }, []);
+  }, [strategyApplyMode]);
+
+  const shouldUseStoredApplyBaseline = strategyApplyMode !== 'currentPlanner';
 
   const handleApplyOptimizerResult = (result) => {
     const appliedBaseParams = selectedPrecomputedOptimizerPayload?.baseParams ?? null;
 
-    applyPlannerBaseParams(appliedBaseParams, optimizerUsePrivateSchool);
+    if (shouldUseStoredApplyBaseline) {
+      applyPlannerBaseParams(appliedBaseParams, optimizerUsePrivateSchool);
+      setIncome1Start(OPTIMIZER_STARTING_INCOME_1);
+      setIncome2Start(OPTIMIZER_STARTING_INCOME_2);
+      setIncomeGrowth(result.assumptionCase.incomeGrowth);
+      setIsaGrowth(result.assumptionCase.isaGrowth);
+      setRealGrowthProperty(result.assumptionCase.propertyGrowth);
+    }
 
-    setIncome1Start(OPTIMIZER_STARTING_INCOME_1);
-    setIncome2Start(OPTIMIZER_STARTING_INCOME_2);
-    setIncomeGrowth(result.assumptionCase.incomeGrowth);
-    setIsaGrowth(result.assumptionCase.isaGrowth);
-    setRealGrowthProperty(result.assumptionCase.propertyGrowth);
     setInitialCash(result.initialDeposit + result.optimizerIsaSeed);
     setInitialDeposit(result.initialDeposit);
     setInitialMortgage(result.initialMortgage);
@@ -2511,18 +2571,20 @@ const App = () => {
   const handleApplyRobustnessStrategy = (robustStrategy) => {
     if (!robustnessReport) return;
 
-    applyPlannerBaseParams(
-      robustnessReport.baseParams ?? null,
-      robustnessReport.meta?.defaultApplyScenario?.usePrivateSchool ?? false,
-    );
+    if (shouldUseStoredApplyBaseline) {
+      applyPlannerBaseParams(
+        robustnessReport.baseParams ?? null,
+        robustnessReport.meta?.defaultApplyScenario?.usePrivateSchool ?? false,
+      );
+      setIncome1Start(OPTIMIZER_STARTING_INCOME_1);
+      setIncome2Start(OPTIMIZER_STARTING_INCOME_2);
+      setIncomeGrowth(robustnessReport.meta?.defaultApplyScenario?.incomeGrowth ?? incomeGrowth);
+      setIsaGrowth(robustnessReport.meta?.defaultApplyScenario?.isaGrowth ?? isaGrowth);
+      setRealGrowthProperty(
+        robustnessReport.meta?.defaultApplyScenario?.propertyGrowth ?? realGrowthProperty,
+      );
+    }
 
-    setIncome1Start(OPTIMIZER_STARTING_INCOME_1);
-    setIncome2Start(OPTIMIZER_STARTING_INCOME_2);
-    setIncomeGrowth(robustnessReport.meta?.defaultApplyScenario?.incomeGrowth ?? incomeGrowth);
-    setIsaGrowth(robustnessReport.meta?.defaultApplyScenario?.isaGrowth ?? isaGrowth);
-    setRealGrowthProperty(
-      robustnessReport.meta?.defaultApplyScenario?.propertyGrowth ?? realGrowthProperty,
-    );
     setInitialCash(
       robustStrategy.decisionVector.deposit1 + (robustStrategy.decisionVector.optimizerIsaSeed ?? 0),
     );
@@ -2568,6 +2630,10 @@ const App = () => {
     return `£${value.toFixed(0)}`;
   };
   const formatProbability = (value) => `${(value * 100).toFixed(1)}%`;
+  const formatStrategyOrigin = (origin) => ({
+    'explicit-grid-one-home': 'Explicit grid: one-home',
+    'explicit-grid-two-home': 'Explicit grid: two-home',
+  }[origin] ?? String(origin || 'Unknown').replaceAll('-', ' '));
 
   const robustnessTopStrategies = robustnessReport?.topStrategies ?? [];
   const robustnessRecommendation = robustnessReport?.recommendation ?? null;
@@ -2600,16 +2666,28 @@ const App = () => {
       description: 'Highest weighted success rate inside the private-school futures.',
     },
   ];
+  const strategyApplyModeDefinitions = STRATEGY_APPLY_MODE_DEFINITIONS;
+  const selectedStrategyApplyModeDefinition = strategyApplyModeDefinitions.find(
+    (mode) => mode.id === strategyApplyMode,
+  ) ?? strategyApplyModeDefinitions[0];
   const selectedRobustnessObjectiveDefinition = robustnessObjectiveDefinitions.find(
     (objective) => objective.id === robustnessObjective,
   ) ?? robustnessObjectiveDefinitions[0];
   const robustnessStrategyCatalog = robustnessReport?.strategyCatalog ?? robustnessTopStrategies;
   const robustnessSelectedScatter = typeof robustnessCharts?.scatter === 'string'
     ? robustnessCharts.scatter
-    : robustnessCharts?.scatter?.[robustnessPathView] ?? robustnessCharts?.scatter?.all ?? '';
+    : robustnessCharts?.scatter?.[robustnessObjective]?.[robustnessPathView]
+      ?? robustnessCharts?.scatter?.[robustnessObjective]?.all
+      ?? robustnessCharts?.scatter?.robust?.[robustnessPathView]
+      ?? robustnessCharts?.scatter?.robust?.all
+      ?? '';
   const robustnessSelectedCdf = typeof robustnessCharts?.cdf === 'string'
     ? robustnessCharts.cdf
-    : robustnessCharts?.cdf?.[robustnessPathView] ?? robustnessCharts?.cdf?.all ?? '';
+    : robustnessCharts?.cdf?.[robustnessObjective]?.[robustnessPathView]
+      ?? robustnessCharts?.cdf?.[robustnessObjective]?.all
+      ?? robustnessCharts?.cdf?.robust?.[robustnessPathView]
+      ?? robustnessCharts?.cdf?.robust?.all
+      ?? '';
   const robustnessFilteredStrategies = useMemo(() => {
     if (robustnessPathView === 'oneHome') {
       return robustnessStrategyCatalog.filter((strategy) => strategy.pathType === 'One-home path');
@@ -4098,6 +4176,25 @@ const App = () => {
                 <div>Lifetime interest paid: {formatCurrency(selectedOptimizerResult.lifetimeInterestPaid)}</div>
               </div>
 
+              <div className="robustness-card">
+                <div className="optimizer-result-title">Apply to planner</div>
+                <div className="optimizer-result-sub">
+                  {selectedStrategyApplyModeDefinition.description}
+                </div>
+                <div className="view-tabs robustness-path-tabs">
+                  {strategyApplyModeDefinitions.map((mode) => (
+                    <button
+                      key={mode.id}
+                      type="button"
+                      className={`view-tab${strategyApplyMode === mode.id ? ' view-tab-active' : ''}`}
+                      onClick={() => setStrategyApplyMode(mode.id)}
+                    >
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <button
                 type="button"
                 className="preset-button"
@@ -4344,13 +4441,13 @@ const App = () => {
                     This tab stress-tests housing strategies across many future paths rather than assuming one single future. It is trying to answer: “which starting setup still looks sensible across a wide range of income, market, mortgage-rate, and school-cost outcomes?”
                   </div>
                 </div>
-                <div className="robustness-explainer-card">
-                  <div className="optimizer-result-title">What was sampled</div>
-                  <div className="optimizer-result-sub">
-                    {robustnessMeta?.scenarioSampling?.description ?? 'Scenario sampling details unavailable.'}
-                    {' '}The strategy side is {robustnessMeta?.strategySampling?.description?.toLowerCase() ?? 'not available'}.
+                  <div className="robustness-explainer-card">
+                    <div className="optimizer-result-title">What was sampled</div>
+                    <div className="optimizer-result-sub">
+                      {robustnessMeta?.scenarioSampling?.description ?? 'Scenario sampling details unavailable.'}
+                      {' '}On the strategy side, {robustnessMeta?.strategySampling?.description?.toLowerCase() ?? 'strategy sampling details are not available'}.
+                    </div>
                   </div>
-                </div>
                 <div className="robustness-explainer-card">
                   <div className="optimizer-result-title">What weighted share means</div>
                   <div className="optimizer-result-sub">
@@ -4465,11 +4562,17 @@ const App = () => {
                   <div className="robustness-explainer-card">
                     <div className="optimizer-result-title">Strategy buckets</div>
                     <div className="optimizer-result-sub">
-                      The robustness run does not invent brand-new housing levers from scratch. It starts from the strongest optimizer strategies, then adds a broader one-home grid so you can compare keep-one-home and upgrade paths instead of only seeing upgrade winners.
+                      The robustness run now starts from an explicit housing grid across the allowed deposit, mortgage, year, and salary-payment ranges. It screens that wider grid on a lighter scenario set first, then carries the strongest and most representative candidates into the full robustness run.
                     </div>
                     <div className="optimizer-detail-list">
                       <div>
-                        Origins: {Object.entries(robustnessMeta?.strategySampling?.originCounts ?? {}).map(([origin, count]) => `${origin === 'supplemental-one-home' ? 'supplemental one-home grid' : origin.replaceAll('-', ' ')} ${count}`).join(', ') || '—'}
+                        Explicit grid before screening: {(robustnessMeta?.strategySampling?.explicitGridCount ?? 0).toLocaleString()} strategies
+                      </div>
+                      <div>
+                        Full robustness catalog after screening: {(robustnessMeta?.strategySampling?.screenedToCandidateCount ?? 0).toLocaleString()} strategies
+                      </div>
+                      <div>
+                        Origins: {Object.entries(robustnessMeta?.strategySampling?.originCounts ?? {}).map(([origin, count]) => `${origin.replaceAll('-', ' ')} ${count}`).join(', ') || '—'}
                       </div>
                       <div>
                         Heatmap range: deposit {robustnessMeta?.strategySampling?.firstDepositPoints?.length
@@ -4516,11 +4619,30 @@ const App = () => {
                 <div className="optimizer-detail-list">
                   <div>{selectedRobustnessObjectiveDefinition.description}</div>
                   <div>
-                    The charts still show the same sampled strategy set. The objective buttons change which strategies are surfaced as the leaders and in the ranked table below.
+                    The scatter plot and CDF below follow this objective. The heatmap and sensitivity plot stay on the balanced-robustness screening view because they are showing the broader starting region rather than just one objective ranking.
                   </div>
                   <div>
                     Displayed winners are also filtered to strategies that pass the default apply scenario hard rules, including the post-2032 {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} liquid-savings floor.
                   </div>
+                </div>
+              </div>
+
+              <div className="robustness-card">
+                <div className="optimizer-result-title">Apply to planner</div>
+                <div className="optimizer-result-sub">
+                  {selectedStrategyApplyModeDefinition.description}
+                </div>
+                <div className="view-tabs robustness-path-tabs">
+                  {strategyApplyModeDefinitions.map((mode) => (
+                    <button
+                      key={mode.id}
+                      type="button"
+                      className={`view-tab${strategyApplyMode === mode.id ? ' view-tab-active' : ''}`}
+                      onClick={() => setStrategyApplyMode(mode.id)}
+                    >
+                      {mode.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -4597,7 +4719,7 @@ const App = () => {
                   ))}
                 </div>
                 <div className="optimizer-result-sub">
-                  Showing the top {Math.min(15, robustnessFilteredStrategies.length)} of {robustnessFilteredStrategies.length} strategies in the selected path view.
+                  Showing the top {Math.min(15, robustnessEligibleStrategies.length)} of {robustnessEligibleStrategies.length} strategies in the selected path view after the default apply-scenario hard-rule filter.
                 </div>
                 <div className="robustness-explainer-grid">
                   <div className="robustness-explainer-card">
@@ -4644,7 +4766,7 @@ const App = () => {
                           <td>{index + 1}</td>
                           <td>{result.strategyId}</td>
                           <td>{result.pathType}</td>
-                          <td>{result.strategyOrigin === 'supplemental-one-home' ? 'Supplemental one-home grid' : 'Optimizer-ranked'}</td>
+                          <td>{formatStrategyOrigin(result.strategyOrigin)}</td>
                           <td>{formatCurrency(result.decisionVector.deposit1)}</td>
                           <td>{formatCurrency(result.decisionVector.mortgage1)}</td>
                           <td>{result.decisionVector.buyYear2 ? formatCurrency(result.decisionVector.deposit2) : '—'}</td>
@@ -4672,8 +4794,8 @@ const App = () => {
               <div className="robustness-chart-grid">
                 <div className="robustness-chart-card">
                   <div className="optimizer-result-title">Expected Net Worth vs Regret</div>
-                  <div className="optimizer-result-sub">
-                    This chart changes with the path toggle above. Each dot is one sampled strategy in that path view. The horizontal axis is weighted expected end net worth, so further right is better. The vertical axis is regret CVaR 10%, so lower is better. The line is the Pareto frontier: strategies on that line are not clearly beaten on both expected wealth and downside regret at the same time.
+                <div className="optimizer-result-sub">
+                    This chart changes with both the path toggle and the selected robustness objective. Each dot is one sampled strategy in that path view. The horizontal axis is weighted expected end net worth, so further right is better. The vertical axis is regret CVaR 10%, so lower is better. The line is the Pareto frontier: strategies on that line are not clearly beaten on both expected wealth and downside regret at the same time. The highlighted labels are the strongest strategies for the current objective.
                   </div>
                   {robustnessSelectedScatter && (
                     <img
@@ -4685,8 +4807,8 @@ const App = () => {
                 </div>
                 <div className="robustness-chart-card">
                   <div className="optimizer-result-title">CDF of Top Strategies</div>
-                  <div className="optimizer-result-sub">
-                    This chart also follows the selected path view. Each line is one of the strongest strategies in that bucket. Moving right means higher end net worth. If one line stays to the right of another for most of the plot, it usually means that strategy is producing better end-wealth outcomes across a broad chunk of the distribution, not just in the average case.
+                <div className="optimizer-result-sub">
+                    This chart follows both the selected path view and the selected robustness objective. Each line is one of the strongest strategies in that bucket for the current objective. Moving right means higher end net worth. If one line stays to the right of another for most of the plot, it usually means that strategy is producing better end-wealth outcomes across a broad chunk of the distribution, not just in the average case.
                   </div>
                   {robustnessSelectedCdf && (
                     <img
@@ -4698,8 +4820,8 @@ const App = () => {
                 </div>
                 <div className="robustness-chart-card">
                   <div className="optimizer-result-title">Deposit vs Mortgage Plateau</div>
-                  <div className="optimizer-result-sub">
-                    This heatmap only changes the two starting levers on the axes: first deposit and first mortgage. Darker cells are stronger robust scores. The bold plateau is the “good neighborhood” where nearby starting combinations perform similarly well, so you are not relying on one fragile exact point. If the axis stops early, that is because the fixed starting cash pool in this run caps what first deposit can be funded.
+                <div className="optimizer-result-sub">
+                    This is the balanced-robustness screening heatmap across the full explicit first-deposit and first-mortgage grid. Darker cells are stronger balanced robust scores. The bold plateau is the “good neighborhood” where nearby starting combinations perform similarly well, so you are not relying on one fragile exact point.
                   </div>
                   <div className="optimizer-detail-list">
                     <div>
@@ -4709,7 +4831,7 @@ const App = () => {
                       First-mortgage points shown: {robustnessMeta?.strategySampling?.firstMortgagePoints?.map((value) => formatCurrency(value)).join(', ') || '—'}
                     </div>
                     <div>
-                      Grey cells mean that deposit/mortgage pair is in the overall plotted range, but no robustness candidate strategy was included there.
+                      Grey cells mean that deposit/mortgage pair is in the plotted range, but no screened strategy combination survived there.
                     </div>
                   </div>
                   {robustnessCharts?.heatmap && (
@@ -4722,8 +4844,8 @@ const App = () => {
                 </div>
                 <div className="robustness-chart-card">
                   <div className="optimizer-result-title">Sensitivity</div>
-                  <div className="optimizer-result-sub">
-                    This does not resimulate the housing grid from scratch. Instead, it changes two judgment calls on the same scenario set: how much weight to give medium-case futures, and how likely private school is. Each box shows which strategy wins under that weighting choice, so you can see whether the recommendation is stable or flips easily.
+                <div className="optimizer-result-sub">
+                    This is also a balanced-robustness view. It does not resimulate the housing grid from scratch. Instead, it changes two judgment calls on the same scenario set: how much weight to give medium-case futures, and how likely private school is. Each box shows which strategy wins under that weighting choice, so you can see whether the balanced recommendation is stable or flips easily.
                   </div>
                   {robustnessCharts?.sensitivity && (
                     <img
