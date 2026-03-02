@@ -1,16 +1,16 @@
 # Robustness analysis
 
-Generated: 2026-03-02T19:27:19.757Z
+Generated: 2026-03-02T21:18:34.284Z
 
 ## Setup
 
 - Scenario method: Weighted stratified Monte Carlo
 - Scenario count: 54000
-- Candidate strategies: 169
+- Candidate strategies: 171
 - Scenario sampling: Scenarios are sampled as 3 income cases x 3 market cases x 2 private-school states x 3,000 random path draws per bucket. Inside each bucket, the run perturbs yearly mortgage, ISA, property, and income paths, plus living-cost growth, fiscal-drag tax thresholds, recession timing and severity, and one-or-two age-biased redundancy shocks for person 1.
 - Strategy sampling: Housing strategies start from an explicit grid across the allowed deposit, mortgage, year, and salary-payment ranges. A smaller screening run ranks that grid first, then the strongest and most representative candidates are carried into the full 54,000-scenario robustness run.
 - Explicit strategy grid before screening: 3759
-- Strategies carried into the full robustness run: 169
+- Strategies carried into the full robustness run: 171
 - Default medium-case weight: 60%
 - Default private-school probability: 30%
 - Starting incomes baked into the robustness run: GBP 70k for person 1 and GBP 90k for person 2
@@ -53,7 +53,7 @@ A robust starting region is first deposit GBP 250k to GBP 250k and first mortgag
 
 | Strategy | Expected Net Worth | Regret CVaR 10% | Feasibility | Composite Score |
 | --- | --- | --- | --- | --- |
-| S149 | GBP 2.72m | GBP 333k | 0.0% | 25.0 |
+| S138 | GBP 2.72m | GBP 333k | 0.0% | 25.0 |
 
 ## Charts
 
