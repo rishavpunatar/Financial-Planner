@@ -153,16 +153,25 @@ const RobustnessTabSection = ({
             </div>
             <div className="optimizer-detail-list">
               <div>
-                The model generated {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'} future paths. Each path is one year-by-year version of your life to age 70 with different income, market, mortgage-rate, cost, recession, and redundancy outcomes.
+                What changes across housing setups: first-house deposit, first-house mortgage, one-home vs two-home path, second-house extra deposit, second-house extra mortgage, second-house year, mortgage payment % before the move, and mortgage payment % after the move. Those are the choices you control.
               </div>
               <div>
-                It first built {robustnessMeta?.strategySampling?.explicitGridCount?.toLocaleString() ?? '—'} legal starting housing setups, screened them quickly, then carried {robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'} stronger or more distinct setups into the full run.
+                What changes across future paths: income path, ISA return path, property growth path, mortgage-rate path, living-cost growth, tax-drag level, recession timing and severity, redundancy timing, and private school on/off. Those are the outside-world changes.
               </div>
               <div>
-                That is why you see both numbers: {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'} future paths tested, but {robustnessMeta?.strategySampling?.fullEvaluationCount?.toLocaleString() ?? '—'} full simulations. The larger number is simply future paths x fully tested setups.
+                The model first built {robustnessMeta?.strategySampling?.explicitGridCount?.toLocaleString() ?? '—'} legal housing setups from the allowed ranges, screened them quickly, then carried {robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'} stronger or more distinct setups into the full run.
               </div>
               <div>
-                One full simulation means taking one housing setup and running it through one complete future path, year by year, recording cash, property, mortgage, and whether any hard rule breaks.
+                The model also generated {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'} future paths. Each future path is one year-by-year version of your life to age 70 with different income, market, rate, cost, recession, and redundancy outcomes.
+              </div>
+              <div>
+                Why there are two big numbers: {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'} is the number of future paths. {robustnessMeta?.strategySampling?.fullEvaluationCount?.toLocaleString() ?? '—'} is the number of full simulations, which equals future paths x fully tested setups.
+              </div>
+              <div>
+                In this run that is {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'} future paths x {robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'} fully tested setups = {robustnessMeta?.strategySampling?.fullEvaluationCount?.toLocaleString() ?? '—'} full simulations.
+              </div>
+              <div>
+                One full simulation means taking one fixed housing setup and running it through one complete future path, year by year, recording cash, property, mortgage, and whether any hard rule breaks.
               </div>
               <div>
                 Success rate is the weighted share of futures where the full plan still works. “Works” means it preserves the {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} post-2032 liquid-savings floor, passes mortgage rules, and meets the house-value rule.
@@ -174,7 +183,7 @@ const RobustnessTabSection = ({
                 Private-school success only looks inside the private-school futures and asks what share still stays feasible and can afford school fees. Best sampled private-school success in this run: {formatProbability(bestPrivateSchoolSuccess)}.
               </div>
               <div>
-                Private-school probability {formatProbability(robustnessMeta?.defaultPrivateSchoolProbability ?? 0)} does not mean the model thinks private school is “30% likely” in real life. It means {formatProbability(robustnessMeta?.defaultPrivateSchoolProbability ?? 0)} of the averaging weight is given to school-on futures and {formatProbability(1 - (robustnessMeta?.defaultPrivateSchoolProbability ?? 0))} to school-off futures.
+                Private-school probability {formatProbability(robustnessMeta?.defaultPrivateSchoolProbability ?? 0)} does not mean the model thinks private school is literally “30% likely” in real life. It means {formatProbability(robustnessMeta?.defaultPrivateSchoolProbability ?? 0)} of the averaging weight is given to school-on futures and {formatProbability(1 - (robustnessMeta?.defaultPrivateSchoolProbability ?? 0))} to school-off futures when the robustness metrics are calculated.
               </div>
               <div>
                 What is estimated versus exact: {robustnessCoverageNotes?.winnerScope ?? 'Winner-scope note unavailable.'} {robustnessCoverageNotes?.scenarioScope ?? 'Scenario-scope note unavailable.'} {robustnessCoverageNotes?.regretScope ?? 'Regret-scope note unavailable.'}
