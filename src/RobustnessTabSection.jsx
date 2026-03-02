@@ -45,14 +45,6 @@ const RobustnessTabSection = ({
   const plateauRegion = robustnessRecommendation?.plateauRegion ?? null;
   const plateauCellCount = plateauRegion?.plateauCellCount ?? 0;
   const hasPlateauRegion = plateauCellCount > 1;
-  const firstDepositPoints = robustnessMeta?.strategySampling?.firstDepositPoints ?? [];
-  const firstMortgagePoints = robustnessMeta?.strategySampling?.firstMortgagePoints ?? [];
-  const oneHomePctPoints = robustnessMeta?.strategySampling?.oneHomeEarlyPctPoints ?? [];
-  const twoHomeEarlyPctPoints = robustnessMeta?.strategySampling?.twoHomeEarlyPctPoints ?? [];
-  const laterPctPoints = robustnessMeta?.strategySampling?.laterPctPoints ?? [];
-  const secondDepositPoints = robustnessMeta?.strategySampling?.secondDepositPoints ?? [];
-  const secondMortgagePoints = robustnessMeta?.strategySampling?.secondMortgagePoints ?? [];
-  const secondYearPoints = robustnessMeta?.strategySampling?.secondYearPoints ?? [];
   const strategyCatalog = robustnessReport?.strategyCatalog ?? [];
   const privateSchoolBaseCasePassCount = strategyCatalog.filter(
     (strategy) => strategy.privateSchoolApplyScenarioCheck?.overallPass === true,
@@ -82,7 +74,7 @@ const RobustnessTabSection = ({
     }
 
     if (robustnessObjective === 'bigFirstHouse') {
-      return `This does not mean “largest possible first house”. It means “closest to ${formatCurrency(800000)} first house”, then success rate, then expected wealth.`;
+      return 'This objective now means the largest possible first house value, with stronger overall outcomes used as tie-breakers.';
     }
 
     if (privateSchoolBaseCasePassCount === 0) {
@@ -155,103 +147,35 @@ const RobustnessTabSection = ({
           </div>
 
           <div className="robustness-card">
-            <div className="optimizer-result-title">Quick guide</div>
-            <div className="robustness-explainer-grid">
-              <div className="robustness-explainer-card">
-                <div className="optimizer-result-title">What was tested</div>
-                <div className="optimizer-result-sub">
-                  The model first created a wide set of legal starting setups, then stress-tested the strongest ones across many different future paths.
-                </div>
-                <div className="optimizer-detail-list">
-                  <div>
-                    Screened starting setups: {robustnessMeta?.strategySampling?.explicitGridCount?.toLocaleString() ?? '—'}.
-                  </div>
-                  <div>
-                    Fully tested setups: {robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'}.
-                  </div>
-                  <div>
-                    Full simulations run: {robustnessMeta?.strategySampling?.fullEvaluationCount?.toLocaleString() ?? '—'}.
-                  </div>
-                </div>
-              </div>
-              <div className="robustness-explainer-card">
-                <div className="optimizer-result-title">How the future paths were built</div>
-                <div className="optimizer-result-sub">
-                  {robustnessMeta?.scenarioSampling?.bucketCount?.toLocaleString() ?? '—'} top-level buckets were created from income level x market level x private-school on/off, then {robustnessMeta?.scenarioSampling?.drawsPerBucket?.toLocaleString() ?? '—'} year-by-year draws were generated inside each bucket.
-                </div>
-                <div className="optimizer-detail-list">
-                  <div>Total future paths tested: {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'}.</div>
-                  <div>
-                    One simulation means one setup run through one full future path until age 70.
-                  </div>
-                </div>
-              </div>
-              <div className="robustness-explainer-card">
-                <div className="optimizer-result-title">How the starting setups were built</div>
-                <div className="optimizer-result-sub">
-                  The screened set came from crossing the allowed first deposit, first mortgage, mortgage-payment %, and optional second-home ranges, then dropping combinations that broke your hard rules.
-                </div>
-                <div className="optimizer-detail-list">
-                  <div>
-                    First deposit points: {firstDepositPoints.map((value) => formatCurrency(value)).join(', ') || '—'}.
-                  </div>
-                  <div>
-                    First mortgage points: {firstMortgagePoints.map((value) => formatCurrency(value)).join(', ') || '—'}.
-                  </div>
-                  <div>
-                    One-home mortgage % points: {oneHomePctPoints.join('%, ')}{oneHomePctPoints.length ? '%' : ''}.
-                  </div>
-                  <div>
-                    Two-home paths also varied upgrade year ({secondYearPoints.join(', ') || '—'}), extra deposit ({secondDepositPoints.map((value) => formatCurrency(value)).join(', ') || '—'}), extra mortgage ({secondMortgagePoints.map((value) => formatCurrency(value)).join(', ') || '—'}), and early/later mortgage % ({twoHomeEarlyPctPoints.join('%, ')}{twoHomeEarlyPctPoints.length ? '%' : ''} / {laterPctPoints.join('%, ')}{laterPctPoints.length ? '%' : ''}).
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="robustness-explainer-grid">
-              <div className="robustness-explainer-card">
-                <div className="optimizer-result-title">Success rate</div>
-                <div className="optimizer-result-sub">
-                  The weighted share of futures where the full plan still works.
-                </div>
-                <div className="optimizer-detail-list">
-                  <div>
-                    “Works” means it preserves the {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} post-2032 liquid-savings floor, passes mortgage rules, and meets the house-value rule.
-                  </div>
-                  <div>
-                    Weighted means medium futures count more than low/high, and private-school futures only count by the school probability.
-                  </div>
-                </div>
-              </div>
-              <div className="robustness-explainer-card">
-                <div className="optimizer-result-title">Regret CVaR 10%</div>
-                <div className="optimizer-result-sub">
-                  A downside measure. Lower is better.
-                </div>
-                <div className="optimizer-detail-list">
-                  <div>
-                    In each future, the model compares one setup with the best tested setup in that same future.
-                  </div>
-                  <div>
-                    It then averages the worst 10% of those “miss by” gaps.
-                  </div>
-                </div>
-              </div>
-              <div className="robustness-explainer-card">
-                <div className="optimizer-result-title">Private-school success</div>
-                <div className="optimizer-result-sub">
-                  This only looks inside the private-school futures.
-                </div>
-                <div className="optimizer-detail-list">
-                  <div>
-                    It asks what share of the school-on futures still stays feasible and can afford school fees.
-                  </div>
-                  <div>
-                    Best sampled private-school success in this run: {formatProbability(bestPrivateSchoolSuccess)}.
-                  </div>
-                </div>
-              </div>
+            <div className="optimizer-result-title">How this page works</div>
+            <div className="optimizer-result-sub">
+              This is one stress test over many plausible futures. It is not one forecast.
             </div>
             <div className="optimizer-detail-list">
+              <div>
+                The model generated {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'} future paths. Each path is one year-by-year version of your life to age 70 with different income, market, mortgage-rate, cost, recession, and redundancy outcomes.
+              </div>
+              <div>
+                It first built {robustnessMeta?.strategySampling?.explicitGridCount?.toLocaleString() ?? '—'} legal starting housing setups, screened them quickly, then carried {robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'} stronger or more distinct setups into the full run.
+              </div>
+              <div>
+                That is why you see both numbers: {robustnessMeta?.scenarioCount?.toLocaleString() ?? '—'} future paths tested, but {robustnessMeta?.strategySampling?.fullEvaluationCount?.toLocaleString() ?? '—'} full simulations. The larger number is simply future paths x fully tested setups.
+              </div>
+              <div>
+                One full simulation means taking one housing setup and running it through one complete future path, year by year, recording cash, property, mortgage, and whether any hard rule breaks.
+              </div>
+              <div>
+                Success rate is the weighted share of futures where the full plan still works. “Works” means it preserves the {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} post-2032 liquid-savings floor, passes mortgage rules, and meets the house-value rule.
+              </div>
+              <div>
+                Regret CVaR 10% is a downside measure. For each future, the model compares one setup with the best tested setup in that same future, then averages the worst 10% of those gaps. Lower is better.
+              </div>
+              <div>
+                Private-school success only looks inside the private-school futures and asks what share still stays feasible and can afford school fees. Best sampled private-school success in this run: {formatProbability(bestPrivateSchoolSuccess)}.
+              </div>
+              <div>
+                Private-school probability {formatProbability(robustnessMeta?.defaultPrivateSchoolProbability ?? 0)} does not mean the model thinks private school is “30% likely” in real life. It means {formatProbability(robustnessMeta?.defaultPrivateSchoolProbability ?? 0)} of the averaging weight is given to school-on futures and {formatProbability(1 - (robustnessMeta?.defaultPrivateSchoolProbability ?? 0))} to school-off futures.
+              </div>
               <div>
                 What is estimated versus exact: {robustnessCoverageNotes?.winnerScope ?? 'Winner-scope note unavailable.'} {robustnessCoverageNotes?.scenarioScope ?? 'Scenario-scope note unavailable.'} {robustnessCoverageNotes?.regretScope ?? 'Regret-scope note unavailable.'}
               </div>
@@ -556,10 +480,10 @@ const RobustnessTabSection = ({
               </div>
               <div className="optimizer-detail-list">
                 <div>
-                  First-deposit points shown: {firstDepositPoints.map((value) => formatCurrency(value)).join(', ') || '—'}.
+                  First-deposit points shown: {robustnessMeta?.strategySampling?.firstDepositPoints?.map((value) => formatCurrency(value)).join(', ') || '—'}.
                 </div>
                 <div>
-                  First-mortgage points shown: {firstMortgagePoints.map((value) => formatCurrency(value)).join(', ') || '—'}.
+                  First-mortgage points shown: {robustnessMeta?.strategySampling?.firstMortgagePoints?.map((value) => formatCurrency(value)).join(', ') || '—'}.
                 </div>
                 <div>
                   Grey cells mean that deposit/mortgage pair was in the plotted range, but no screened strategy survived there.

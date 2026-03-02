@@ -39,7 +39,6 @@ const FINAL_PATH_CANDIDATES_PER_OBJECTIVE = 8;
 const EXPLICIT_GRID_TOP_ONE_HOME_PER_CELL = 2;
 const EXPLICIT_GRID_TOP_TWO_HOME_PER_CELL = 3;
 const HEATMAP_BALANCED_OBJECTIVE_ID = 'robust';
-const ROBUSTNESS_BIG_FIRST_HOUSE_TARGET = 800000;
 
 const ROBUSTNESS_OBJECTIVE_DEFINITIONS = [
   {
@@ -59,8 +58,8 @@ const ROBUSTNESS_OBJECTIVE_DEFINITIONS = [
   },
   {
     id: 'bigFirstHouse',
-    label: 'Big first house',
-    description: 'First house value as close as possible to about GBP 800k, while still preferring stronger robust outcomes on ties.',
+    label: 'Largest first house',
+    description: 'Largest possible first house value, with stronger overall outcomes used as tie-breakers.',
   },
   {
     id: 'privateSchoolSuccess',
@@ -971,12 +970,6 @@ const compareRobustnessMetricsForObjective = (objectiveId, left, right) => {
   }
 
   if (objectiveId === 'bigFirstHouse') {
-    const leftDistance = Math.abs(left.strategy.firstHouseValue - ROBUSTNESS_BIG_FIRST_HOUSE_TARGET);
-    const rightDistance = Math.abs(right.strategy.firstHouseValue - ROBUSTNESS_BIG_FIRST_HOUSE_TARGET);
-
-    if (leftDistance !== rightDistance) {
-      return leftDistance - rightDistance;
-    }
     if (right.strategy.firstHouseValue !== left.strategy.firstHouseValue) {
       return right.strategy.firstHouseValue - left.strategy.firstHouseValue;
     }

@@ -43,7 +43,6 @@ import {
   OPTIMIZER_MAX_TOTAL_MORTGAGE,
   POST_2032_SAVINGS_FLOOR_START_YEAR,
   POST_2032_MIN_TOTAL_SAVINGS,
-  OPTIMIZER_BIG_FIRST_HOUSE_TARGET,
   OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX,
   FIRST_HOME_SALE_AGENT_FEE_PCT,
   FIRST_HOME_SALE_LEGAL_FEES,
@@ -1125,7 +1124,7 @@ const App = () => {
     {
       id: 'bigFirstHouse',
       label: 'Big first house',
-      description: `First house value as close as possible to about ${formatCurrency(OPTIMIZER_BIG_FIRST_HOUSE_TARGET)}.`,
+      description: 'Largest possible first house value.',
     },
     {
       id: 'privateSchoolSuccess',
@@ -1145,8 +1144,8 @@ const App = () => {
     if (objective.id === 'bigFirstHouse') {
       return {
         ...objective,
-        label: `Closest to ${formatCurrency(OPTIMIZER_BIG_FIRST_HOUSE_TARGET)} first house`,
-        description: `Closest to a ${formatCurrency(OPTIMIZER_BIG_FIRST_HOUSE_TARGET)} first house. This does not mean “largest possible first house.”`,
+        label: 'Largest first house',
+        description: 'Largest possible first house value, with stronger overall outcomes used as tie-breakers.',
       };
     }
 
@@ -1265,11 +1264,10 @@ const App = () => {
 
     if (robustnessObjective === 'bigFirstHouse') {
       const firstHouseValue = strategy.decisionVector.deposit1 + strategy.decisionVector.mortgage1;
-      const distance = Math.abs(firstHouseValue - OPTIMIZER_BIG_FIRST_HOUSE_TARGET);
       return [
-        `This objective targets closeness to ${formatCurrency(OPTIMIZER_BIG_FIRST_HOUSE_TARGET)}, not the biggest possible first house.`,
-        `This setup starts at ${formatCurrency(firstHouseValue)}, which is ${formatCurrency(distance)} away from that target.`,
-        `Among the setups closest to the target, it then wins on success rate and expected end wealth.`,
+        `This objective now means the largest possible first house value, not closeness to a target.`,
+        `This setup starts with a first house of ${formatCurrency(firstHouseValue)}.`,
+        `Among the largest-first-house options, it then wins on success rate and expected end wealth.`,
       ];
     }
 

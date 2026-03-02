@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-03-02T19:27:19.757Z",
+  "generatedAt": "2026-03-02T21:18:34.284Z",
   "meta": {
     "sampleMethod": "Weighted stratified Monte Carlo",
     "scenarioCount": 54000,
     "scenarioDrawsPerBucket": 3000,
-    "candidateStrategyCount": 169,
+    "candidateStrategyCount": 171,
     "defaultMediumWeight": 0.6,
     "defaultPrivateSchoolProbability": 0.3,
     "robustScoreWeights": {
@@ -31,8 +31,8 @@
       },
       {
         "id": "bigFirstHouse",
-        "label": "Big first house",
-        "description": "First house value as close as possible to about GBP 800k, while still preferring stronger robust outcomes on ties."
+        "label": "Largest first house",
+        "description": "Largest possible first house value, with stronger overall outcomes used as tie-breakers."
       },
       {
         "id": "privateSchoolSuccess",
@@ -136,15 +136,15 @@
       "screeningDrawsPerBucket": 8,
       "screeningScenarioCount": 144,
       "screeningEvaluationCount": 541296,
-      "screenedToCandidateCount": 169,
-      "fullEvaluationCount": 9126000,
+      "screenedToCandidateCount": 171,
+      "fullEvaluationCount": 9234000,
       "pathCounts": {
         "oneHome": 32,
-        "twoHome": 137
+        "twoHome": 139
       },
       "originCounts": {
         "explicit-grid-one-home": 32,
-        "explicit-grid-two-home": 137
+        "explicit-grid-two-home": 139
       }
     },
     "weightingExplanation": "Each simulated future belongs to one income bucket, one market bucket, and one private-school state. Those buckets do not all count equally: medium cases carry more weight by design, and private-school futures only get the chosen private-school probability. Within each bucket, the run also varies path shocks, cost growth, tax drag, redundancy, and recession timing/severity. A weighted share is therefore the share of total probability mass, not just the raw share of rows.",
@@ -203,7 +203,7 @@
   },
   "frontier": [
     {
-      "strategyId": "S149",
+      "strategyId": "S138",
       "expectedEndNetWorth": 2724582.713862125,
       "regretCvar10": 333303.0276701229,
       "feasibilityProbability": 0,
@@ -804,7 +804,7 @@
   ],
   "pathSummaries": {
     "all": {
-      "candidateCount": 169,
+      "candidateCount": 171,
       "bestStrategyId": "S001",
       "topStrategies": [
         "S001",
@@ -826,7 +826,7 @@
       ]
     },
     "twoHome": {
-      "candidateCount": 137,
+      "candidateCount": 139,
       "bestStrategyId": "S044",
       "topStrategies": [
         "S044",
@@ -849,14 +849,14 @@
       "twoHome": "S034"
     },
     "propertyValue": {
-      "all": "S158",
+      "all": "S160",
       "oneHome": "S023",
-      "twoHome": "S158"
+      "twoHome": "S160"
     },
     "bigFirstHouse": {
-      "all": "S116",
-      "oneHome": "S001",
-      "twoHome": "S116"
+      "all": "S023",
+      "oneHome": "S023",
+      "twoHome": "S142"
     },
     "privateSchoolSuccess": {
       "all": "S038",
@@ -2954,7 +2954,7 @@
       }
     },
     {
-      "strategyId": "S116",
+      "strategyId": "S115",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -3766,7 +3766,7 @@
       }
     },
     {
-      "strategyId": "S114",
+      "strategyId": "S113",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -3940,7 +3940,7 @@
       }
     },
     {
-      "strategyId": "S149",
+      "strategyId": "S138",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -4578,7 +4578,7 @@
       }
     },
     {
-      "strategyId": "S150",
+      "strategyId": "S139",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -4694,7 +4694,7 @@
       }
     },
     {
-      "strategyId": "S146",
+      "strategyId": "S135",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -4868,7 +4868,7 @@
       }
     },
     {
-      "strategyId": "S131",
+      "strategyId": "S120",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -5100,7 +5100,7 @@
       }
     },
     {
-      "strategyId": "S147",
+      "strategyId": "S136",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -5158,7 +5158,7 @@
       }
     },
     {
-      "strategyId": "S151",
+      "strategyId": "S153",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -5332,7 +5332,7 @@
       }
     },
     {
-      "strategyId": "S141",
+      "strategyId": "S130",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -5506,7 +5506,7 @@
       }
     },
     {
-      "strategyId": "S140",
+      "strategyId": "S129",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -5738,65 +5738,7 @@
       }
     },
     {
-      "strategyId": "S113",
-      "pathType": "Two-home path",
-      "strategyOrigin": "explicit-grid-two-home",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 550000,
-        "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 100000,
-        "buyYear2": 2036,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 10,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 22.08559971476406,
-        "expectedEndNetWorth": 1953712.6762672071,
-        "expectedCashEnd": 919046.3723471247,
-        "expectedFinalPropertyValue": 1047125.3215009116,
-        "endNetWorthCvar10": 652424.6403608466,
-        "expectedLifetimeInterest": 365083.92360517295,
-        "expectedRegret": 890252.9933237366,
-        "regretCvar10": 1205042.0261630188,
-        "feasibilityProbability": 0.22556666666666952,
-        "privateSchoolFeasibilityProbability": 0.00310666666666568,
-        "cashBufferProbability": 0.4554826666663633,
-        "secondHouseFundingProbability": 0.9961013333335045,
-        "firstHouseValue": 800000,
-        "secondHousePurchaseValueRule": 900000
-      },
-      "defaultApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 39033.76700014613,
-        "cashEnd": 965421.2337333801,
-        "finalPropertyValue": 1011819.1605184919,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": true,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 556672.5028140699,
-        "usePrivateSchool": false,
-        "overallPass": false
-      },
-      "privateSchoolApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 731724.415512092,
-        "finalPropertyValue": 1011819.1605184919,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 556672.5028140699,
-        "usePrivateSchool": true,
-        "overallPass": false
-      }
-    },
-    {
-      "strategyId": "S142",
+      "strategyId": "S131",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -5912,7 +5854,7 @@
       }
     },
     {
-      "strategyId": "S143",
+      "strategyId": "S132",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -5970,7 +5912,7 @@
       }
     },
     {
-      "strategyId": "S122",
+      "strategyId": "S118",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -6144,7 +6086,7 @@
       }
     },
     {
-      "strategyId": "S138",
+      "strategyId": "S127",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -6202,7 +6144,7 @@
       }
     },
     {
-      "strategyId": "S117",
+      "strategyId": "S116",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -6434,7 +6376,7 @@
       }
     },
     {
-      "strategyId": "S130",
+      "strategyId": "S119",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -6492,7 +6434,7 @@
       }
     },
     {
-      "strategyId": "S137",
+      "strategyId": "S126",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -6666,7 +6608,7 @@
       }
     },
     {
-      "strategyId": "S144",
+      "strategyId": "S133",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -6724,7 +6666,7 @@
       }
     },
     {
-      "strategyId": "S139",
+      "strategyId": "S128",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -7014,7 +6956,7 @@
       }
     },
     {
-      "strategyId": "S133",
+      "strategyId": "S122",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -7072,7 +7014,7 @@
       }
     },
     {
-      "strategyId": "S136",
+      "strategyId": "S125",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -7246,7 +7188,7 @@
       }
     },
     {
-      "strategyId": "S132",
+      "strategyId": "S121",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -7420,7 +7362,7 @@
       }
     },
     {
-      "strategyId": "S148",
+      "strategyId": "S137",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -7536,7 +7478,7 @@
       }
     },
     {
-      "strategyId": "S134",
+      "strategyId": "S123",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -7768,7 +7710,7 @@
       }
     },
     {
-      "strategyId": "S118",
+      "strategyId": "S117",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -7884,7 +7826,7 @@
       }
     },
     {
-      "strategyId": "S115",
+      "strategyId": "S114",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -8580,64 +8522,6 @@
       }
     },
     {
-      "strategyId": "S121",
-      "pathType": "Two-home path",
-      "strategyOrigin": "explicit-grid-two-home",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 550000,
-        "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 250000,
-        "buyYear2": 2038,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 10,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 18.091249364361104,
-        "expectedEndNetWorth": 1809890.6526311338,
-        "expectedCashEnd": 664359.2102108424,
-        "expectedFinalPropertyValue": 1198529.202154504,
-        "endNetWorthCvar10": 466956.98595697916,
-        "expectedLifetimeInterest": 494895.26190110465,
-        "expectedRegret": 1034075.016959798,
-        "regretCvar10": 1347815.2105308236,
-        "feasibilityProbability": 0.2068133333333357,
-        "privateSchoolFeasibilityProbability": 0.002133333333332655,
-        "cashBufferProbability": 0.41184266666640773,
-        "secondHouseFundingProbability": 0.9844226666668421,
-        "firstHouseValue": 800000,
-        "secondHousePurchaseValueRule": 900000
-      },
-      "defaultApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 35105.17082267965,
-        "cashEnd": 661767.3815389543,
-        "finalPropertyValue": 1154315.8057393199,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": true,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 671859.9216975057,
-        "usePrivateSchool": false,
-        "overallPass": false
-      },
-      "privateSchoolApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 463264.46093154035,
-        "finalPropertyValue": 1154315.8057393199,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 671859.9216975057,
-        "usePrivateSchool": true,
-        "overallPass": false
-      }
-    },
-    {
       "strategyId": "S019",
       "pathType": "One-home path",
       "strategyOrigin": "explicit-grid-one-home",
@@ -8685,64 +8569,6 @@
         "minLiquidBufferPost2032": 0,
         "cashEnd": 1226637.6738620184,
         "finalPropertyValue": 801302.7236245156,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 550000,
-        "usePrivateSchool": true,
-        "overallPass": false
-      }
-    },
-    {
-      "strategyId": "S127",
-      "pathType": "Two-home path",
-      "strategyOrigin": "explicit-grid-two-home",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 550000,
-        "buyYear1": 2027,
-        "deposit2": 200000,
-        "mortgage2": 100000,
-        "buyYear2": 2040,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 10,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 17.929149592382352,
-        "expectedEndNetWorth": 2024083.8239518197,
-        "expectedCashEnd": 935776.8111248383,
-        "expectedFinalPropertyValue": 1095641.0554733835,
-        "endNetWorthCvar10": 771967.554300637,
-        "expectedLifetimeInterest": 324252.70317634696,
-        "expectedRegret": 819881.8456390837,
-        "regretCvar10": 1195186.220411747,
-        "feasibilityProbability": 0.14477866666666808,
-        "privateSchoolFeasibilityProbability": 0.000933333333333037,
-        "cashBufferProbability": 0.30255999999989824,
-        "secondHouseFundingProbability": 0.819360000000036,
-        "firstHouseValue": 800000,
-        "secondHousePurchaseValueRule": 900000
-      },
-      "defaultApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 9824.176064661544,
-        "cashEnd": 928273.7782208091,
-        "finalPropertyValue": 1045473.9278723642,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": true,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 550000,
-        "usePrivateSchool": false,
-        "overallPass": false
-      },
-      "privateSchoolApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 805406.4197532807,
-        "finalPropertyValue": 1045473.9278723642,
         "post2032SavingsFloorOk": false,
         "cashBufferOk": false,
         "canBuyHouse2IfChosen": true,
@@ -8812,7 +8638,7 @@
       }
     },
     {
-      "strategyId": "S135",
+      "strategyId": "S124",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -8870,7 +8696,7 @@
       }
     },
     {
-      "strategyId": "S145",
+      "strategyId": "S134",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -8923,64 +8749,6 @@
         "houseValueRuleOk": true,
         "negativeAmortizationYears": 0,
         "peakMortgageBalance": 350000,
-        "usePrivateSchool": true,
-        "overallPass": false
-      }
-    },
-    {
-      "strategyId": "S125",
-      "pathType": "Two-home path",
-      "strategyOrigin": "explicit-grid-two-home",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 550000,
-        "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 350000,
-        "buyYear2": 2040,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 10,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 17.136890547826965,
-        "expectedEndNetWorth": 1754626.6259730808,
-        "expectedCashEnd": 545913.3052510621,
-        "expectedFinalPropertyValue": 1299855.2249411622,
-        "endNetWorthCvar10": 388173.9892278158,
-        "expectedLifetimeInterest": 552937.2757285757,
-        "expectedRegret": 1089339.0436178313,
-        "regretCvar10": 1408116.8901260549,
-        "feasibilityProbability": 0.2102760000000023,
-        "privateSchoolFeasibilityProbability": 0.001853333333332744,
-        "cashBufferProbability": 0.3927133333330939,
-        "secondHouseFundingProbability": 0.9533613333335038,
-        "firstHouseValue": 800000,
-        "secondHousePurchaseValueRule": 900000
-      },
-      "defaultApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 38575.42162729148,
-        "cashEnd": 501492.0436215587,
-        "finalPropertyValue": 1239678.3669248323,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": true,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 732482.0579941691,
-        "usePrivateSchool": false,
-        "overallPass": false
-      },
-      "privateSchoolApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 318746.577276599,
-        "finalPropertyValue": 1239678.3669248323,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 732482.0579941691,
         "usePrivateSchool": true,
         "overallPass": false
       }
@@ -9044,64 +8812,6 @@
       }
     },
     {
-      "strategyId": "S123",
-      "pathType": "Two-home path",
-      "strategyOrigin": "explicit-grid-two-home",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 550000,
-        "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 250000,
-        "buyYear2": 2040,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 15,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 16.469287329822926,
-        "expectedEndNetWorth": 2001855.9700486022,
-        "expectedCashEnd": 808482.3234968348,
-        "expectedFinalPropertyValue": 1197748.1402072627,
-        "endNetWorthCvar10": 849527.8323134847,
-        "expectedLifetimeInterest": 348207.51196649304,
-        "expectedRegret": 842109.699542307,
-        "regretCvar10": 1369556.8316035185,
-        "feasibilityProbability": 0.15649733333333465,
-        "privateSchoolFeasibilityProbability": 0.00007999999999997474,
-        "cashBufferProbability": 0.22929866666666868,
-        "secondHouseFundingProbability": 0.9533613333335038,
-        "firstHouseValue": 800000,
-        "secondHousePurchaseValueRule": 900000
-      },
-      "defaultApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 766811.2091648105,
-        "finalPropertyValue": 1142576.1473985978,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 632482.0579941691,
-        "usePrivateSchool": false,
-        "overallPass": false
-      },
-      "privateSchoolApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 766811.2091648105,
-        "finalPropertyValue": 1142576.1473985978,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 632482.0579941691,
-        "usePrivateSchool": true,
-        "overallPass": false
-      }
-    },
-    {
       "strategyId": "S028",
       "pathType": "One-home path",
       "strategyOrigin": "explicit-grid-one-home",
@@ -9155,64 +8865,6 @@
         "houseValueRuleOk": true,
         "negativeAmortizationYears": 0,
         "peakMortgageBalance": 600000,
-        "usePrivateSchool": true,
-        "overallPass": false
-      }
-    },
-    {
-      "strategyId": "S128",
-      "pathType": "Two-home path",
-      "strategyOrigin": "explicit-grid-two-home",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 550000,
-        "buyYear1": 2027,
-        "deposit2": 200000,
-        "mortgage2": 100000,
-        "buyYear2": 2040,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 5,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 16.192872266375385,
-        "expectedEndNetWorth": 1955515.5720812955,
-        "expectedCashEnd": 893118.7115555856,
-        "expectedFinalPropertyValue": 1095641.0554733835,
-        "endNetWorthCvar10": 508225.1018036157,
-        "expectedLifetimeInterest": 434688.86755622184,
-        "expectedRegret": 888450.0975096248,
-        "regretCvar10": 1063997.92236747,
-        "feasibilityProbability": 0.09877200000000232,
-        "privateSchoolFeasibilityProbability": 0.010879999999996713,
-        "cashBufferProbability": 0.33379066666654417,
-        "secondHouseFundingProbability": 0.819360000000036,
-        "firstHouseValue": 800000,
-        "secondHousePurchaseValueRule": 900000
-      },
-      "defaultApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 9824.176064661544,
-        "cashEnd": 999005.9944632609,
-        "finalPropertyValue": 1045473.9278723642,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": true,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 550000,
-        "usePrivateSchool": false,
-        "overallPass": false
-      },
-      "privateSchoolApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 579021.5398827273,
-        "finalPropertyValue": 1045473.9278723642,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 550000,
         "usePrivateSchool": true,
         "overallPass": false
       }
@@ -9276,7 +8928,7 @@
       }
     },
     {
-      "strategyId": "S168",
+      "strategyId": "S170",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -9392,7 +9044,7 @@
       }
     },
     {
-      "strategyId": "S167",
+      "strategyId": "S169",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -9450,181 +9102,7 @@
       }
     },
     {
-      "strategyId": "S126",
-      "pathType": "Two-home path",
-      "strategyOrigin": "explicit-grid-two-home",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 550000,
-        "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 350000,
-        "buyYear2": 2040,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 15,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 13.298028379341565,
-        "expectedEndNetWorth": 1893586.6685441996,
-        "expectedCashEnd": 618178.6600519491,
-        "expectedFinalPropertyValue": 1299855.2249411622,
-        "endNetWorthCvar10": 728110.8191591294,
-        "expectedLifetimeInterest": 425405.1731442871,
-        "expectedRegret": 950379.0010467132,
-        "regretCvar10": 1487758.617063736,
-        "feasibilityProbability": 0.14146666666666785,
-        "privateSchoolFeasibilityProbability": 0.00006666666666664562,
-        "cashBufferProbability": 0.21452133333333517,
-        "secondHouseFundingProbability": 0.9533613333335038,
-        "firstHouseValue": 800000,
-        "secondHousePurchaseValueRule": 900000
-      },
-      "defaultApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 560072.9041174001,
-        "finalPropertyValue": 1239678.3669248323,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 732482.0579941691,
-        "usePrivateSchool": false,
-        "overallPass": false
-      },
-      "privateSchoolApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 560072.9041174001,
-        "finalPropertyValue": 1239678.3669248323,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 732482.0579941691,
-        "usePrivateSchool": true,
-        "overallPass": false
-      }
-    },
-    {
-      "strategyId": "S120",
-      "pathType": "Two-home path",
-      "strategyOrigin": "explicit-grid-two-home",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 550000,
-        "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 250000,
-        "buyYear2": 2036,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 10,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 13.156691833136946,
-        "expectedEndNetWorth": 1764791.6439529667,
-        "expectedCashEnd": 627610.9450390093,
-        "expectedFinalPropertyValue": 1201808.633638438,
-        "endNetWorthCvar10": 404421.7966589464,
-        "expectedLifetimeInterest": 531737.6881753491,
-        "expectedRegret": 1079174.0256379587,
-        "regretCvar10": 1387391.6213555974,
-        "feasibilityProbability": 0.1385280000000015,
-        "privateSchoolFeasibilityProbability": 0.0020933333333326676,
-        "cashBufferProbability": 0.40881866666641237,
-        "secondHouseFundingProbability": 0.9961013333335045,
-        "firstHouseValue": 800000,
-        "secondHousePurchaseValueRule": 900000
-      },
-      "defaultApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 24033.767000146123,
-        "cashEnd": 612132.1480851161,
-        "finalPropertyValue": 1166410.2952533895,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": true,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 706672.5028140699,
-        "usePrivateSchool": false,
-        "overallPass": false
-      },
-      "privateSchoolApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 413459.78839233634,
-        "finalPropertyValue": 1166410.2952533895,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 706672.5028140699,
-        "usePrivateSchool": true,
-        "overallPass": false
-      }
-    },
-    {
-      "strategyId": "S129",
-      "pathType": "Two-home path",
-      "strategyOrigin": "explicit-grid-two-home",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 550000,
-        "buyYear1": 2027,
-        "deposit2": 200000,
-        "mortgage2": 250000,
-        "buyYear2": 2040,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 10,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 12.856914616634157,
-        "expectedEndNetWorth": 1866550.9409534216,
-        "expectedCashEnd": 660831.2797497031,
-        "expectedFinalPropertyValue": 1248801.6825742046,
-        "endNetWorthCvar10": 565881.3903376352,
-        "expectedLifetimeInterest": 459261.0731771747,
-        "expectedRegret": 977414.7286374969,
-        "regretCvar10": 1337460.4691006069,
-        "feasibilityProbability": 0.10977733333333438,
-        "privateSchoolFeasibilityProbability": 0.0006799999999997845,
-        "cashBufferProbability": 0.25706266666664945,
-        "secondHouseFundingProbability": 0.819360000000036,
-        "firstHouseValue": 800000,
-        "secondHousePurchaseValueRule": 900000
-      },
-      "defaultApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 615377.4058092361,
-        "finalPropertyValue": 1191127.2571617144,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 632482.0579941691,
-        "usePrivateSchool": false,
-        "overallPass": false
-      },
-      "privateSchoolApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 512118.4831485974,
-        "finalPropertyValue": 1191127.2571617144,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 632482.0579941691,
-        "usePrivateSchool": true,
-        "overallPass": false
-      }
-    },
-    {
-      "strategyId": "S159",
+      "strategyId": "S161",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -9682,65 +9160,7 @@
       }
     },
     {
-      "strategyId": "S124",
-      "pathType": "Two-home path",
-      "strategyOrigin": "explicit-grid-two-home",
-      "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 550000,
-        "buyYear1": 2027,
-        "deposit2": 150000,
-        "mortgage2": 350000,
-        "buyYear2": 2038,
-        "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 10,
-        "optimizerIsaSeed": 50000
-      },
-      "metrics": {
-        "compositeRobustScore": 12.452001418661474,
-        "expectedEndNetWorth": 1696368.6243646839,
-        "expectedCashEnd": 505577.4455945218,
-        "expectedFinalPropertyValue": 1300831.552375229,
-        "endNetWorthCvar10": 313208.74248918606,
-        "expectedLifetimeInterest": 596107.5687933421,
-        "expectedRegret": 1147597.0452262426,
-        "regretCvar10": 1465044.2459952808,
-        "feasibilityProbability": 0.15134000000000175,
-        "privateSchoolFeasibilityProbability": 0.0016799999999994658,
-        "cashBufferProbability": 0.3803933333331133,
-        "secondHouseFundingProbability": 0.9844226666668421,
-        "firstHouseValue": 800000,
-        "secondHousePurchaseValueRule": 900000
-      },
-      "defaultApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 25105.170822679647,
-        "cashEnd": 437810.02043189463,
-        "finalPropertyValue": 1254352.9398507338,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": true,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 771859.9216975057,
-        "usePrivateSchool": false,
-        "overallPass": false
-      },
-      "privateSchoolApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 0,
-        "cashEnd": 260895.1536512237,
-        "finalPropertyValue": 1254352.9398507338,
-        "post2032SavingsFloorOk": false,
-        "cashBufferOk": false,
-        "canBuyHouse2IfChosen": true,
-        "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 771859.9216975057,
-        "usePrivateSchool": true,
-        "overallPass": false
-      }
-    },
-    {
-      "strategyId": "S169",
+      "strategyId": "S171",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -9798,7 +9218,123 @@
       }
     },
     {
-      "strategyId": "S158",
+      "strategyId": "S143",
+      "pathType": "Two-home path",
+      "strategyOrigin": "explicit-grid-two-home",
+      "decisionVector": {
+        "deposit1": 300000,
+        "mortgage1": 600000,
+        "buyYear1": 2027,
+        "deposit2": 150000,
+        "mortgage2": 100000,
+        "buyYear2": 2040,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 15,
+        "optimizerIsaSeed": 0
+      },
+      "metrics": {
+        "compositeRobustScore": 11.512950122704156,
+        "expectedEndNetWorth": 2089688.476987369,
+        "expectedCashEnd": 946716.6680408546,
+        "expectedFinalPropertyValue": 1143252.488265398,
+        "endNetWorthCvar10": 939204.4188912035,
+        "expectedLifetimeInterest": 313233.91358361737,
+        "expectedRegret": 754277.1926035444,
+        "regretCvar10": 1354274.7634613265,
+        "feasibilityProbability": 0.058305333333333806,
+        "privateSchoolFeasibilityProbability": 0,
+        "cashBufferProbability": 0.13083466666666774,
+        "secondHouseFundingProbability": 0.7543906666665836,
+        "firstHouseValue": 900000,
+        "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 945387.0976384172,
+        "finalPropertyValue": 1091193.7267709547,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": false,
+        "overallPass": false
+      },
+      "privateSchoolApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 945387.0976384172,
+        "finalPropertyValue": 1091193.7267709547,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": true,
+        "overallPass": false
+      }
+    },
+    {
+      "strategyId": "S142",
+      "pathType": "Two-home path",
+      "strategyOrigin": "explicit-grid-two-home",
+      "decisionVector": {
+        "deposit1": 300000,
+        "mortgage1": 600000,
+        "buyYear1": 2027,
+        "deposit2": 150000,
+        "mortgage2": 100000,
+        "buyYear2": 2040,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 10,
+        "optimizerIsaSeed": 0
+      },
+      "metrics": {
+        "compositeRobustScore": 10.856116128522997,
+        "expectedEndNetWorth": 1911822.769720984,
+        "expectedCashEnd": 787877.2852144481,
+        "expectedFinalPropertyValue": 1143252.488265398,
+        "endNetWorthCvar10": 648477.5231763452,
+        "expectedLifetimeInterest": 400348.3761576431,
+        "expectedRegret": 932142.899869937,
+        "regretCvar10": 1331137.9595110458,
+        "feasibilityProbability": 0.06877733333333394,
+        "privateSchoolFeasibilityProbability": 0.0002799999999999116,
+        "cashBufferProbability": 0.20870000000000202,
+        "secondHouseFundingProbability": 0.7543906666665836,
+        "firstHouseValue": 900000,
+        "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 775494.1402812708,
+        "finalPropertyValue": 1091193.7267709547,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": false,
+        "overallPass": false
+      },
+      "privateSchoolApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 672235.2176206321,
+        "finalPropertyValue": 1091193.7267709547,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": true,
+        "overallPass": false
+      }
+    },
+    {
+      "strategyId": "S160",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -9856,65 +9392,65 @@
       }
     },
     {
-      "strategyId": "S119",
+      "strategyId": "S144",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
-        "deposit1": 250000,
-        "mortgage1": 550000,
+        "deposit1": 300000,
+        "mortgage1": 600000,
         "buyYear1": 2027,
         "deposit2": 150000,
-        "mortgage2": 250000,
-        "buyYear2": 2034,
+        "mortgage2": 100000,
+        "buyYear2": 2040,
         "salaryMortgageEarly": 13,
-        "salaryMortgageLater": 10,
-        "optimizerIsaSeed": 50000
+        "salaryMortgageLater": 5,
+        "optimizerIsaSeed": 0
       },
       "metrics": {
-        "compositeRobustScore": 10.499392672219761,
-        "expectedEndNetWorth": 1695244.9380734419,
-        "expectedCashEnd": 599903.0744407404,
-        "expectedFinalPropertyValue": 1173272.5511377677,
-        "endNetWorthCvar10": 316024.5341220846,
-        "expectedLifetimeInterest": 568184.1267319266,
-        "expectedRegret": 1148720.73151748,
-        "regretCvar10": 1447030.0244234004,
-        "feasibilityProbability": 0.11547733333333465,
-        "privateSchoolFeasibilityProbability": 0.002133333333332655,
-        "cashBufferProbability": 0.44204799999971156,
-        "secondHouseFundingProbability": 0.9997786666668369,
-        "firstHouseValue": 800000,
+        "compositeRobustScore": 9.832830351910575,
+        "expectedEndNetWorth": 1845364.0330361626,
+        "expectedCashEnd": 758081.4914368468,
+        "expectedFinalPropertyValue": 1143252.488265398,
+        "endNetWorthCvar10": 384315.05296851473,
+        "expectedLifetimeInterest": 491002.5297083576,
+        "expectedRegret": 998601.6365547695,
+        "regretCvar10": 1183457.2820376076,
+        "feasibilityProbability": 0.03269333333333301,
+        "privateSchoolFeasibilityProbability": 0.004506666666665269,
+        "cashBufferProbability": 0.2198893333333389,
+        "secondHouseFundingProbability": 0.7543906666665836,
+        "firstHouseValue": 900000,
         "secondHousePurchaseValueRule": 900000
       },
       "defaultApplyScenarioCheck": {
-        "minLiquidBufferPost2032": 45543.877290309174,
-        "cashEnd": 624040.6078318111,
-        "finalPropertyValue": 1093929.72642915,
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 849456.4343204084,
+        "finalPropertyValue": 1091193.7267709547,
         "post2032SavingsFloorOk": false,
-        "cashBufferOk": true,
+        "cashBufferOk": false,
         "canBuyHouse2IfChosen": true,
         "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 730003.2737402116,
+        "negativeAmortizationYears": 2,
+        "peakMortgageBalance": 600000,
         "usePrivateSchool": false,
         "overallPass": false
       },
       "privateSchoolApplyScenarioCheck": {
         "minLiquidBufferPost2032": 0,
-        "cashEnd": 362744.9529889806,
-        "finalPropertyValue": 1093929.72642915,
+        "cashEnd": 449080.4155467639,
+        "finalPropertyValue": 1091193.7267709547,
         "post2032SavingsFloorOk": false,
         "cashBufferOk": false,
         "canBuyHouse2IfChosen": true,
         "houseValueRuleOk": true,
-        "negativeAmortizationYears": 0,
-        "peakMortgageBalance": 730003.2737402116,
+        "negativeAmortizationYears": 2,
+        "peakMortgageBalance": 600000,
         "usePrivateSchool": true,
         "overallPass": false
       }
     },
     {
-      "strategyId": "S165",
+      "strategyId": "S167",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -9972,7 +9508,181 @@
       }
     },
     {
-      "strategyId": "S160",
+      "strategyId": "S141",
+      "pathType": "Two-home path",
+      "strategyOrigin": "explicit-grid-two-home",
+      "decisionVector": {
+        "deposit1": 300000,
+        "mortgage1": 600000,
+        "buyYear1": 2027,
+        "deposit2": 150000,
+        "mortgage2": 100000,
+        "buyYear2": 2038,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 15,
+        "optimizerIsaSeed": 0
+      },
+      "metrics": {
+        "compositeRobustScore": 9.237476667808664,
+        "expectedEndNetWorth": 2093039.2102882848,
+        "expectedCashEnd": 949553.7224510473,
+        "expectedFinalPropertyValue": 1143740.6519824348,
+        "endNetWorthCvar10": 940551.4529967974,
+        "expectedLifetimeInterest": 315822.8288010059,
+        "expectedRegret": 750926.4593026367,
+        "regretCvar10": 1367472.7162530262,
+        "feasibilityProbability": 0.02236266666666683,
+        "privateSchoolFeasibilityProbability": 0,
+        "cashBufferProbability": 0.0970853333333341,
+        "secondHouseFundingProbability": 0.8068026666666852,
+        "firstHouseValue": 900000,
+        "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 955010.6888233074,
+        "finalPropertyValue": 1098531.0132339057,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": false,
+        "overallPass": false
+      },
+      "privateSchoolApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 955010.6888233074,
+        "finalPropertyValue": 1098531.0132339057,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": true,
+        "overallPass": false
+      }
+    },
+    {
+      "strategyId": "S151",
+      "pathType": "Two-home path",
+      "strategyOrigin": "explicit-grid-two-home",
+      "decisionVector": {
+        "deposit1": 300000,
+        "mortgage1": 600000,
+        "buyYear1": 2027,
+        "deposit2": 200000,
+        "mortgage2": 100000,
+        "buyYear2": 2040,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 15,
+        "optimizerIsaSeed": 0
+      },
+      "metrics": {
+        "compositeRobustScore": 9.173554709984977,
+        "expectedEndNetWorth": 2128450.976338653,
+        "expectedCashEnd": 934425.6250251933,
+        "expectedFinalPropertyValue": 1194306.0306323266,
+        "endNetWorthCvar10": 977436.9219872489,
+        "expectedLifetimeInterest": 313233.91358361737,
+        "expectedRegret": 715514.6932522564,
+        "regretCvar10": 1349099.160803722,
+        "feasibilityProbability": 0.012721333333333397,
+        "privateSchoolFeasibilityProbability": 0,
+        "cashBufferProbability": 0.057045333333333795,
+        "secondHouseFundingProbability": 0.45651066666654116,
+        "firstHouseValue": 900000,
+        "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 945387.0976384172,
+        "finalPropertyValue": 1139744.8365340717,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": false,
+        "overallPass": false
+      },
+      "privateSchoolApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 945387.0976384172,
+        "finalPropertyValue": 1139744.8365340717,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": true,
+        "overallPass": false
+      }
+    },
+    {
+      "strategyId": "S152",
+      "pathType": "Two-home path",
+      "strategyOrigin": "explicit-grid-two-home",
+      "decisionVector": {
+        "deposit1": 300000,
+        "mortgage1": 600000,
+        "buyYear1": 2027,
+        "deposit2": 200000,
+        "mortgage2": 100000,
+        "buyYear2": 2040,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 5,
+        "optimizerIsaSeed": 0
+      },
+      "metrics": {
+        "compositeRobustScore": 8.93676137644222,
+        "expectedEndNetWorth": 1878623.8506706215,
+        "expectedCashEnd": 740290.3532197478,
+        "expectedFinalPropertyValue": 1194306.0306323266,
+        "endNetWorthCvar10": 422797.7106868895,
+        "expectedLifetimeInterest": 491002.5297083576,
+        "expectedRegret": 965341.8189202914,
+        "regretCvar10": 1157633.964444565,
+        "feasibilityProbability": 0.008852000000000065,
+        "privateSchoolFeasibilityProbability": 0.0015066666666661876,
+        "cashBufferProbability": 0.06870800000000125,
+        "secondHouseFundingProbability": 0.45651066666654116,
+        "firstHouseValue": 900000,
+        "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 849456.4343204084,
+        "finalPropertyValue": 1139744.8365340717,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 2,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": false,
+        "overallPass": false
+      },
+      "privateSchoolApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 449080.4155467639,
+        "finalPropertyValue": 1139744.8365340717,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 2,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": true,
+        "overallPass": false
+      }
+    },
+    {
+      "strategyId": "S162",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -10030,7 +9740,7 @@
       }
     },
     {
-      "strategyId": "S164",
+      "strategyId": "S166",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -10088,7 +9798,7 @@
       }
     },
     {
-      "strategyId": "S156",
+      "strategyId": "S158",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -10146,7 +9856,123 @@
       }
     },
     {
-      "strategyId": "S166",
+      "strategyId": "S150",
+      "pathType": "Two-home path",
+      "strategyOrigin": "explicit-grid-two-home",
+      "decisionVector": {
+        "deposit1": 300000,
+        "mortgage1": 600000,
+        "buyYear1": 2027,
+        "deposit2": 200000,
+        "mortgage2": 100000,
+        "buyYear2": 2040,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 10,
+        "optimizerIsaSeed": 0
+      },
+      "metrics": {
+        "compositeRobustScore": 7.948569836486283,
+        "expectedEndNetWorth": 1945857.9533308554,
+        "expectedCashEnd": 770858.9264573626,
+        "expectedFinalPropertyValue": 1194306.0306323266,
+        "endNetWorthCvar10": 686515.1952059998,
+        "expectedLifetimeInterest": 400348.3761576431,
+        "expectedRegret": 898107.7162600717,
+        "regretCvar10": 1320756.2394336755,
+        "feasibilityProbability": 0.013493333333333407,
+        "privateSchoolFeasibilityProbability": 0.00005333333333331649,
+        "cashBufferProbability": 0.06656666666666723,
+        "secondHouseFundingProbability": 0.45651066666654116,
+        "firstHouseValue": 900000,
+        "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 775494.1402812708,
+        "finalPropertyValue": 1139744.8365340717,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": false,
+        "overallPass": false
+      },
+      "privateSchoolApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 672235.2176206321,
+        "finalPropertyValue": 1139744.8365340717,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": true,
+        "overallPass": false
+      }
+    },
+    {
+      "strategyId": "S140",
+      "pathType": "Two-home path",
+      "strategyOrigin": "explicit-grid-two-home",
+      "decisionVector": {
+        "deposit1": 300000,
+        "mortgage1": 600000,
+        "buyYear1": 2027,
+        "deposit2": 150000,
+        "mortgage2": 100000,
+        "buyYear2": 2038,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 10,
+        "optimizerIsaSeed": 0
+      },
+      "metrics": {
+        "compositeRobustScore": 7.783808864079422,
+        "expectedEndNetWorth": 1881503.3215475131,
+        "expectedCashEnd": 761160.7194004924,
+        "expectedFinalPropertyValue": 1143740.6519824348,
+        "endNetWorthCvar10": 606707.5110344636,
+        "expectedLifetimeInterest": 421606.3254966003,
+        "expectedRegret": 962462.348043393,
+        "regretCvar10": 1347605.8394253107,
+        "feasibilityProbability": 0.0250560000000002,
+        "privateSchoolFeasibilityProbability": 0.0002666666666665825,
+        "cashBufferProbability": 0.15070266666666812,
+        "secondHouseFundingProbability": 0.8068026666666852,
+        "firstHouseValue": 900000,
+        "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 759594.9863917636,
+        "finalPropertyValue": 1098531.0132339057,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": false,
+        "overallPass": false
+      },
+      "privateSchoolApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 636877.2975160521,
+        "finalPropertyValue": 1098531.0132339057,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 600000,
+        "usePrivateSchool": true,
+        "overallPass": false
+      }
+    },
+    {
+      "strategyId": "S168",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -10204,7 +10030,123 @@
       }
     },
     {
-      "strategyId": "S155",
+      "strategyId": "S147",
+      "pathType": "Two-home path",
+      "strategyOrigin": "explicit-grid-two-home",
+      "decisionVector": {
+        "deposit1": 300000,
+        "mortgage1": 600000,
+        "buyYear1": 2027,
+        "deposit2": 150000,
+        "mortgage2": 250000,
+        "buyYear2": 2040,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 15,
+        "optimizerIsaSeed": 0
+      },
+      "metrics": {
+        "compositeRobustScore": 6.999572467729539,
+        "expectedEndNetWorth": 1924975.990004782,
+        "expectedCashEnd": 644604.1254974705,
+        "expectedFinalPropertyValue": 1296413.115366229,
+        "endNetWorthCvar10": 775109.0216308235,
+        "expectedLifetimeInterest": 416755.74961257837,
+        "expectedRegret": 918989.6795861701,
+        "regretCvar10": 1538286.7536165828,
+        "feasibilityProbability": 0.04140266666666698,
+        "privateSchoolFeasibilityProbability": 0,
+        "cashBufferProbability": 0.11136533333333423,
+        "secondHouseFundingProbability": 0.7543906666665836,
+        "firstHouseValue": 900000,
+        "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 626768.626268297,
+        "finalPropertyValue": 1236847.056060306,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 699679.5775873085,
+        "usePrivateSchool": false,
+        "overallPass": false
+      },
+      "privateSchoolApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 626768.626268297,
+        "finalPropertyValue": 1236847.056060306,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 699679.5775873085,
+        "usePrivateSchool": true,
+        "overallPass": false
+      }
+    },
+    {
+      "strategyId": "S146",
+      "pathType": "Two-home path",
+      "strategyOrigin": "explicit-grid-two-home",
+      "decisionVector": {
+        "deposit1": 300000,
+        "mortgage1": 600000,
+        "buyYear1": 2027,
+        "deposit2": 150000,
+        "mortgage2": 250000,
+        "buyYear2": 2040,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 10,
+        "optimizerIsaSeed": 0
+      },
+      "metrics": {
+        "compositeRobustScore": 6.811903743818403,
+        "expectedEndNetWorth": 1761562.6179516183,
+        "expectedCashEnd": 539138.839038581,
+        "expectedFinalPropertyValue": 1296413.115366229,
+        "endNetWorthCvar10": 438908.76756686793,
+        "expectedLifetimeInterest": 540552.4342802129,
+        "expectedRegret": 1082403.051639298,
+        "regretCvar10": 1456521.7914239196,
+        "feasibilityProbability": 0.04665200000000033,
+        "privateSchoolFeasibilityProbability": 0.00019999999999993688,
+        "cashBufferProbability": 0.16118266666666817,
+        "secondHouseFundingProbability": 0.7543906666665836,
+        "firstHouseValue": 900000,
+        "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 485436.281473273,
+        "finalPropertyValue": 1236847.056060306,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 699679.5775873085,
+        "usePrivateSchool": false,
+        "overallPass": false
+      },
+      "privateSchoolApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 382177.3588126343,
+        "finalPropertyValue": 1236847.056060306,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 699679.5775873085,
+        "usePrivateSchool": true,
+        "overallPass": false
+      }
+    },
+    {
+      "strategyId": "S157",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -10262,7 +10204,7 @@
       }
     },
     {
-      "strategyId": "S157",
+      "strategyId": "S159",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -10320,7 +10262,181 @@
       }
     },
     {
-      "strategyId": "S162",
+      "strategyId": "S149",
+      "pathType": "Two-home path",
+      "strategyOrigin": "explicit-grid-two-home",
+      "decisionVector": {
+        "deposit1": 300000,
+        "mortgage1": 600000,
+        "buyYear1": 2027,
+        "deposit2": 150000,
+        "mortgage2": 350000,
+        "buyYear2": 2040,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 15,
+        "optimizerIsaSeed": 0
+      },
+      "metrics": {
+        "compositeRobustScore": 4.406207733959882,
+        "expectedEndNetWorth": 1822828.2953173763,
+        "expectedCashEnd": 474910.35079027736,
+        "expectedFinalPropertyValue": 1398520.2001001101,
+        "endNetWorthCvar10": 638569.5659281402,
+        "expectedLifetimeInterest": 502291.65748284623,
+        "expectedRegret": 1021137.374273528,
+        "regretCvar10": 1640270.401658417,
+        "feasibilityProbability": 0.032078666666666915,
+        "privateSchoolFeasibilityProbability": 0,
+        "cashBufferProbability": 0.09769200000000078,
+        "secondHouseFundingProbability": 0.7543906666665836,
+        "firstHouseValue": 900000,
+        "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 426945.14657534065,
+        "finalPropertyValue": 1333949.27558654,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 799679.5775873085,
+        "usePrivateSchool": false,
+        "overallPass": false
+      },
+      "privateSchoolApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 426945.14657534065,
+        "finalPropertyValue": 1333949.27558654,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 799679.5775873085,
+        "usePrivateSchool": true,
+        "overallPass": false
+      }
+    },
+    {
+      "strategyId": "S148",
+      "pathType": "Two-home path",
+      "strategyOrigin": "explicit-grid-two-home",
+      "decisionVector": {
+        "deposit1": 300000,
+        "mortgage1": 600000,
+        "buyYear1": 2027,
+        "deposit2": 150000,
+        "mortgage2": 350000,
+        "buyYear2": 2040,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 10,
+        "optimizerIsaSeed": 0
+      },
+      "metrics": {
+        "compositeRobustScore": 4.1539586424039125,
+        "expectedEndNetWorth": 1663390.3829385294,
+        "expectedCashEnd": 403254.3920371137,
+        "expectedFinalPropertyValue": 1398520.2001001101,
+        "endNetWorthCvar10": 297174.5445063886,
+        "expectedLifetimeInterest": 631054.0085476708,
+        "expectedRegret": 1180575.2866524025,
+        "regretCvar10": 1546927.2326841857,
+        "feasibilityProbability": 0.03352266666666689,
+        "privateSchoolFeasibilityProbability": 0.00014666666666662037,
+        "cashBufferProbability": 0.13299466666666784,
+        "secondHouseFundingProbability": 0.7543906666665836,
+        "firstHouseValue": 900000,
+        "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 292064.37560127425,
+        "finalPropertyValue": 1333949.27558654,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 799679.5775873085,
+        "usePrivateSchool": false,
+        "overallPass": false
+      },
+      "privateSchoolApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 188805.45294063556,
+        "finalPropertyValue": 1333949.27558654,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 799679.5775873085,
+        "usePrivateSchool": true,
+        "overallPass": false
+      }
+    },
+    {
+      "strategyId": "S145",
+      "pathType": "Two-home path",
+      "strategyOrigin": "explicit-grid-two-home",
+      "decisionVector": {
+        "deposit1": 300000,
+        "mortgage1": 600000,
+        "buyYear1": 2027,
+        "deposit2": 150000,
+        "mortgage2": 250000,
+        "buyYear2": 2038,
+        "salaryMortgageEarly": 13,
+        "salaryMortgageLater": 10,
+        "optimizerIsaSeed": 0
+      },
+      "metrics": {
+        "compositeRobustScore": 4.104377920146788,
+        "expectedEndNetWorth": 1719736.157679296,
+        "expectedCashEnd": 510327.6562153689,
+        "expectedFinalPropertyValue": 1297194.1773134845,
+        "endNetWorthCvar10": 376897.6196147426,
+        "expectedLifetimeInterest": 575349.9443619307,
+        "expectedRegret": 1124229.5119116139,
+        "regretCvar10": 1479000.5542329906,
+        "feasibilityProbability": 0.011801333333333396,
+        "privateSchoolFeasibilityProbability": 0.00019999999999993688,
+        "cashBufferProbability": 0.09679866666666755,
+        "secondHouseFundingProbability": 0.8068026666666852,
+        "firstHouseValue": 900000,
+        "secondHousePurchaseValueRule": 900000
+      },
+      "defaultApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 456041.02547128854,
+        "finalPropertyValue": 1248586.714401028,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 736069.8189799886,
+        "usePrivateSchool": false,
+        "overallPass": false
+      },
+      "privateSchoolApplyScenarioCheck": {
+        "minLiquidBufferPost2032": 0,
+        "cashEnd": 333323.33659557713,
+        "finalPropertyValue": 1248586.714401028,
+        "post2032SavingsFloorOk": false,
+        "cashBufferOk": false,
+        "canBuyHouse2IfChosen": true,
+        "houseValueRuleOk": true,
+        "negativeAmortizationYears": 0,
+        "peakMortgageBalance": 736069.8189799886,
+        "usePrivateSchool": true,
+        "overallPass": false
+      }
+    },
+    {
+      "strategyId": "S164",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -10378,7 +10494,7 @@
       }
     },
     {
-      "strategyId": "S153",
+      "strategyId": "S155",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -10436,7 +10552,7 @@
       }
     },
     {
-      "strategyId": "S161",
+      "strategyId": "S163",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -10494,7 +10610,7 @@
       }
     },
     {
-      "strategyId": "S152",
+      "strategyId": "S154",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -10552,7 +10668,7 @@
       }
     },
     {
-      "strategyId": "S163",
+      "strategyId": "S165",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -10610,7 +10726,7 @@
       }
     },
     {
-      "strategyId": "S154",
+      "strategyId": "S156",
       "pathType": "Two-home path",
       "strategyOrigin": "explicit-grid-two-home",
       "decisionVector": {
@@ -10861,7 +10977,7 @@
         "mediumWeight": 0.4,
         "privateSchoolProbability": 0.1,
         "strategyId": "S001",
-        "compositeRobustScore": 48.20710269675544,
+        "compositeRobustScore": 48.35106928487615,
         "weightedFeasibilityProbability": 0.5639153333332056,
         "weightedMeanNetWorth": 2331275.5334820296
       },
@@ -10869,7 +10985,7 @@
         "mediumWeight": 0.4,
         "privateSchoolProbability": 0.2,
         "strategyId": "S001",
-        "compositeRobustScore": 44.84359834255518,
+        "compositeRobustScore": 44.891579466633694,
         "weightedFeasibilityProbability": 0.5047273333333315,
         "weightedMeanNetWorth": 2279310.4305925127
       },
@@ -10901,7 +11017,7 @@
         "mediumWeight": 0.5,
         "privateSchoolProbability": 0.1,
         "strategyId": "S001",
-        "compositeRobustScore": 49.28129069112295,
+        "compositeRobustScore": 49.37530405204562,
         "weightedFeasibilityProbability": 0.5869916666666561,
         "weightedMeanNetWorth": 2311812.3380751107
       },
@@ -10941,7 +11057,7 @@
         "mediumWeight": 0.6,
         "privateSchoolProbability": 0.1,
         "strategyId": "S001",
-        "compositeRobustScore": 50.49429165041367,
+        "compositeRobustScore": 50.550924544138965,
         "weightedFeasibilityProbability": 0.6127653333333688,
         "weightedMeanNetWorth": 2292339.1572402916
       },
@@ -10981,7 +11097,7 @@
         "mediumWeight": 0.7,
         "privateSchoolProbability": 0.1,
         "strategyId": "S001",
-        "compositeRobustScore": 51.82281439879215,
+        "compositeRobustScore": 51.87397030245662,
         "weightedFeasibilityProbability": 0.6412363333335455,
         "weightedMeanNetWorth": 2272855.9909766885
       },
@@ -11021,7 +11137,7 @@
         "mediumWeight": 0.8,
         "privateSchoolProbability": 0.1,
         "strategyId": "S001",
-        "compositeRobustScore": 53.21484912395707,
+        "compositeRobustScore": 53.35739190437094,
         "weightedFeasibilityProbability": 0.6724046666667473,
         "weightedMeanNetWorth": 2253362.839283685
       },
@@ -11029,7 +11145,7 @@
         "mediumWeight": 0.8,
         "privateSchoolProbability": 0.2,
         "strategyId": "S001",
-        "compositeRobustScore": 49.04740115058126,
+        "compositeRobustScore": 49.08011798681473,
         "weightedFeasibilityProbability": 0.598612666666753,
         "weightedMeanNetWorth": 2206953.4222404263
       },

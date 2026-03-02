@@ -53,7 +53,6 @@ const OPTIMIZER_MAX_FIRST_HOUSE_MORTGAGE = 700000;
 const OPTIMIZER_MAX_TOTAL_MORTGAGE = 1000000;
 const POST_2032_SAVINGS_FLOOR_START_YEAR = 2033;
 const POST_2032_MIN_TOTAL_SAVINGS = 50000;
-const OPTIMIZER_BIG_FIRST_HOUSE_TARGET = 800000;
 const OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX = 600000;
 const FIRST_HOME_SALE_AGENT_FEE_PCT = 1.5;
 const FIRST_HOME_SALE_LEGAL_FEES = 2000;
@@ -174,7 +173,7 @@ const OPTIMIZER_OBJECTIVE_DEFINITIONS = [
     id: 'bigFirstHouse',
     label: 'Big first house',
     shortLabel: 'Big first house',
-    description: `First house value as close as possible to about ${`£${(OPTIMIZER_BIG_FIRST_HOUSE_TARGET / 1000).toFixed(0)}k`}, with larger first houses preferred on ties.`,
+    description: 'Largest possible first house value, with stronger overall outcomes used as tie-breakers.',
   },
 ];
 const STRATEGY_APPLY_MODE_DEFINITIONS = [
@@ -1414,12 +1413,6 @@ const compareOptimizerResultsForObjective = (objectiveId, left, right) => {
   }
 
   if (objectiveId === 'bigFirstHouse') {
-    const leftDistance = Math.abs(left.firstHouseValue - OPTIMIZER_BIG_FIRST_HOUSE_TARGET);
-    const rightDistance = Math.abs(right.firstHouseValue - OPTIMIZER_BIG_FIRST_HOUSE_TARGET);
-
-    if (leftDistance !== rightDistance) {
-      return leftDistance - rightDistance;
-    }
     if (right.firstHouseValue !== left.firstHouseValue) {
       return right.firstHouseValue - left.firstHouseValue;
     }
@@ -1461,12 +1454,6 @@ const compareRobustnessStrategiesForObjective = (objectiveId, left, right) => {
   }
 
   if (objectiveId === 'bigFirstHouse') {
-    const leftDistance = Math.abs(left.decisionVector.deposit1 + left.decisionVector.mortgage1 - OPTIMIZER_BIG_FIRST_HOUSE_TARGET);
-    const rightDistance = Math.abs(right.decisionVector.deposit1 + right.decisionVector.mortgage1 - OPTIMIZER_BIG_FIRST_HOUSE_TARGET);
-
-    if (leftDistance !== rightDistance) {
-      return leftDistance - rightDistance;
-    }
     const leftFirstHouseValue = left.decisionVector.deposit1 + left.decisionVector.mortgage1;
     const rightFirstHouseValue = right.decisionVector.deposit1 + right.decisionVector.mortgage1;
     if (rightFirstHouseValue !== leftFirstHouseValue) {
@@ -1545,7 +1532,6 @@ export {
   OPTIMIZER_MAX_TOTAL_MORTGAGE,
   POST_2032_SAVINGS_FLOOR_START_YEAR,
   POST_2032_MIN_TOTAL_SAVINGS,
-  OPTIMIZER_BIG_FIRST_HOUSE_TARGET,
   OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX,
   FIRST_HOME_SALE_AGENT_FEE_PCT,
   FIRST_HOME_SALE_LEGAL_FEES,
