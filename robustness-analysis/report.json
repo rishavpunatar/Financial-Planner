@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-02T19:13:58.375Z",
+  "generatedAt": "2026-03-02T19:27:19.757Z",
   "meta": {
     "sampleMethod": "Weighted stratified Monte Carlo",
     "scenarioCount": 54000,
@@ -60,6 +60,7 @@
       "incomeCases": 3,
       "marketCases": 3,
       "privateSchoolStates": 2,
+      "bucketCount": 18,
       "drawsPerBucket": 3000,
       "description": "Scenarios are sampled as 3 income cases x 3 market cases x 2 private-school states x 3,000 random path draws per bucket. Inside each bucket, the run perturbs yearly mortgage, ISA, property, and income paths, plus living-cost growth, fiscal-drag tax thresholds, recession timing and severity, and one-or-two age-biased redundancy shocks for person 1.",
       "whyNotEveryScenario": "The housing grid is finite, but the future-path generator is continuous year by year. Once annual income, ISA, property, mortgage-rate, cost-growth, tax-drag, redundancy, and recession shocks are random, there is no finite master list of all possible futures to enumerate.",
@@ -133,7 +134,10 @@
       "startingCashPool": 300000,
       "explicitGridCount": 3759,
       "screeningDrawsPerBucket": 8,
+      "screeningScenarioCount": 144,
+      "screeningEvaluationCount": 541296,
       "screenedToCandidateCount": 169,
+      "fullEvaluationCount": 9126000,
       "pathCounts": {
         "oneHome": 32,
         "twoHome": 137
