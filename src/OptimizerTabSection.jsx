@@ -107,6 +107,10 @@ const OptimizerTabSection = ({
     OPTIMIZER_MAX_UPGRADE_VALUE,
     SECOND_HOUSE_LEGAL_FEES,
   } = constants;
+  const optimizerCaseCount = displayOptimizerResultsByIncome.reduce(
+    (count, group) => count + group.caseResults.length,
+    0,
+  );
 
   return (
     <div className="chart-card">
@@ -156,6 +160,30 @@ const OptimizerTabSection = ({
               {`"Tested" means the number of housing combinations the optimizer actually ran for that assumption case. "Success rate" means the share that passed every hard rule: positive liquid cash before the age-${END_AGE} mortgage payoff, `}
               one-home plans needing at least {formatCurrency(OPTIMIZER_MIN_ONE_HOME_FIRST_PROPERTY_VALUE)} on the first house, two-home plans needing at least {formatCurrency(OPTIMIZER_MIN_SECOND_HOME_PURCHASE_VALUE)} on the second purchase value, no funding gap, no cumulative shortfall, no capitalised interest, and mortgage balances within the caps.
             </p>
+            <div className="robustness-explainer-grid">
+              <div className="robustness-explainer-card">
+                <div className="optimizer-result-title">How combinations were identified</div>
+                <div className="optimizer-result-sub">
+                  The optimizer builds a stepped grid from the active deposit, mortgage, year, and mortgage-budget ranges on this page. Each housing combination is then crossed with {optimizerCaseCount} fixed assumption cases from the income-growth and market-growth matrix.
+                </div>
+              </div>
+              <div className="robustness-explainer-card">
+                <div className="optimizer-result-title">How many were tested</div>
+                <div className="optimizer-result-sub">
+                  {displayOptimizerSearchMeta
+                    ? `${displayOptimizerSearchMeta.testedScenarioCount.toLocaleString()} assumption-path combinations were tested in this ${displayOptimizerSearchMeta.isExhaustive ? 'exact' : 'preview'} run. ${displayOptimizerSearchMeta.feasibleScenarioCount != null ? `${displayOptimizerSearchMeta.feasibleScenarioCount.toLocaleString()} passed all hard rules.` : ''}`
+                    : 'Search counts are not available yet.'}
+                </div>
+              </div>
+              {precomputedStoredResults.length > 0 && (
+                <div className="robustness-explainer-card">
+                  <div className="optimizer-result-title">Why only some are shown</div>
+                  <div className="optimizer-result-sub">
+                    The terminal run stores a curated top slice on the page rather than every passing combination, so the UI stays responsive. You are seeing {precomputedStoredResults.length.toLocaleString()} stored examples from {precomputedOptimizerSearchMeta?.feasibleScenarioCount?.toLocaleString() ?? '0'} passing combinations.
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="optimizer-detail-list">
               {optimizerCoverageNotes.map((note) => (
                 <div key={note}>{note}</div>

@@ -80,6 +80,22 @@ const RobustnessTabSection = ({
               </div>
             </div>
             <div className="robustness-explainer-card">
+              <div className="optimizer-result-title">How scenarios were identified</div>
+              <div className="optimizer-result-sub">
+                {robustnessMeta?.scenarioSampling
+                  ? `${robustnessMeta.scenarioSampling.bucketCount?.toLocaleString() ?? '—'} top-level buckets were created from income x market x private-school states, then ${robustnessMeta.scenarioSampling.drawsPerBucket?.toLocaleString() ?? '—'} random yearly path draws were generated inside each bucket.`
+                  : 'Scenario-generation details are unavailable.'}
+              </div>
+            </div>
+            <div className="robustness-explainer-card">
+              <div className="optimizer-result-title">How many were tested</div>
+              <div className="optimizer-result-sub">
+                {robustnessMeta?.strategySampling
+                  ? `Screening stage: ${robustnessMeta.strategySampling.explicitGridCount?.toLocaleString() ?? '—'} housing strategies x ${robustnessMeta.strategySampling.screeningScenarioCount?.toLocaleString() ?? '—'} lighter futures = ${robustnessMeta.strategySampling.screeningEvaluationCount?.toLocaleString() ?? '—'} screening simulations. Full stage: ${robustnessMeta.candidateStrategyCount?.toLocaleString() ?? '—'} carried-forward strategies x ${robustnessMeta.scenarioCount?.toLocaleString() ?? '—'} weighted futures = ${robustnessMeta.strategySampling.fullEvaluationCount?.toLocaleString() ?? '—'} full robustness simulations.`
+                  : 'Testing-count details are unavailable.'}
+              </div>
+            </div>
+            <div className="robustness-explainer-card">
               <div className="optimizer-result-title">What weighted share means</div>
               <div className="optimizer-result-sub">
                 A “weighted share” is not just raw row-count percentage. Medium futures count more than low/high by design, and private-school futures only count by the private-school probability you set. So 60% success rate means the plan survives 60% of the model’s total probability mass, not necessarily 60% of raw rows.
@@ -217,7 +233,13 @@ const RobustnessTabSection = ({
                     Explicit grid before screening: {(robustnessMeta?.strategySampling?.explicitGridCount ?? 0).toLocaleString()} strategies
                   </div>
                   <div>
+                    Screening futures: {(robustnessMeta?.strategySampling?.screeningScenarioCount ?? 0).toLocaleString()} | screening simulations: {(robustnessMeta?.strategySampling?.screeningEvaluationCount ?? 0).toLocaleString()}
+                  </div>
+                  <div>
                     Full robustness catalog after screening: {(robustnessMeta?.strategySampling?.screenedToCandidateCount ?? 0).toLocaleString()} strategies
+                  </div>
+                  <div>
+                    Full robustness simulations: {(robustnessMeta?.strategySampling?.fullEvaluationCount ?? 0).toLocaleString()}
                   </div>
                   <div>
                     Origins: {Object.entries(robustnessMeta?.strategySampling?.originCounts ?? {}).map(([origin, count]) => `${origin.replaceAll('-', ' ')} ${count}`).join(', ') || '—'}
