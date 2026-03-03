@@ -1,6 +1,6 @@
 # Robustness analysis
 
-Generated: 2026-03-03T18:21:28.352Z
+Generated: 2026-03-03T19:39:17.725Z
 
 ## Setup
 
@@ -38,16 +38,16 @@ A robust starting region is first deposit GBP 250k to GBP 300k and first mortgag
 
 | Rank | Strategy | Path | Deposit 1 | Mortgage 1 | Expected Net Worth | Regret CVaR 10% | Feasibility | Private School Feasibility |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | S018 | One-home | GBP 300k | GBP 550k | GBP 2.20m | GBP 1.04m | 47.9% | 1.6% |
-| 2 | S019 | One-home | GBP 300k | GBP 550k | GBP 2.26m | GBP 968k | 45.8% | 1.3% |
-| 3 | S004 | One-home | GBP 250k | GBP 600k | GBP 2.19m | GBP 1.07m | 48.1% | 1.9% |
-| 4 | S005 | One-home | GBP 250k | GBP 600k | GBP 2.24m | GBP 985k | 45.9% | 1.5% |
+| 1 | S019 | One-home | GBP 300k | GBP 550k | GBP 2.26m | GBP 968k | 45.8% | 1.3% |
+| 2 | S005 | One-home | GBP 250k | GBP 600k | GBP 2.24m | GBP 985k | 45.9% | 1.5% |
+| 3 | S018 | One-home | GBP 300k | GBP 550k | GBP 2.20m | GBP 1.04m | 47.9% | 1.6% |
+| 4 | S004 | One-home | GBP 250k | GBP 600k | GBP 2.19m | GBP 1.07m | 48.1% | 1.9% |
 | 5 | S020 | One-home | GBP 300k | GBP 550k | GBP 2.30m | GBP 932k | 42.4% | 1.3% |
 | 6 | S006 | One-home | GBP 250k | GBP 600k | GBP 2.29m | GBP 940k | 42.5% | 1.4% |
 | 7 | S007 | One-home | GBP 250k | GBP 600k | GBP 2.32m | GBP 921k | 38.7% | 1.4% |
-| 8 | S003 | One-home | GBP 250k | GBP 600k | GBP 2.15m | GBP 1.16m | 44.5% | 2.8% |
-| 9 | S017 | One-home | GBP 300k | GBP 550k | GBP 2.16m | GBP 1.14m | 44.0% | 2.5% |
-| 10 | S021 | One-home | GBP 300k | GBP 550k | GBP 2.32m | GBP 920k | 37.8% | 1.3% |
+| 8 | S021 | One-home | GBP 300k | GBP 550k | GBP 2.32m | GBP 920k | 37.8% | 1.3% |
+| 9 | S003 | One-home | GBP 250k | GBP 600k | GBP 2.15m | GBP 1.16m | 44.5% | 2.8% |
+| 10 | S017 | One-home | GBP 300k | GBP 550k | GBP 2.16m | GBP 1.14m | 44.0% | 2.5% |
 
 ## Pareto frontier
 
