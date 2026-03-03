@@ -56,6 +56,7 @@ import {
   TAX_THRESHOLD_DRAG_PCT,
   clampValue,
   roundToStep,
+  getDefaultOptimizerMortgagePctBounds,
   getOptimizerUpgradeYearMax,
   calculateRealTermsTakeHomePay,
   simulateFinancialPlan,
@@ -262,17 +263,37 @@ const App = () => {
   const [optimizerSecondHouseYearMax, setOptimizerSecondHouseYearMax] = useState(
     initialScenario?.optimizerSecondHouseYearMax ?? Math.min(secondHouseYear + 3, OPTIMIZER_LATE_UPGRADE_YEAR_MAX),
   );
+  const defaultOptimizerSecondHouseMortgageMax = clampValue(
+    Math.max(
+      Math.max(0, roundToStep(Math.max(secondMortgage, 100000) * 0.75, 50000)),
+      Math.max(
+        0,
+        OPTIMIZER_MAX_UPGRADE_VALUE - Math.max(
+          Math.max(0, roundToStep(Math.max(secondHouseDeposit, 100000) * 0.75, 50000)),
+          roundToStep(Math.max(secondHouseDeposit, 100000) * 1.25, 50000),
+        ),
+      ),
+      roundToStep(Math.max(secondMortgage, 100000) * 1.25, 50000),
+    ),
+    0,
+    OPTIMIZER_MAX_TOTAL_MORTGAGE,
+  );
+  const defaultOptimizerMortgagePctBounds = getDefaultOptimizerMortgagePctBounds({
+    mortgageRate,
+    firstHouseMortgageMax: OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX,
+    laterMortgageReferenceBalance: defaultOptimizerSecondHouseMortgageMax,
+  });
   const [optimizerEarlyMortgagePctMin, setOptimizerEarlyMortgagePctMin] = useState(
-    initialScenario?.optimizerEarlyMortgagePctMin ?? clampValue(salaryMortgageEarly - 5, 5, 35),
+    initialScenario?.optimizerEarlyMortgagePctMin ?? defaultOptimizerMortgagePctBounds.earlyMortgagePctMin,
   );
   const [optimizerEarlyMortgagePctMax, setOptimizerEarlyMortgagePctMax] = useState(
-    initialScenario?.optimizerEarlyMortgagePctMax ?? clampValue(salaryMortgageEarly + 5, 5, 35),
+    initialScenario?.optimizerEarlyMortgagePctMax ?? defaultOptimizerMortgagePctBounds.earlyMortgagePctMax,
   );
   const [optimizerLaterMortgagePctMin, setOptimizerLaterMortgagePctMin] = useState(
-    initialScenario?.optimizerLaterMortgagePctMin ?? clampValue(salaryMortgageLater - 5, 5, 50),
+    initialScenario?.optimizerLaterMortgagePctMin ?? defaultOptimizerMortgagePctBounds.laterMortgagePctMin,
   );
   const [optimizerLaterMortgagePctMax, setOptimizerLaterMortgagePctMax] = useState(
-    initialScenario?.optimizerLaterMortgagePctMax ?? clampValue(salaryMortgageLater + 5, 5, 50),
+    initialScenario?.optimizerLaterMortgagePctMax ?? defaultOptimizerMortgagePctBounds.laterMortgagePctMax,
   );
   const [selectedOptimizerResultKey, setSelectedOptimizerResultKey] = useState('');
   const [precomputedOptimizerPayload, setPrecomputedOptimizerPayload] = useState(null);

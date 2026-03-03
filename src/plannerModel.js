@@ -201,6 +201,7 @@ const BASIC_RATE_LIMIT = 50270;
 const ADDITIONAL_RATE_LIMIT = 125140;
 const EMPLOYEE_NI_PRIMARY_THRESHOLD = 12570;
 const EMPLOYEE_NI_UPPER_EARNINGS_LIMIT = 50270;
+const OPTIMIZER_COMBINED_STARTING_INCOME = OPTIMIZER_STARTING_INCOME_1 + OPTIMIZER_STARTING_INCOME_2;
 
 const getDraggedThreshold = (
   threshold,
@@ -211,6 +212,45 @@ const getDraggedThreshold = (
 const clampValue = (value, min, max) => Math.min(Math.max(value, min), max);
 
 const roundToStep = (value, step) => Math.round(value / step) * step;
+
+const getInterestOnlyMortgageBudgetPct = ({
+  mortgageBalance,
+  mortgageRate,
+  annualIncome = OPTIMIZER_COMBINED_STARTING_INCOME,
+}) => {
+  if (mortgageBalance <= 0 || mortgageRate <= 0 || annualIncome <= 0) {
+    return 5;
+  }
+
+  const annualInterestCost = mortgageBalance * (mortgageRate / 100);
+  return clampValue(Math.ceil((annualInterestCost / annualIncome) * 100), 5, 50);
+};
+
+const getDefaultOptimizerMortgagePctBounds = ({
+  mortgageRate,
+  firstHouseMortgageMax = OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX,
+  laterMortgageReferenceBalance = OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX,
+  earlyAnnualIncome = OPTIMIZER_COMBINED_STARTING_INCOME,
+  laterAnnualIncome = OPTIMIZER_COMBINED_STARTING_INCOME,
+}) => {
+  const earlyMortgagePctMin = getInterestOnlyMortgageBudgetPct({
+    mortgageBalance: firstHouseMortgageMax,
+    mortgageRate,
+    annualIncome: earlyAnnualIncome,
+  });
+  const laterMortgagePctMin = getInterestOnlyMortgageBudgetPct({
+    mortgageBalance: laterMortgageReferenceBalance,
+    mortgageRate,
+    annualIncome: laterAnnualIncome,
+  });
+
+  return {
+    earlyMortgagePctMin,
+    earlyMortgagePctMax: clampValue(Math.max(23, earlyMortgagePctMin + 10), earlyMortgagePctMin, 35),
+    laterMortgagePctMin,
+    laterMortgagePctMax: clampValue(Math.max(20, laterMortgagePctMin + 5), laterMortgagePctMin, 50),
+  };
+};
 
 const getYearPathValue = (pathValues, year, fallbackValue) => {
   if (!pathValues) {
@@ -1545,6 +1585,7 @@ export {
   STRATEGY_APPLY_MODE_DEFINITIONS,
   TAX_YEAR_LABEL,
   TAX_THRESHOLD_DRAG_PCT,
+  OPTIMIZER_COMBINED_STARTING_INCOME,
   PERSONAL_ALLOWANCE,
   BASIC_RATE_LIMIT,
   ADDITIONAL_RATE_LIMIT,
@@ -1553,6 +1594,8 @@ export {
   getDraggedThreshold,
   clampValue,
   roundToStep,
+  getInterestOnlyMortgageBudgetPct,
+  getDefaultOptimizerMortgagePctBounds,
   getYearPathValue,
   passesOptimizerHouseValueRule,
   buildSamplePoints,

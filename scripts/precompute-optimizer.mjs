@@ -42,6 +42,7 @@ const {
   summarizeOptimizerFailureCounts,
   roundToStep,
   clampValue,
+  getDefaultOptimizerMortgagePctBounds,
   simulateFinancialPlan,
 } = optimizerCore;
 
@@ -92,6 +93,26 @@ const defaultScenario = {
 const startAge = defaultScenario.startYear - BASE_BIRTH_YEAR;
 const kid1GiftYear = defaultScenario.child1BirthYear + 27;
 const kid2GiftYear = defaultScenario.child2BirthYear + 27;
+const defaultSecondHouseMortgageMax = clampValue(
+  Math.max(
+    Math.max(0, roundToStep(Math.max(defaultScenario.secondMortgage, 100000) * 0.75, 50000)),
+    Math.max(
+      0,
+      OPTIMIZER_MAX_UPGRADE_VALUE - Math.max(
+        Math.max(0, roundToStep(Math.max(defaultScenario.secondHouseDeposit, 100000) * 0.75, 50000)),
+        roundToStep(Math.max(defaultScenario.secondHouseDeposit, 100000) * 1.25, 50000),
+      ),
+    ),
+    roundToStep(Math.max(defaultScenario.secondMortgage, 100000) * 1.25, 50000),
+  ),
+  0,
+  OPTIMIZER_MAX_TOTAL_MORTGAGE,
+);
+const defaultMortgagePctBounds = getDefaultOptimizerMortgagePctBounds({
+  mortgageRate: defaultScenario.mortgageRate,
+  firstHouseMortgageMax: DEFAULT_FIRST_HOUSE_MORTGAGE_MAX,
+  laterMortgageReferenceBalance: defaultSecondHouseMortgageMax,
+});
 
 const searchConfig = {
   propertyMode: 'both',
@@ -149,10 +170,10 @@ const searchConfig = {
   ),
   secondHouseYearMin: Math.max(defaultScenario.secondHouseYear - 3, defaultScenario.startYear + 1),
   secondHouseYearMax: Math.min(defaultScenario.secondHouseYear + 3, OPTIMIZER_LATE_UPGRADE_YEAR_MAX),
-  earlyMortgagePctMin: clampValue(defaultScenario.salaryMortgageEarly - 5, 5, 35),
-  earlyMortgagePctMax: clampValue(defaultScenario.salaryMortgageEarly + 5, 5, 35),
-  laterMortgagePctMin: clampValue(defaultScenario.salaryMortgageLater - 5, 5, 50),
-  laterMortgagePctMax: clampValue(defaultScenario.salaryMortgageLater + 5, 5, 50),
+  earlyMortgagePctMin: defaultMortgagePctBounds.earlyMortgagePctMin,
+  earlyMortgagePctMax: defaultMortgagePctBounds.earlyMortgagePctMax,
+  laterMortgagePctMin: defaultMortgagePctBounds.laterMortgagePctMin,
+  laterMortgagePctMax: defaultMortgagePctBounds.laterMortgagePctMax,
 };
 
 const baseParams = {
