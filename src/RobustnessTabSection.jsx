@@ -250,6 +250,8 @@ const RobustnessTabSection = ({
   setStrategyApplyMode,
   selectedStrategyApplyModeDefinition,
   robustnessPathLeaderCards,
+  bestOverallReferenceStrategy,
+  bestPrivateSchoolReferenceStrategy,
   buildRobustnessWhyLines,
   handleApplyRobustnessStrategy,
   handleDownloadRobustnessSummary,
@@ -328,6 +330,23 @@ const RobustnessTabSection = ({
 
     return 'This ranking looks first at the school-on futures and asks which tested setup copes best there. It is not filtered by the deterministic school-on baseline check.';
   })();
+  const mediumBaselineLabel = robustnessMeta?.defaultApplyScenario
+    ? `${robustnessMeta.defaultApplyScenario.incomeLabel ?? 'Income medium'} / ${robustnessMeta.defaultApplyScenario.marketLabel ?? 'Market medium'}`
+    : 'Medium baseline';
+  const comparisonStrategies = [
+    {
+      key: 'private-school',
+      label: 'Best private-school option',
+      strategy: bestPrivateSchoolReferenceStrategy,
+      emphasis: 'Highest school-on robustness from the tested set.',
+    },
+    {
+      key: 'overall',
+      label: 'Best all-round',
+      strategy: bestOverallReferenceStrategy,
+      emphasis: 'Highest all-round robustness score across the full future set.',
+    },
+  ];
 
   return (
     <div className="chart-card">
@@ -632,6 +651,80 @@ const RobustnessTabSection = ({
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="robustness-card">
+            <div className="optimizer-result-title">Keeping private-school optionality open</div>
+            <div className="optimizer-result-sub">
+              This compares the best available private-school option-keeping strategy with the best all-round strategy on the medium baseline. The medium baseline here means {mediumBaselineLabel} with private school off, using the stored apply scenario.
+            </div>
+            <div className="robustness-explainer-grid">
+              {comparisonStrategies.map(({ key, label, strategy, emphasis }) => {
+                const baselineCheck = strategy?.defaultApplyScenarioCheck ?? null;
+                const schoolOnCheck = strategy?.privateSchoolApplyScenarioCheck ?? null;
+                const firstHouseValue = strategy
+                  ? strategy.decisionVector.deposit1 + strategy.decisionVector.mortgage1
+                  : 0;
+
+                return (
+                  <div key={key} className="robustness-explainer-card">
+                    <div className="optimizer-result-title">{label}</div>
+                    {strategy ? (
+                      <>
+                        <div className="optimizer-result-sub">
+                          {strategy.strategyId} · {strategy.pathType}
+                        </div>
+                        <div className="optimizer-result-sub">
+                          {emphasis}
+                        </div>
+                        <div className="robustness-metric-chip-row">
+                          <div className="robustness-metric-chip">
+                            <span>School-on success</span>
+                            <strong>{formatProbability(strategy.metrics.privateSchoolFeasibilityProbability)}</strong>
+                          </div>
+                          <div className="robustness-metric-chip">
+                            <span>Overall success</span>
+                            <strong>{formatProbability(strategy.metrics.feasibilityProbability)}</strong>
+                          </div>
+                          <div className="robustness-metric-chip">
+                            <span>Start</span>
+                            <strong>{formatCurrency(strategy.decisionVector.deposit1)} / {formatCurrency(strategy.decisionVector.mortgage1)}</strong>
+                          </div>
+                          <div className="robustness-metric-chip">
+                            <span>First house</span>
+                            <strong>{formatCurrency(firstHouseValue)}</strong>
+                          </div>
+                        </div>
+                        <div className="optimizer-detail-list">
+                          <div>
+                            Medium baseline result: {baselineCheck?.overallPass ? 'passes' : 'fails'}.
+                          </div>
+                          <div>
+                            Medium baseline cash end: {formatCurrency(baselineCheck?.cashEnd ?? 0)}.
+                          </div>
+                          <div>
+                            Medium baseline property value end: {formatCurrency(baselineCheck?.finalPropertyValue ?? 0)}.
+                          </div>
+                          <div>
+                            Medium baseline minimum liquid buffer after 2032: {formatCurrency(baselineCheck?.minLiquidBufferPost2032 ?? 0)}.
+                          </div>
+                          <div>
+                            Same medium baseline with private school on: {schoolOnCheck?.overallPass ? 'passes' : 'fails'}.
+                          </div>
+                          <div>
+                            Medium school-on cash end: {formatCurrency(schoolOnCheck?.cashEnd ?? 0)}.
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="optimizer-result-sub">
+                        Strategy not available.
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

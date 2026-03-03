@@ -1223,6 +1223,18 @@ const App = () => {
     () => robustnessRankedStrategies.slice(0, 15),
     [robustnessRankedStrategies],
   );
+  const bestOverallReferenceStrategy = useMemo(
+    () => [...robustnessStrategyCatalog].sort((left, right) => (
+      compareRobustnessStrategiesForObjective('robust', left, right)
+    ))[0] ?? null,
+    [robustnessStrategyCatalog],
+  );
+  const bestPrivateSchoolReferenceStrategy = useMemo(
+    () => [...robustnessStrategyCatalog].sort((left, right) => (
+      compareRobustnessStrategiesForObjective('privateSchoolSuccess', left, right)
+    ))[0] ?? null,
+    [robustnessStrategyCatalog],
+  );
   const robustnessPathLeaderCards = useMemo(() => ([
     {
       key: 'all',
@@ -1770,6 +1782,8 @@ const App = () => {
     setStrategyApplyMode,
     selectedStrategyApplyModeDefinition,
     robustnessPathLeaderCards,
+    bestOverallReferenceStrategy,
+    bestPrivateSchoolReferenceStrategy,
     buildRobustnessWhyLines,
     handleApplyRobustnessStrategy,
     handleDownloadRobustnessSummary,
