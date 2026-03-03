@@ -320,10 +320,22 @@ const RobustnessTabSection = ({
               </div>
             </div>
             <div className="summary-card summary-accent-blue">
+              <div className="summary-label">Full Simulations Run</div>
+              <div className="summary-value">
+                {robustnessMeta?.strategySampling?.fullEvaluationCount?.toLocaleString() ?? '—'}
+              </div>
+              <div className="summary-sub">
+                Fully tested setups x future paths, with each run simulated year by year to age 70
+              </div>
+            </div>
+            <div className="summary-card summary-accent-cyan">
               <div className="summary-label">Setups Fully Tested</div>
               <div className="summary-value">{robustnessMeta?.candidateStrategyCount?.toLocaleString() ?? '—'}</div>
               <div className="summary-sub">
-                The shortlist that made it into the full stress test
+                {(robustnessMeta?.strategySampling?.pathCounts?.oneHome ?? 0).toLocaleString()}
+                {' '}one-home and{' '}
+                {(robustnessMeta?.strategySampling?.pathCounts?.twoHome ?? 0).toLocaleString()}
+                {' '}two-home setups in the full shortlist
               </div>
             </div>
             <div className="summary-card summary-accent-green">
@@ -337,17 +349,6 @@ const RobustnessTabSection = ({
                 {hasPlateauRegion
                   ? 'First deposit / first mortgage at the start of the strongest tested range'
                   : 'First deposit / first mortgage for the single strongest tested point'}
-              </div>
-            </div>
-            <div className="summary-card summary-accent-cyan">
-              <div className="summary-label">One vs Two Home</div>
-              <div className="summary-value">
-                {(robustnessMeta?.strategySampling?.pathCounts?.oneHome ?? 0).toLocaleString()}
-                {' / '}
-                {(robustnessMeta?.strategySampling?.pathCounts?.twoHome ?? 0).toLocaleString()}
-              </div>
-              <div className="summary-sub">
-                One-home / two-home setups in the full robustness shortlist
               </div>
             </div>
           </div>
