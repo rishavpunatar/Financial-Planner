@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -42,22 +42,53 @@ const PlannerChartSection = ({
   pieData,
   showPieChart,
   carCost,
-}) => (
-  <>
+}) => {
+  const chartData = useMemo(() => (
+    (financialData ?? []).map((row) => {
+      const isaChartValue = (row.isaTotal ?? 0) - (row.cumulativeShortfall ?? 0);
+
+      return {
+        ...row,
+        isaChartValue,
+        isaShortfallAmount: Math.max(0, -isaChartValue),
+      };
+    })
+  ), [financialData]);
+
+  const hasNegativeIsaPosition = chartData.some((row) => row.isaChartValue < 0);
+
+  return (
+    <>
     <div className="chart-visual-row">
       <div className="chart-main">
-        {financialData && financialData.length > 0 ? (
+        {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={financialData}>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="year" />
               <YAxis
                 tickFormatter={formatCurrency}
                 domain={['auto', 'auto']}
-                scale="sqrt"
+                scale={hasNegativeIsaPosition ? 'linear' : 'sqrt'}
               />
-              <Tooltip formatter={(value) => formatCurrency(value)} />
+              <Tooltip
+                formatter={(value, name, item) => {
+                  if (item?.dataKey === 'isaChartValue') {
+                    return [
+                      formatCurrency(value),
+                      item.payload?.isaShortfallAmount > 0
+                        ? 'ISA position (negative = shortfall)'
+                        : 'ISA position',
+                    ];
+                  }
+
+                  return [formatCurrency(value), name];
+                }}
+              />
               <Legend />
+              {hasNegativeIsaPosition && (
+                <ReferenceLine y={0} stroke="#64748b" strokeDasharray="3 3" />
+              )}
 
               <ReferenceLine x={firstHousePurchaseYear} stroke="#6366f1" strokeDasharray="2 3" label="🏡" />
               <ReferenceLine x={2028} stroke="#facc15" strokeDasharray="3 3" label="🚗" />
@@ -125,25 +156,26 @@ const PlannerChartSection = ({
               {showIsaLine && (
                 <Line
                   type="monotone"
-                  dataKey="isaTotal"
-                  name="ISA Total"
+                  dataKey="isaChartValue"
+                  name="ISA Position"
                   stroke="#8b5cf6"
                   strokeWidth={3}
                   dot={(props) => {
                     const { cx, cy, payload } = props;
                     const below = payload.isaBelowThreshold;
+                    const negative = payload.isaChartValue < 0;
                     return (
                       <circle
                         cx={cx}
                         cy={cy}
-                        r={below ? 4 : 3}
-                        fill={below ? '#dc2626' : '#8b5cf6'}
+                        r={negative ? 4.5 : below ? 4 : 3}
+                        fill={negative ? '#b91c1c' : below ? '#dc2626' : '#8b5cf6'}
                         stroke="none"
                       />
                     );
                   }}
                 >
-                  <LabelList content={renderInlineNameLabel('ISA', '#8b5cf6')} />
+                  <LabelList content={renderInlineNameLabel('ISA position', '#8b5cf6')} />
                   <LabelList content={renderEndLabel('#8b5cf6')} />
                 </Line>
               )}
@@ -223,7 +255,8 @@ const PlannerChartSection = ({
         <span>✅ {mortgageRepayYear} - All mortgages fully repaid</span>
       )}
     </div>
-  </>
-);
+    </>
+  );
+};
 
 export default PlannerChartSection;
