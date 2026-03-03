@@ -1130,7 +1130,7 @@ const App = () => {
     {
       id: 'robust',
       label: 'Balanced robustness',
-      description: 'Highest composite robust score: success rate first, then downside regret, then expected end net worth.',
+      description: 'Highest composite robust score: broad success across all futures first, then flexibility across school-off and school-on states, then downside regret, then expected end net worth.',
     },
     {
       id: 'cashEnd',
@@ -1158,7 +1158,7 @@ const App = () => {
       return {
         ...objective,
         label: 'Best all-round',
-        description: 'Best all-round option after combining success rate, downside protection, and expected end wealth.',
+        description: 'Best all-round option after combining broad success across futures, flexibility across school-off and school-on states, downside protection, and expected end wealth.',
       };
     }
 
@@ -1288,7 +1288,8 @@ const App = () => {
 
     return [
       `It is the best all-round option on the current robustness ranking.`,
-      `Success rate ${formatProbability(strategy.metrics.feasibilityProbability)} means it stays inside all hard rules in that share of weighted futures.`,
+      `Overall success is ${formatProbability(strategy.metrics.feasibilityProbability)} across the weighted future set.`,
+      `It also keeps more flexibility across the private-school toggle than the other tested setups: school-off success is ${formatProbability(strategy.metrics.schoolOffFeasibilityProbability ?? 0)}, school-on success is ${formatProbability(strategy.metrics.privateSchoolFeasibilityProbability)}, and the ranking rewards the weaker of those two rather than only the average.`,
       `Regret CVaR 10% of ${formatCurrency(strategy.metrics.regretCvar10)} means that in the worst 10% regret tail, it trails the best tested strategy in that same future by about that amount on average.`,
     ];
   }, [formatCurrency, formatProbability, robustnessObjective]);

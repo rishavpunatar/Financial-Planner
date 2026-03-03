@@ -1521,6 +1521,9 @@ const compareRobustnessStrategiesForObjective = (objectiveId, left, right) => {
   if (right.metrics.compositeRobustScore !== left.metrics.compositeRobustScore) {
     return right.metrics.compositeRobustScore - left.metrics.compositeRobustScore;
   }
+  if (right.metrics.schoolToggleFlexibilityProbability !== left.metrics.schoolToggleFlexibilityProbability) {
+    return right.metrics.schoolToggleFlexibilityProbability - left.metrics.schoolToggleFlexibilityProbability;
+  }
   if (right.metrics.feasibilityProbability !== left.metrics.feasibilityProbability) {
     return right.metrics.feasibilityProbability - left.metrics.feasibilityProbability;
   }

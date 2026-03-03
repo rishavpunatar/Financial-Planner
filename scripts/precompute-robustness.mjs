@@ -44,7 +44,7 @@ const ROBUSTNESS_OBJECTIVE_DEFINITIONS = [
   {
     id: 'robust',
     label: 'Balanced robustness',
-    description: 'Highest composite robust score: success rate first, then downside regret, then expected end net worth.',
+    description: 'Highest composite robust score: broad success across all futures first, then flexibility across school-off and school-on states, then downside regret, then expected end net worth.',
   },
   {
     id: 'cashEnd',
@@ -69,8 +69,8 @@ const ROBUSTNESS_OBJECTIVE_DEFINITIONS = [
 ];
 
 const ROBUST_SCORE_WEIGHTS = {
-  overallFeasibility: 0.6,
-  privateSchoolFeasibility: 0.15,
+  overallFeasibility: 0.45,
+  schoolToggleFlexibility: 0.3,
   inverseRegretCvar: 0.15,
   meanNetWorth: 0.1,
 };
@@ -838,6 +838,8 @@ const computeStrategyMetrics = ({
   let overallFeasibleWeight = 0;
   let privateSchoolFeasibleWeight = 0;
   let privateSchoolWeight = 0;
+  let schoolOffFeasibleWeight = 0;
+  let schoolOffWeight = 0;
   let cashBufferWeight = 0;
   let house2Weight = 0;
 
@@ -861,8 +863,20 @@ const computeStrategyMetrics = ({
       if (privateSchoolAffordable[index] && overallFeasible[index]) {
         privateSchoolFeasibleWeight += weight;
       }
+    } else {
+      schoolOffWeight += weight;
+      if (overallFeasible[index]) {
+        schoolOffFeasibleWeight += weight;
+      }
     }
   }
+
+  const weightedPrivateSchoolFeasibilityProbability = privateSchoolWeight > 0
+    ? (privateSchoolFeasibleWeight / privateSchoolWeight)
+    : 1;
+  const weightedSchoolOffFeasibilityProbability = schoolOffWeight > 0
+    ? (schoolOffFeasibleWeight / schoolOffWeight)
+    : 1;
 
   return {
     strategyId: strategy.strategyId,
@@ -877,9 +891,12 @@ const computeStrategyMetrics = ({
     weightedFeasibilityProbability: overallFeasibleWeight,
     weightedCashBufferProbability: cashBufferWeight,
     weightedSecondHouseFundingProbability: house2Weight,
-    weightedPrivateSchoolFeasibilityProbability: privateSchoolWeight > 0
-      ? (privateSchoolFeasibleWeight / privateSchoolWeight)
-      : 1,
+    weightedPrivateSchoolFeasibilityProbability,
+    weightedSchoolOffFeasibilityProbability,
+    weightedSchoolToggleFlexibilityProbability: Math.min(
+      weightedPrivateSchoolFeasibilityProbability,
+      weightedSchoolOffFeasibilityProbability,
+    ),
   };
 };
 
@@ -920,7 +937,7 @@ const computeMetricSet = ({
 
     metric.compositeRobustScore = (
       (metric.weightedFeasibilityProbability * ROBUST_SCORE_WEIGHTS.overallFeasibility)
-      + (metric.weightedPrivateSchoolFeasibilityProbability * ROBUST_SCORE_WEIGHTS.privateSchoolFeasibility)
+      + (metric.weightedSchoolToggleFlexibilityProbability * ROBUST_SCORE_WEIGHTS.schoolToggleFlexibility)
       + (inverseRegretScore * ROBUST_SCORE_WEIGHTS.inverseRegretCvar)
       + (meanScore * ROBUST_SCORE_WEIGHTS.meanNetWorth)
     ) * 100;
@@ -1538,6 +1555,8 @@ const serializeStrategyMetric = (metric, rank = null) => ({
     regretCvar10: metric.weightedRegretCvar10,
     feasibilityProbability: metric.weightedFeasibilityProbability,
     privateSchoolFeasibilityProbability: metric.weightedPrivateSchoolFeasibilityProbability,
+    schoolOffFeasibilityProbability: metric.weightedSchoolOffFeasibilityProbability,
+    schoolToggleFlexibilityProbability: metric.weightedSchoolToggleFlexibilityProbability,
     cashBufferProbability: metric.weightedCashBufferProbability,
     secondHouseFundingProbability: metric.weightedSecondHouseFundingProbability,
     firstHouseValue: metric.strategy.firstHouseValue,

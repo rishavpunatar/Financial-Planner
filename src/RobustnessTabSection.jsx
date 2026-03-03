@@ -495,7 +495,7 @@ const RobustnessTabSection = ({
                 </div>
                 {robustnessObjective === 'robust' && robustScoreWeights && (
                   <div>
-                    All-round score weights in this run: success rate {(robustScoreWeights.overallFeasibility * 100).toFixed(0)}%, private-school success {(robustScoreWeights.privateSchoolFeasibility * 100).toFixed(0)}%, downside protection {(robustScoreWeights.inverseRegretCvar * 100).toFixed(0)}%, expected wealth {(robustScoreWeights.meanNetWorth * 100).toFixed(0)}%.
+                    All-round score weights in this run: overall success {(robustScoreWeights.overallFeasibility * 100).toFixed(0)}%, school-on/off flexibility {(robustScoreWeights.schoolToggleFlexibility * 100).toFixed(0)}%, downside protection {(robustScoreWeights.inverseRegretCvar * 100).toFixed(0)}%, expected wealth {(robustScoreWeights.meanNetWorth * 100).toFixed(0)}%.
                   </div>
                 )}
               </div>
