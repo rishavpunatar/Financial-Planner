@@ -26,6 +26,27 @@ const getPaddedBounds = (values) => {
   return [min - padding, max + padding];
 };
 
+const getQuantileValue = (values, quantile) => {
+  if (!values.length) return 0;
+  const sorted = [...values].sort((left, right) => left - right);
+  const index = Math.min(
+    sorted.length - 1,
+    Math.max(0, Math.round((sorted.length - 1) * quantile)),
+  );
+  return sorted[index];
+};
+
+const getZoomedBounds = (values, lowerQuantile = 0.05, upperQuantile = 0.95) => {
+  if (!values.length) {
+    return [0, 1];
+  }
+
+  const lower = getQuantileValue(values, lowerQuantile);
+  const upper = getQuantileValue(values, upperQuantile);
+
+  return getPaddedBounds([lower, upper]);
+};
+
 const RobustnessScatterSvg = ({
   points,
   title,
@@ -38,6 +59,8 @@ const RobustnessScatterSvg = ({
   yFormatter,
   highlightedIds,
   labelAll = false,
+  xBounds = null,
+  yBounds = null,
 }) => {
   if (!points.length) {
     return (
@@ -54,12 +77,18 @@ const RobustnessScatterSvg = ({
   const plotHeight = height - padding.top - padding.bottom;
   const xValues = points.map(xAccessor);
   const yValues = points.map(yAccessor);
-  const [minX, maxX] = getPaddedBounds(xValues);
-  const [minY, maxY] = getPaddedBounds(yValues);
+  const [minX, maxX] = xBounds ?? getPaddedBounds(xValues);
+  const [minY, maxY] = yBounds ?? getPaddedBounds(yValues);
   const xTicks = buildTicks(minX, maxX);
   const yTicks = buildTicks(minY, maxY);
-  const scaleX = (value) => padding.left + (((value - minX) / Math.max(1, maxX - minX)) * plotWidth);
-  const scaleY = (value) => padding.top + plotHeight - (((value - minY) / Math.max(1, maxY - minY)) * plotHeight);
+  const scaleX = (value) => {
+    const clamped = Math.min(Math.max(value, minX), maxX);
+    return padding.left + (((clamped - minX) / Math.max(1, maxX - minX)) * plotWidth);
+  };
+  const scaleY = (value) => {
+    const clamped = Math.min(Math.max(value, minY), maxY);
+    return padding.top + plotHeight - (((clamped - minY) / Math.max(1, maxY - minY)) * plotHeight);
+  };
 
   return (
     <svg
@@ -261,6 +290,16 @@ const RobustnessTabSection = ({
       : strategy.metrics.feasibilityProbability
   );
   const topStrategyIds = new Set(topStrategyPlotPoints.map((strategy) => strategy.strategyId));
+  const allEligibleCashZoomBounds = getZoomedBounds(
+    robustnessEligibleStrategies.map((strategy) => strategy.metrics.expectedCashEnd),
+    0.05,
+    0.95,
+  );
+  const allEligibleLikelihoodZoomBounds = getZoomedBounds(
+    robustnessEligibleStrategies.map(cashLikelihoodAccessor),
+    0.02,
+    0.98,
+  );
 
   const recommendationTitle = 'Recommended starting point from this run';
   const recommendationSummary = hasPlateauRegion
@@ -678,7 +717,7 @@ const RobustnessTabSection = ({
               <div className="optimizer-result-title">All eligible setups: Cash End vs Likelihood</div>
               <div className="robustness-chart-badge">Decision use: High</div>
               <div className="optimizer-result-sub">
-                This chart shows {robustnessEligibleStrategies.length} dots: one for each fully tested setup in the selected path view after the {robustnessApplyFilterDescription} filter. The labeled dots are the current top {Math.min(5, robustnessDisplayedStrategies.length)} strategies for the selected objective.
+                This chart shows {robustnessEligibleStrategies.length} dots: one for each fully tested setup in the selected path view after the {robustnessApplyFilterDescription} filter. The axes are zoomed to the central range so outliers do not flatten the useful cluster. The labeled dots are the current top {Math.min(5, robustnessDisplayedStrategies.length)} strategies for the selected objective.
               </div>
               <RobustnessScatterSvg
                 points={robustnessEligibleStrategies}
@@ -693,41 +732,44 @@ const RobustnessTabSection = ({
                 xFormatter={formatCurrency}
                 yFormatter={formatProbability}
                 highlightedIds={scatterHighlightedIds}
+                xBounds={allEligibleCashZoomBounds}
+                yBounds={allEligibleLikelihoodZoomBounds}
               />
             </div>
             <div className="robustness-chart-card">
-              <div className="optimizer-result-title">All eligible setups: Cash End vs Downside</div>
+              <div className="optimizer-result-title">Top strategies: Overall vs Private-school success</div>
               <div className="robustness-chart-badge">Decision use: High</div>
               <div className="optimizer-result-sub">
-                This uses the same {robustnessEligibleStrategies.length} eligible setups. Further right means more expected end cash. Lower means smaller downside regret in weak futures.
-              </div>
-              <RobustnessScatterSvg
-                points={robustnessEligibleStrategies}
-                title="All eligible setups: Expected Cash End vs Regret CVaR 10%"
-                subtitle="Lower on the vertical axis is better. The labeled dots are the current top 5 setups."
-                xAccessor={(strategy) => strategy.metrics.expectedCashEnd}
-                yAccessor={(strategy) => strategy.metrics.regretCvar10}
-                xLabel="Expected cash left at end"
-                yLabel="Regret CVaR 10%"
-                xFormatter={formatCurrency}
-                yFormatter={formatCurrency}
-                highlightedIds={scatterHighlightedIds}
-              />
-            </div>
-            <div className="robustness-chart-card">
-              <div className="optimizer-result-title">Shortlisted winners: Cash End vs Total End Wealth</div>
-              <div className="robustness-chart-badge">Decision use: Medium</div>
-              <div className="optimizer-result-sub">
-                This chart only shows the current top {topStrategyPlotPoints.length} shortlisted setups from the table. It is useful once you have already narrowed down the field and want to compare the likely cash-versus-wealth trade-off between the leading options.
+                This shows the current top {topStrategyPlotPoints.length} strategies only. It is useful because it separates broad robustness from school-on robustness, so you can see whether a strategy is good across both or only good when private school is off.
               </div>
               <RobustnessScatterSvg
                 points={topStrategyPlotPoints}
-                title="Shortlisted winners: Expected Cash End vs Expected End Net Worth"
-                subtitle="Every shortlisted dot is labeled so you can see how the current leaders differ."
-                xAccessor={(strategy) => strategy.metrics.expectedCashEnd}
-                yAccessor={(strategy) => strategy.metrics.expectedEndNetWorth}
-                xLabel="Expected cash left at end"
-                yLabel="Expected end net worth"
+                title="Top strategies: Overall success vs Private-school success"
+                subtitle="Further up and right is better. Dots high on one axis but low on the other are more one-sided strategies."
+                xAccessor={(strategy) => strategy.metrics.feasibilityProbability}
+                yAccessor={(strategy) => strategy.metrics.privateSchoolFeasibilityProbability}
+                xLabel="Overall success rate"
+                yLabel="Private-school success rate"
+                xFormatter={formatProbability}
+                yFormatter={formatProbability}
+                highlightedIds={topStrategyIds}
+                labelAll
+              />
+            </div>
+            <div className="robustness-chart-card">
+              <div className="optimizer-result-title">Top strategies: First-house size vs Cash End</div>
+              <div className="robustness-chart-badge">Decision use: Medium</div>
+              <div className="optimizer-result-sub">
+                This shows whether the leading strategies are buying optionality by starting smaller or pushing harder into the first home. It is more useful than another cash-vs-wealth chart because it links the recommendation back to the main housing decision.
+              </div>
+              <RobustnessScatterSvg
+                points={topStrategyPlotPoints}
+                title="Top strategies: First-house value vs Expected Cash End"
+                subtitle="Further right means a larger first house. Higher means more expected cash left at the end."
+                xAccessor={(strategy) => strategy.decisionVector.deposit1 + strategy.decisionVector.mortgage1}
+                yAccessor={(strategy) => strategy.metrics.expectedCashEnd}
+                xLabel="First-house value"
+                yLabel="Expected cash left at end"
                 xFormatter={formatCurrency}
                 yFormatter={formatCurrency}
                 highlightedIds={topStrategyIds}
