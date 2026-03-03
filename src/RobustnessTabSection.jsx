@@ -284,10 +284,10 @@ const RobustnessTabSection = ({
     }
 
     if (privateSchoolBaseCasePassCount === 0) {
-      return `No tested setup survives the stricter private-school base-case filter in this run. So this ranking shows the least-bad school-on options inside the sampled futures, not a guaranteed viable school-on plan.`;
+      return `This ranking now ignores the stricter deterministic school-on baseline and simply shows the best available school-on robustness options from the tested set. In the current run, none of those options pass the separate medium/medium school-on baseline check.`;
     }
 
-    return 'This ranking looks first at the school-on futures and asks which setup copes best there.';
+    return 'This ranking looks first at the school-on futures and asks which tested setup copes best there. It is not filtered by the deterministic school-on baseline check.';
   })();
 
   return (
@@ -490,9 +490,15 @@ const RobustnessTabSection = ({
               <div className="optimizer-result-sub">{objectiveHelperText}</div>
               <div className="optimizer-detail-list">
                 <div>{selectedRobustnessObjectiveDefinition.description}</div>
-                <div>
-                  Displayed winners are filtered to strategies that pass the {robustnessApplyFilterDescription} hard rules, including the post-2032 {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} liquid-savings floor.
-                </div>
+                {robustnessApplyFilterDescription === 'no deterministic apply filter' ? (
+                  <div>
+                    For this private-school ranking, displayed winners are not filtered through a separate deterministic baseline. The table and cards show the best available school-on robustness options from the tested set.
+                  </div>
+                ) : (
+                  <div>
+                    Displayed winners are filtered to strategies that pass the {robustnessApplyFilterDescription} hard rules, including the post-2032 {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} liquid-savings floor.
+                  </div>
+                )}
                 {robustnessObjective === 'robust' && robustScoreWeights && (
                   <>
                     <div>

@@ -1188,10 +1188,8 @@ const App = () => {
     (objective) => objective.id === robustnessObjective,
   ) ?? robustnessObjectiveDefinitions[0];
   const robustnessStrategyCatalog = robustnessReport?.strategyCatalog ?? robustnessTopStrategies;
-  const usePrivateSchoolApplyFilter = (
-    robustnessObjective === 'privateSchoolSuccess'
-    || strategyApplyMode === 'privateSchoolOn'
-  );
+  const usePrivateSchoolApplyFilter = strategyApplyMode === 'privateSchoolOn';
+  const bypassRobustnessDisplayFilter = robustnessObjective === 'privateSchoolSuccess';
   const getActiveRobustnessApplyCheck = useCallback((strategy) => (
     usePrivateSchoolApplyFilter
       ? (strategy.privateSchoolApplyScenarioCheck ?? strategy.defaultApplyScenarioCheck)
@@ -1207,11 +1205,14 @@ const App = () => {
     return robustnessStrategyCatalog;
   }, [robustnessPathView, robustnessStrategyCatalog]);
   const robustnessEligibleStrategies = useMemo(() => {
+    if (bypassRobustnessDisplayFilter) {
+      return robustnessFilteredStrategies;
+    }
     const eligible = robustnessFilteredStrategies.filter(
       (strategy) => getActiveRobustnessApplyCheck(strategy)?.overallPass !== false,
     );
     return eligible.length > 0 ? eligible : robustnessFilteredStrategies;
-  }, [getActiveRobustnessApplyCheck, robustnessFilteredStrategies]);
+  }, [bypassRobustnessDisplayFilter, getActiveRobustnessApplyCheck, robustnessFilteredStrategies]);
   const robustnessRankedStrategies = useMemo(
     () => [...robustnessEligibleStrategies].sort((left, right) => (
       compareRobustnessStrategiesForObjective(robustnessObjective, left, right)
@@ -1227,7 +1228,11 @@ const App = () => {
       key: 'all',
       label: 'Best overall',
       strategy: [...robustnessStrategyCatalog]
-        .filter((strategy) => getActiveRobustnessApplyCheck(strategy)?.overallPass !== false)
+        .filter((strategy) => (
+          bypassRobustnessDisplayFilter
+            ? true
+            : getActiveRobustnessApplyCheck(strategy)?.overallPass !== false
+        ))
         .sort((left, right) => compareRobustnessStrategiesForObjective(robustnessObjective, left, right))[0]
         ?? null,
     },
@@ -1235,7 +1240,11 @@ const App = () => {
       key: 'oneHome',
       label: 'Best one-home',
       strategy: [...robustnessStrategyCatalog]
-        .filter((strategy) => getActiveRobustnessApplyCheck(strategy)?.overallPass !== false)
+        .filter((strategy) => (
+          bypassRobustnessDisplayFilter
+            ? true
+            : getActiveRobustnessApplyCheck(strategy)?.overallPass !== false
+        ))
         .filter((strategy) => strategy.pathType === 'One-home path')
         .sort((left, right) => compareRobustnessStrategiesForObjective(robustnessObjective, left, right))[0]
         ?? null,
@@ -1244,12 +1253,16 @@ const App = () => {
       key: 'twoHome',
       label: 'Best two-home',
       strategy: [...robustnessStrategyCatalog]
-        .filter((strategy) => getActiveRobustnessApplyCheck(strategy)?.overallPass !== false)
+        .filter((strategy) => (
+          bypassRobustnessDisplayFilter
+            ? true
+            : getActiveRobustnessApplyCheck(strategy)?.overallPass !== false
+        ))
         .filter((strategy) => strategy.pathType === 'Two-home path')
         .sort((left, right) => compareRobustnessStrategiesForObjective(robustnessObjective, left, right))[0]
         ?? null,
     },
-  ]), [getActiveRobustnessApplyCheck, robustnessObjective, robustnessStrategyCatalog]);
+  ]), [bypassRobustnessDisplayFilter, getActiveRobustnessApplyCheck, robustnessObjective, robustnessStrategyCatalog]);
   const buildRobustnessWhyLines = useCallback((strategy) => {
     if (!strategy) return [];
 
@@ -1764,9 +1777,11 @@ const App = () => {
     setRobustnessPathView,
     robustnessEligibleStrategies,
     robustnessDisplayedStrategies,
-    robustnessApplyFilterDescription: usePrivateSchoolApplyFilter
-      ? 'private-school apply scenario'
-      : 'default apply scenario',
+    robustnessApplyFilterDescription: bypassRobustnessDisplayFilter
+      ? 'no deterministic apply filter'
+      : usePrivateSchoolApplyFilter
+        ? 'private-school apply scenario'
+        : 'default apply scenario',
   };
 
   return (
