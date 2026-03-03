@@ -494,9 +494,14 @@ const RobustnessTabSection = ({
                   Displayed winners are filtered to strategies that pass the {robustnessApplyFilterDescription} hard rules, including the post-2032 {formatCurrency(POST_2032_MIN_TOTAL_SAVINGS)} liquid-savings floor.
                 </div>
                 {robustnessObjective === 'robust' && robustScoreWeights && (
-                  <div>
-                    All-round score weights in this run: overall success {(robustScoreWeights.overallFeasibility * 100).toFixed(0)}%, school-on/off flexibility {(robustScoreWeights.schoolToggleFlexibility * 100).toFixed(0)}%, downside protection {(robustScoreWeights.inverseRegretCvar * 100).toFixed(0)}%, expected wealth {(robustScoreWeights.meanNetWorth * 100).toFixed(0)}%.
-                  </div>
+                  <>
+                    <div>
+                      All-round score weights in this run: overall success {(robustScoreWeights.overallFeasibility * 100).toFixed(0)}%, school-on/off flexibility {(robustScoreWeights.schoolToggleFlexibility * 100).toFixed(0)}%, downside protection {(robustScoreWeights.inverseRegretCvar * 100).toFixed(0)}%, expected wealth {(robustScoreWeights.meanNetWorth * 100).toFixed(0)}%.
+                    </div>
+                    <div>
+                      The school-on/off flexibility term uses the weaker of the two success rates, not the average. So a setup that works well only with private school off is penalized.
+                    </div>
+                  </>
                 )}
               </div>
             </div>
