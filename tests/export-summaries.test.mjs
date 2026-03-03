@@ -21,7 +21,7 @@ test('planner summary markdown includes outcome and warnings sections', () => {
       minIsaBalance: '£75k',
       minLiquidBufferPost2032: '£55k',
     },
-    currentInputs: ['First house £850k in 2027'],
+    currentInputs: ['First house £900k in 2027'],
     warnings: ['No breach'],
     assumptions: ['Model ends at age 70.'],
   });
