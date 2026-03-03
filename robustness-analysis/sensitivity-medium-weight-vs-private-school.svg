@@ -5,104 +5,104 @@
   <text x="120" y="48" font-size="12" font-family="Arial, sans-serif" fill="#475569">This shows which balanced-robust strategy wins as the medium-case weight and private-school probability change.</text>
   
       <rect x="120" y="70" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="130" y="92" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="130" y="109" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">48.4</text>
+      <text x="130" y="92" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S004</text>
+      <text x="130" y="109" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">48.9</text>
     
-      <rect x="276" y="70" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="286" y="92" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="286" y="109" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">44.9</text>
+      <rect x="276" y="70" width="152" height="68" rx="8" fill="#2563eb" opacity="0.88"/>
+      <text x="286" y="92" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S005</text>
+      <text x="286" y="109" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">45.3</text>
     
       <rect x="432" y="70" width="152" height="68" rx="8" fill="#2563eb" opacity="0.88"/>
-      <text x="442" y="92" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S002</text>
-      <text x="442" y="109" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">41.4</text>
+      <text x="442" y="92" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S005</text>
+      <text x="442" y="109" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">41.9</text>
     
       <rect x="588" y="70" width="152" height="68" rx="8" fill="#2563eb" opacity="0.88"/>
-      <text x="598" y="92" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S002</text>
-      <text x="598" y="109" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">38.1</text>
+      <text x="598" y="92" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S005</text>
+      <text x="598" y="109" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">38.3</text>
     
       <rect x="744" y="70" width="152" height="68" rx="8" fill="#2563eb" opacity="0.88"/>
-      <text x="754" y="92" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S002</text>
-      <text x="754" y="109" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">34.8</text>
+      <text x="754" y="92" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S005</text>
+      <text x="754" y="109" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">34.7</text>
     
       <rect x="120" y="142" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="130" y="164" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="130" y="181" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">49.4</text>
+      <text x="130" y="164" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S004</text>
+      <text x="130" y="181" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">50.1</text>
     
       <rect x="276" y="142" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="286" y="164" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="286" y="181" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">45.7</text>
+      <text x="286" y="164" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S004</text>
+      <text x="286" y="181" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">46.3</text>
     
-      <rect x="432" y="142" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="442" y="164" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="442" y="181" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">42.1</text>
+      <rect x="432" y="142" width="152" height="68" rx="8" fill="#f97316" opacity="0.88"/>
+      <text x="442" y="164" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S019</text>
+      <text x="442" y="181" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">42.6</text>
     
       <rect x="588" y="142" width="152" height="68" rx="8" fill="#f97316" opacity="0.88"/>
-      <text x="598" y="164" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S012</text>
-      <text x="598" y="181" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">38.6</text>
+      <text x="598" y="164" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S019</text>
+      <text x="598" y="181" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">38.9</text>
     
       <rect x="744" y="142" width="152" height="68" rx="8" fill="#f97316" opacity="0.88"/>
-      <text x="754" y="164" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S012</text>
-      <text x="754" y="181" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">35.2</text>
+      <text x="754" y="164" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S019</text>
+      <text x="754" y="181" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">35.1</text>
     
-      <rect x="120" y="214" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="130" y="236" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="130" y="253" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">50.6</text>
+      <rect x="120" y="214" width="152" height="68" rx="8" fill="#9333ea" opacity="0.88"/>
+      <text x="130" y="236" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S018</text>
+      <text x="130" y="253" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">51.6</text>
     
-      <rect x="276" y="214" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="286" y="236" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="286" y="253" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">46.8</text>
+      <rect x="276" y="214" width="152" height="68" rx="8" fill="#9333ea" opacity="0.88"/>
+      <text x="286" y="236" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S018</text>
+      <text x="286" y="253" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">47.6</text>
     
-      <rect x="432" y="214" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="442" y="236" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="442" y="253" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">43.0</text>
+      <rect x="432" y="214" width="152" height="68" rx="8" fill="#9333ea" opacity="0.88"/>
+      <text x="442" y="236" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S018</text>
+      <text x="442" y="253" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">43.6</text>
     
       <rect x="588" y="214" width="152" height="68" rx="8" fill="#f97316" opacity="0.88"/>
-      <text x="598" y="236" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S012</text>
-      <text x="598" y="253" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">39.1</text>
+      <text x="598" y="236" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S019</text>
+      <text x="598" y="253" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">39.6</text>
     
       <rect x="744" y="214" width="152" height="68" rx="8" fill="#f97316" opacity="0.88"/>
-      <text x="754" y="236" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S012</text>
+      <text x="754" y="236" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S019</text>
       <text x="754" y="253" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">35.6</text>
     
-      <rect x="120" y="286" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="130" y="308" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="130" y="325" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">51.9</text>
+      <rect x="120" y="286" width="152" height="68" rx="8" fill="#9333ea" opacity="0.88"/>
+      <text x="130" y="308" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S018</text>
+      <text x="130" y="325" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">53.2</text>
     
-      <rect x="276" y="286" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="286" y="308" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="286" y="325" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">47.9</text>
+      <rect x="276" y="286" width="152" height="68" rx="8" fill="#9333ea" opacity="0.88"/>
+      <text x="286" y="308" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S018</text>
+      <text x="286" y="325" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">49.0</text>
     
-      <rect x="432" y="286" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="442" y="308" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="442" y="325" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">43.9</text>
+      <rect x="432" y="286" width="152" height="68" rx="8" fill="#9333ea" opacity="0.88"/>
+      <text x="442" y="308" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S018</text>
+      <text x="442" y="325" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">44.8</text>
     
-      <rect x="588" y="286" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="598" y="308" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="598" y="325" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">39.8</text>
+      <rect x="588" y="286" width="152" height="68" rx="8" fill="#9333ea" opacity="0.88"/>
+      <text x="598" y="308" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S018</text>
+      <text x="598" y="325" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">40.3</text>
     
       <rect x="744" y="286" width="152" height="68" rx="8" fill="#f97316" opacity="0.88"/>
-      <text x="754" y="308" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S012</text>
-      <text x="754" y="325" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">36.0</text>
+      <text x="754" y="308" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S019</text>
+      <text x="754" y="325" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">36.1</text>
     
-      <rect x="120" y="358" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="130" y="380" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="130" y="397" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">53.4</text>
+      <rect x="120" y="358" width="152" height="68" rx="8" fill="#9333ea" opacity="0.88"/>
+      <text x="130" y="380" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S018</text>
+      <text x="130" y="397" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">54.9</text>
     
-      <rect x="276" y="358" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="286" y="380" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="286" y="397" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">49.1</text>
+      <rect x="276" y="358" width="152" height="68" rx="8" fill="#9333ea" opacity="0.88"/>
+      <text x="286" y="380" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S018</text>
+      <text x="286" y="397" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">50.5</text>
     
-      <rect x="432" y="358" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="442" y="380" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="442" y="397" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">44.8</text>
+      <rect x="432" y="358" width="152" height="68" rx="8" fill="#9333ea" opacity="0.88"/>
+      <text x="442" y="380" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S018</text>
+      <text x="442" y="397" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">46.0</text>
     
-      <rect x="588" y="358" width="152" height="68" rx="8" fill="#0f766e" opacity="0.88"/>
-      <text x="598" y="380" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S001</text>
-      <text x="598" y="397" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">40.5</text>
+      <rect x="588" y="358" width="152" height="68" rx="8" fill="#9333ea" opacity="0.88"/>
+      <text x="598" y="380" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S018</text>
+      <text x="598" y="397" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">41.3</text>
     
       <rect x="744" y="358" width="152" height="68" rx="8" fill="#f97316" opacity="0.88"/>
-      <text x="754" y="380" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S012</text>
-      <text x="754" y="397" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">36.4</text>
+      <text x="754" y="380" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">S019</text>
+      <text x="754" y="397" font-size="10" font-family="Arial, sans-serif" fill="#ffffff">36.7</text>
     
   
     <text x="198" y="476" text-anchor="middle" font-size="10" font-family="Arial, sans-serif" fill="#334155">10%</text>
