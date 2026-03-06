@@ -56,6 +56,9 @@ const POST_2032_MIN_TOTAL_SAVINGS = 50000;
 const OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX = 600000;
 const FIRST_HOME_SALE_AGENT_FEE_PCT = 1.5;
 const FIRST_HOME_SALE_LEGAL_FEES = 2000;
+const CHILD_COST_AGE_0_TO_4_BASELINE = 20000;
+const CHILD_COST_AGE_4_TO_18_BASELINE = 10000;
+const CHILD_COST_AGE_18_TO_21_BASELINE = 30000;
 const OPTIMIZER_FAILURE_REASON_DEFINITIONS = [
   {
     key: 'cashEnd',
@@ -683,6 +686,18 @@ const calculateCareerIncome = (
   return income;
 };
 
+const getTieredChildCostForAge = (
+  age,
+  childCostAge0To4,
+  childCostAge4To18,
+  childCostAge18To21,
+) => {
+  if (age < 0 || age > 21) return 0;
+  if (age < 4) return childCostAge0To4;
+  if (age < 18) return childCostAge4To18;
+  return childCostAge18To21;
+};
+
 const simulateFinancialPlan = (params) => {
   const {
     startYear,
@@ -715,8 +730,9 @@ const simulateFinancialPlan = (params) => {
     redundancyYear,
     secondRedundancyYear,
     baseLivingCost,
-    child1AnnualCost,
-    child2AnnualCost,
+    childCostAge0To4 = CHILD_COST_AGE_0_TO_4_BASELINE,
+    childCostAge4To18 = CHILD_COST_AGE_4_TO_18_BASELINE,
+    childCostAge18To21 = CHILD_COST_AGE_18_TO_21_BASELINE,
     emergencyFundAnnual,
     pensionContributionRate,
     visaCostPreSecondHouse,
@@ -976,13 +992,21 @@ const simulateFinancialPlan = (params) => {
     const baseLivingCosts =
       baseLivingCost * Math.pow(1 + realGrowthCosts / 100, yearsFromStart);
 
-    let childCosts = 0;
-    if (year >= child1BirthYear + 1 && year <= child1BirthYear + 21) {
-      childCosts += child1AnnualCost;
-    }
-    if (year >= child2BirthYear + 1 && year <= child2BirthYear + 21) {
-      childCosts += child2AnnualCost;
-    }
+    const child1Age = year - child1BirthYear;
+    const child2Age = year - child2BirthYear;
+    const childCosts =
+      getTieredChildCostForAge(
+        child1Age,
+        childCostAge0To4,
+        childCostAge4To18,
+        childCostAge18To21,
+      )
+      + getTieredChildCostForAge(
+        child2Age,
+        childCostAge0To4,
+        childCostAge4To18,
+        childCostAge18To21,
+      );
 
     let privateSchoolCost = 0;
     if (usePrivateSchool) {
@@ -1578,6 +1602,9 @@ export {
   OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX,
   FIRST_HOME_SALE_AGENT_FEE_PCT,
   FIRST_HOME_SALE_LEGAL_FEES,
+  CHILD_COST_AGE_0_TO_4_BASELINE,
+  CHILD_COST_AGE_4_TO_18_BASELINE,
+  CHILD_COST_AGE_18_TO_21_BASELINE,
   OPTIMIZER_FAILURE_REASON_DEFINITIONS,
   FIRST_HOUSE_LEGAL_FEES,
   SECOND_HOUSE_LEGAL_FEES,

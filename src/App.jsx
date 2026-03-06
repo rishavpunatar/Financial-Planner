@@ -46,6 +46,9 @@ import {
   OPTIMIZER_DEFAULT_FIRST_HOUSE_MORTGAGE_MAX,
   FIRST_HOME_SALE_AGENT_FEE_PCT,
   FIRST_HOME_SALE_LEGAL_FEES,
+  CHILD_COST_AGE_0_TO_4_BASELINE,
+  CHILD_COST_AGE_4_TO_18_BASELINE,
+  CHILD_COST_AGE_18_TO_21_BASELINE,
   FIRST_HOUSE_LEGAL_FEES,
   SECOND_HOUSE_LEGAL_FEES,
   OPTIMIZER_INCOME_CASES,
@@ -112,8 +115,15 @@ const App = () => {
   );
 
   const [baseLivingCost, setBaseLivingCost] = useState(initialScenario?.baseLivingCost ?? 40000);
-  const [child1AnnualCost, setChild1AnnualCost] = useState(initialScenario?.child1AnnualCost ?? 30000);
-  const [child2AnnualCost, setChild2AnnualCost] = useState(initialScenario?.child2AnnualCost ?? 20000);
+  const [childCostAge0To4, setChildCostAge0To4] = useState(
+    initialScenario?.childCostAge0To4 ?? CHILD_COST_AGE_0_TO_4_BASELINE,
+  );
+  const [childCostAge4To18, setChildCostAge4To18] = useState(
+    initialScenario?.childCostAge4To18 ?? CHILD_COST_AGE_4_TO_18_BASELINE,
+  );
+  const [childCostAge18To21, setChildCostAge18To21] = useState(
+    initialScenario?.childCostAge18To21 ?? CHILD_COST_AGE_18_TO_21_BASELINE,
+  );
   const [emergencyFundAnnual, setEmergencyFundAnnual] = useState(initialScenario?.emergencyFundAnnual ?? 5000);
   const [pensionContributionRate, setPensionContributionRate] = useState(
     initialScenario?.pensionContributionRate ?? 5,
@@ -465,8 +475,9 @@ const App = () => {
     redundancyYear,
     secondRedundancyYear,
     baseLivingCost,
-    child1AnnualCost,
-    child2AnnualCost,
+    childCostAge0To4,
+    childCostAge4To18,
+    childCostAge18To21,
     emergencyFundAnnual,
     pensionContributionRate,
     visaCostPreSecondHouse,
@@ -539,8 +550,9 @@ const App = () => {
     redundancyYear,
     secondRedundancyYear,
     baseLivingCost,
-    child1AnnualCost,
-    child2AnnualCost,
+    childCostAge0To4,
+    childCostAge4To18,
+    childCostAge18To21,
     emergencyFundAnnual,
     pensionContributionRate,
     visaCostPreSecondHouse,
@@ -720,8 +732,9 @@ const App = () => {
       redundancyYear,
       secondRedundancyYear,
       baseLivingCost,
-      child1AnnualCost,
-      child2AnnualCost,
+      childCostAge0To4,
+      childCostAge4To18,
+      childCostAge18To21,
       emergencyFundAnnual,
       pensionContributionRate,
       visaCostPreSecondHouse,
@@ -767,8 +780,9 @@ const App = () => {
       redundancyYear,
       secondRedundancyYear,
       baseLivingCost,
-      child1AnnualCost,
-      child2AnnualCost,
+      childCostAge0To4,
+      childCostAge4To18,
+      childCostAge18To21,
       emergencyFundAnnual,
       pensionContributionRate,
       visaCostPreSecondHouse,
@@ -1008,9 +1022,10 @@ const App = () => {
       baseLivingCost: setBaseLivingCost,
       cgtRatePct: setCgtRatePct,
       carCost: setCarCost,
-      child1AnnualCost: setChild1AnnualCost,
+      childCostAge0To4: setChildCostAge0To4,
+      childCostAge4To18: setChildCostAge4To18,
+      childCostAge18To21: setChildCostAge18To21,
       child1BirthYear: setChild1BirthYear,
-      child2AnnualCost: setChild2AnnualCost,
       child2BirthYear: setChild2BirthYear,
       combinedGiftAmount: setCombinedGiftAmount,
       emergencyFundAnnual: setEmergencyFundAnnual,
@@ -1390,7 +1405,7 @@ const App = () => {
     `The model stops at age ${END_AGE}.`,
     `Pension contributions are assumed to reduce taxable pay by ${pensionContributionRate}% before tax and NI, but no pension pot or future pension income is modelled.`,
     `Partner 2 income falls by 50% in each birth year (${child1BirthYear} and ${child2BirthYear}).`,
-    'Child costs start one year after birth and continue until age 21.',
+    `Child costs are tiered per child at ${formatCurrency(childCostAge0To4)} for ages 0-4, ${formatCurrency(childCostAge4To18)} for ages 4-18, and ${formatCurrency(childCostAge18To21)} for ages 18-21.`,
     `Stamp duty and fixed legal fees (${formatCurrency(FIRST_HOUSE_LEGAL_FEES)} on the first purchase and ${formatCurrency(SECOND_HOUSE_LEGAL_FEES)} on the move) are charged as cash outflows in the relevant house-purchase year. If the second house is enabled, the first-home sale also incurs ${FIRST_HOME_SALE_AGENT_FEE_PCT.toFixed(1)}% estate-agent cost plus ${formatCurrency(FIRST_HOME_SALE_LEGAL_FEES)} of sale legal fees; no CGT is assumed on selling the main home.`,
     usePrivateSchool
       ? 'Private school fees are applied in real terms between ages 11 and 18.'
@@ -1414,6 +1429,9 @@ const App = () => {
     'Mortgage repayments are budget-driven from salary percentages rather than a lender-style amortisation schedule. The salary percentage is treated as the total mortgage payment, with interest paid first and only the remainder reducing principal.',
   ], [
     cgtRatePct,
+    childCostAge0To4,
+    childCostAge4To18,
+    childCostAge18To21,
     child1BirthYear,
     child2BirthYear,
     effectiveSecondHouseYear,
@@ -1939,21 +1957,30 @@ const App = () => {
                 formatValue={formatCurrency}
               />
               <RangeSlider
-                label="Child 1 Annual Cost"
-                value={child1AnnualCost}
-                min={5000}
-                max={50000}
-                step={5000}
-                onChange={setChild1AnnualCost}
+                label="Child Cost Age 0-4 (per child)"
+                value={childCostAge0To4}
+                min={0}
+                max={60000}
+                step={1000}
+                onChange={setChildCostAge0To4}
                 formatValue={formatCurrency}
               />
               <RangeSlider
-                label="Child 2 Annual Cost"
-                value={child2AnnualCost}
-                min={5000}
-                max={50000}
-                step={5000}
-                onChange={setChild2AnnualCost}
+                label="Child Cost Age 4-18 (per child)"
+                value={childCostAge4To18}
+                min={0}
+                max={60000}
+                step={1000}
+                onChange={setChildCostAge4To18}
+                formatValue={formatCurrency}
+              />
+              <RangeSlider
+                label="Child Cost Age 18-21 (per child)"
+                value={childCostAge18To21}
+                min={0}
+                max={60000}
+                step={1000}
+                onChange={setChildCostAge18To21}
                 formatValue={formatCurrency}
               />
               <RangeSlider
