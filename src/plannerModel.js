@@ -1,3 +1,8 @@
+import {
+  getCareerGrowthFactor as getCareerGrowthFactorWithTaper,
+  calculateCareerIncome as calculateCareerIncomeWithTaper,
+} from './income.js';
+
 const calculateStampDuty = (propertyValue, isAdditionalProperty = false) => {
   const standardThresholds = [
     { limit: 250000, rate: 0 },
@@ -657,13 +662,10 @@ const calculateEmployeeNationalInsurance = (income, thresholds = {}) => {
 };
 
 const getCareerGrowthFactor = (age) => {
-  if (age < CAREER_GROWTH_PEAK_AGE) return 1;
-  if (age >= CAREER_GROWTH_END_AGE) return 0;
-
-  return 1 - (
-    (age - CAREER_GROWTH_PEAK_AGE) /
-    (CAREER_GROWTH_END_AGE - CAREER_GROWTH_PEAK_AGE)
-  );
+  return getCareerGrowthFactorWithTaper(age, {
+    peakAge: CAREER_GROWTH_PEAK_AGE,
+    endAge: CAREER_GROWTH_END_AGE,
+  });
 };
 
 const calculateCareerIncome = (
@@ -672,18 +674,16 @@ const calculateCareerIncome = (
   startAge,
   currentAge,
 ) => {
-  if (currentAge <= startAge || baseGrowthRate <= 0) {
-    return startIncome;
-  }
-
-  const baseIncrement = startIncome * (baseGrowthRate / 100);
-  let income = startIncome;
-
-  for (let age = startAge; age < currentAge; age += 1) {
-    income += baseIncrement * getCareerGrowthFactor(age);
-  }
-
-  return income;
+  return calculateCareerIncomeWithTaper(
+    startIncome,
+    baseGrowthRate,
+    startAge,
+    currentAge,
+    {
+      peakAge: CAREER_GROWTH_PEAK_AGE,
+      endAge: CAREER_GROWTH_END_AGE,
+    },
+  );
 };
 
 const getTieredChildCostForAge = (
