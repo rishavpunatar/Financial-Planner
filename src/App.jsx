@@ -1,7 +1,9 @@
 // src/App.jsx
 import React, { useState, useMemo, useEffect, useCallback, lazy, Suspense } from 'react';
 import './App.css';
+import './product.css';
 import RangeSlider from './RangeSlider.jsx';
+import GuidedSetup from './GuidedSetup.jsx';
 import {
   loadStoredScenario,
   saveFiltersToURL,
@@ -167,6 +169,7 @@ const App = () => {
   const [presetName, setPresetName] = useState(initialScenario?.presetName ?? '');
   const [linkCopyStatus, setLinkCopyStatus] = useState('');
   const [activeTab, setActiveTab] = useState(initialScenario?.activeTab ?? 'planner');
+  const [showGuide, setShowGuide] = useState(initialScenario === null);
   const [strategyApplyMode, setStrategyApplyMode] = useState(
     initialScenario?.strategyApplyMode ?? 'defaultScenario',
   );
@@ -698,7 +701,10 @@ const App = () => {
   };
 
   const handleFirstHouseYearChange = (value) => {
-    setFirstHousePurchaseYear(Math.max(startYear, value));
+    const maxYear = enableSecondHouse
+      ? Math.max(startYear, effectiveSecondHouseYear - 1)
+      : BASE_BIRTH_YEAR + END_AGE;
+    setFirstHousePurchaseYear(Math.min(maxYear, Math.max(startYear, value)));
   };
 
   const buildSimulationParams = useCallback(
@@ -1817,73 +1823,236 @@ const App = () => {
         : 'default apply scenario',
   };
 
+  const finalNetWorth = finalLiquidNet + finalPropertyValue - finalMortgageBalance;
+  const guidedSetupValues = {
+    baseLivingCost,
+    child1BirthYear,
+    child2BirthYear,
+    combinedGiftAmount,
+    emergencyFundAnnual,
+    enableSecondHouse,
+    firstHousePurchaseYear,
+    firstHouseYearMax: enableSecondHouse
+      ? Math.max(startYear, effectiveSecondHouseYear - 1)
+      : BASE_BIRTH_YEAR + END_AGE,
+    income1Start,
+    income2Start,
+    incomeGrowth,
+    initialCash,
+    initialDeposit,
+    initialMortgage,
+    isaGrowth,
+    isaSeed,
+    mortgageRate,
+    realGrowthProperty,
+    secondHouseDeposit,
+    secondHouseYear: effectiveSecondHouseYear,
+    secondHouseYearMax: plannerSecondHouseYearMax,
+    secondMortgage,
+    startYear,
+    usePrivateSchool,
+  };
+  const guidedSetupActions = {
+    setBaseLivingCost,
+    setChild1BirthYear,
+    setChild2BirthYear,
+    setCombinedGiftAmount: handleCombinedGiftAmountChange,
+    setEmergencyFundAnnual,
+    setEnableSecondHouse,
+    setFirstHousePurchaseYear: handleFirstHouseYearChange,
+    setIncome1Start,
+    setIncome2Start,
+    setIncomeGrowth,
+    setInitialCash: handleInitialCashChange,
+    setInitialDeposit: handleInitialDepositChange,
+    setInitialMortgage: handleInitialMortgageChange,
+    setIsaGrowth,
+    setMortgageRate,
+    setRealGrowthProperty,
+    setSecondHouseDeposit: handleSecondHouseDepositChange,
+    setSecondHouseYear: handleSecondHouseYearChange,
+    setSecondMortgage: handleSecondMortgageChange,
+    setUsePrivateSchool,
+  };
+
+  const finishGuidedSetup = () => {
+    setShowGuide(false);
+    window.requestAnimationFrame(() => {
+      document.getElementById('plan-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
   return (
     <div className="app-root">
-      <h1 className="app-title">Financial Life Planner</h1>
-      <p className="app-subtitle">
-        Combined pre-tax income line; all figures are shown in real terms, mortgage uses a real rate, tax bands drift tighter over time, and the model ends at age {END_AGE}.
-      </p>
+      <header className="product-header">
+        <a className="brand" href="#top" aria-label="ClearPlan home">
+          <span className="brand-mark" aria-hidden="true"><span /></span>
+          <span className="brand-copy">
+            <strong>ClearPlan</strong>
+            <small>Life decisions, modelled</small>
+          </span>
+        </a>
+        <div className="header-actions">
+          <span className="browser-badge"><span className="privacy-dot" />Runs in your browser</span>
+          <button type="button" className="button-ghost button-small" onClick={() => {
+            setActiveTab('planner');
+            setShowGuide(true);
+          }}>
+            How to use it
+          </button>
+          <button type="button" className="button-dark button-small" onClick={handleCopyScenarioLink}>
+            {linkCopyStatus || 'Share this plan'}
+          </button>
+        </div>
+      </header>
 
-      <div className="view-tabs">
+      <nav className="view-tabs" aria-label="Planning tools">
         <button
           type="button"
           className={`view-tab${activeTab === 'planner' ? ' view-tab-active' : ''}`}
           onClick={() => setActiveTab('planner')}
+          aria-current={activeTab === 'planner' ? 'page' : undefined}
         >
-          Planner
+          <span className="tab-number">01</span>
+          <span><strong>Build your plan</strong><small>Set inputs and see the timeline</small></span>
         </button>
         <button
           type="button"
           className={`view-tab${activeTab === 'optimizer' ? ' view-tab-active' : ''}`}
           onClick={() => setActiveTab('optimizer')}
+          aria-current={activeTab === 'optimizer' ? 'page' : undefined}
         >
-          Housing Optimizer
+          <span className="tab-number">02</span>
+          <span><strong>Find a housing path</strong><small>Compare thousands of options</small></span>
         </button>
         <button
           type="button"
           className={`view-tab${activeTab === 'robustness' ? ' view-tab-active' : ''}`}
           onClick={() => setActiveTab('robustness')}
+          aria-current={activeTab === 'robustness' ? 'page' : undefined}
         >
-          Robustness
+          <span className="tab-number">03</span>
+          <span><strong>Stress-test it</strong><small>See what survives uncertainty</small></span>
         </button>
-      </div>
+      </nav>
 
       {activeTab === 'planner' ? (
         <>
+      <section className="planner-hero" id="top">
+        <div className="planner-hero-copy">
+          <span className="section-kicker">Your financial runway</span>
+          <h1>See the shape of your future before you commit.</h1>
+          <p>
+            Model income, homes, children, investing and difficult years in one connected plan.
+            Built for real decisions, with every assumption still in your control.
+          </p>
+          <div className="hero-actions">
+            <button type="button" className="button-primary" onClick={() => setShowGuide(true)}>
+              {showGuide ? 'Setup in progress' : 'Edit my starting point'} <span aria-hidden="true">→</span>
+            </button>
+            <span>UK tax rules · Today’s money · To age {END_AGE}</span>
+          </div>
+        </div>
+        <div className="hero-outcome-card">
+          <div className="outcome-card-top">
+            <span>Projected net worth at {END_AGE}</span>
+            <span className={`status-pill${plannerWarnings.length ? ' status-pill-warn' : ''}`}>
+              <span />{plannerWarnings.length ? 'Review needed' : 'On track'}
+            </span>
+          </div>
+          <strong>{formatCurrency(finalNetWorth)}</strong>
+          <p>Property and liquid wealth, less any mortgage remaining after the final payoff.</p>
+          <div className="outcome-split">
+            <span><small>Liquid</small>{formatCurrency(finalLiquidNet)}</span>
+            <span><small>Property</small>{formatCurrency(finalPropertyValue)}</span>
+          </div>
+        </div>
+      </section>
+
+      {showGuide && (
+        <GuidedSetup
+          values={guidedSetupValues}
+          actions={guidedSetupActions}
+          formatCurrency={formatCurrency}
+          onClose={() => setShowGuide(false)}
+          onFinish={finishGuidedSetup}
+        />
+      )}
+
+      <section className="results-section" id="plan-results">
+        <div className="section-heading-row">
+          <div>
+            <span className="section-kicker">Base-case outcome</span>
+            <h2>Your plan at a glance</h2>
+          </div>
+          <p>These figures update instantly whenever you change an assumption.</p>
+        </div>
       <div className="summary-grid">
+        <div className="summary-card summary-card-featured">
+          <div className="summary-icon" aria-hidden="true">NW</div>
+          <div>
+            <div className="summary-label">Net worth at {END_AGE}</div>
+            <div className="summary-value">{formatCurrency(finalNetWorth)}</div>
+            <div className="summary-sub">Home value + cash − mortgage remaining</div>
+          </div>
+        </div>
           <div className="summary-card summary-accent-cyan">
-          <div className="summary-label">Final Cash After Payoff</div>
+          <div className="summary-icon" aria-hidden="true">£</div>
+          <div>
+          <div className="summary-label">Spendable cash at {END_AGE}</div>
           <div className="summary-value">
             {formatCurrency(finalLiquidNet)}
           </div>
           <div className="summary-sub">
-            {`Liquid cash left after the age-${END_AGE} mortgage payoff`}
+            After the final mortgage payoff
+          </div>
           </div>
         </div>
 
         <div className="summary-card summary-accent-blue">
-          <div className="summary-label">Total Mortgage Payments</div>
+          <div className="summary-icon" aria-hidden="true">MP</div>
+          <div>
+          <div className="summary-label">Lifetime mortgage payments</div>
           <div className="summary-value">
             {formatCurrency(totalMortgagePayments)}
           </div>
           <div className="summary-sub">
-            Principal + interest to age {END_AGE}
+            Includes {formatCurrency(lifetimeInterestPaid)} interest
+          </div>
           </div>
         </div>
 
         <div className="summary-card summary-accent-green">
-          <div className="summary-label">Final Property Value</div>
+          <div className="summary-icon" aria-hidden="true">HV</div>
+          <div>
+          <div className="summary-label">Home value at {END_AGE}</div>
           <div className="summary-value">
             {formatCurrency(finalPropertyValue)}
           </div>
           <div className="summary-sub">
-            Real property growth {realGrowthProperty}%
+            Assuming {realGrowthProperty}% yearly real growth
+          </div>
           </div>
         </div>
       </div>
 
+      <div className={`plan-health${plannerWarnings.length ? ' plan-health-warn' : ''}`}>
+        <span className="plan-health-mark" aria-hidden="true">{plannerWarnings.length ? '!' : '✓'}</span>
+        <div>
+          <strong>{plannerWarnings.length ? `${plannerWarnings.length} item${plannerWarnings.length === 1 ? '' : 's'} to review` : 'Your base plan clears the model’s safeguards'}</strong>
+          <p>{plannerWarnings.length ? plannerWarnings.join(' ') : 'Liquid savings stay above the guardrails and the plan does not build an unfunded cash shortfall.'}</p>
+        </div>
+      </div>
+      </section>
+
       <div className="chart-card">
-        <h2 className="panel-title">Complete Financial Overview</h2>
+        <div className="model-header">
+          <div>
+            <span className="section-kicker">Full model</span>
+            <h2 className="panel-title">Explore every assumption</h2>
+            <p>Start with the essentials, then open advanced costs and model rules when you need more precision.</p>
+          </div>
+        </div>
 
         <div className="preset-row">
           <input
@@ -2142,7 +2311,7 @@ const App = () => {
                 <RangeSlider
                   label="Property Real Growth"
                   value={realGrowthProperty}
-                  min={0}
+                  min={-5}
                   max={5}
                   step={0.1}
                   onChange={setRealGrowthProperty}
@@ -2151,7 +2320,7 @@ const App = () => {
                 <RangeSlider
                   label="Mortgage Real Rate"
                   value={mortgageRate}
-                  min={1}
+                  min={0}
                   max={10}
                   step={0.1}
                   onChange={setMortgageRate}
@@ -2223,7 +2392,7 @@ const App = () => {
                 <RangeSlider
                   label="Starting Income 1"
                   value={income1Start}
-                  min={40000}
+                  min={0}
                   max={250000}
                   step={5000}
                   onChange={setIncome1Start}
@@ -2232,7 +2401,7 @@ const App = () => {
                 <RangeSlider
                   label="Starting Income 2"
                   value={income2Start}
-                  min={40000}
+                  min={0}
                   max={250000}
                   step={5000}
                   onChange={setIncome2Start}
@@ -2547,6 +2716,16 @@ const App = () => {
           <RobustnessTabSection {...robustnessTabProps} />
         </Suspense>
       )}
+      <footer className="product-footer">
+        <div>
+          <span className="brand-mark brand-mark-small" aria-hidden="true"><span /></span>
+          <span><strong>ClearPlan</strong><small>Thoughtful decisions start with a clearer picture.</small></span>
+        </div>
+        <p>
+          Educational scenario modelling only—not financial, tax or investment advice. Results are
+          estimates based on the assumptions you choose.
+        </p>
+      </footer>
     </div>
   );
 };

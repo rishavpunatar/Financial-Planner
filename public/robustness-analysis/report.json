@@ -14788,62 +14788,7 @@
     "objectiveId": "robust"
   },
   "charts": {
-    "scatter": {
-      "robust": {
-        "all": "robustness-analysis/scatter-net-worth-vs-regret-robust-overall.svg",
-        "oneHome": "robustness-analysis/scatter-net-worth-vs-regret-robust-one-home.svg",
-        "twoHome": "robustness-analysis/scatter-net-worth-vs-regret-robust-two-home.svg"
-      },
-      "cashEnd": {
-        "all": "robustness-analysis/scatter-net-worth-vs-regret-cashEnd-overall.svg",
-        "oneHome": "robustness-analysis/scatter-net-worth-vs-regret-cashEnd-one-home.svg",
-        "twoHome": "robustness-analysis/scatter-net-worth-vs-regret-cashEnd-two-home.svg"
-      },
-      "propertyValue": {
-        "all": "robustness-analysis/scatter-net-worth-vs-regret-propertyValue-overall.svg",
-        "oneHome": "robustness-analysis/scatter-net-worth-vs-regret-propertyValue-one-home.svg",
-        "twoHome": "robustness-analysis/scatter-net-worth-vs-regret-propertyValue-two-home.svg"
-      },
-      "bigFirstHouse": {
-        "all": "robustness-analysis/scatter-net-worth-vs-regret-bigFirstHouse-overall.svg",
-        "oneHome": "robustness-analysis/scatter-net-worth-vs-regret-bigFirstHouse-one-home.svg",
-        "twoHome": "robustness-analysis/scatter-net-worth-vs-regret-bigFirstHouse-two-home.svg"
-      },
-      "privateSchoolSuccess": {
-        "all": "robustness-analysis/scatter-net-worth-vs-regret-privateSchoolSuccess-overall.svg",
-        "oneHome": "robustness-analysis/scatter-net-worth-vs-regret-privateSchoolSuccess-one-home.svg",
-        "twoHome": "robustness-analysis/scatter-net-worth-vs-regret-privateSchoolSuccess-two-home.svg"
-      }
-    },
-    "cdf": {
-      "robust": {
-        "all": "robustness-analysis/cdf-top-robust-strategies-robust-overall.svg",
-        "oneHome": "robustness-analysis/cdf-top-robust-strategies-robust-one-home.svg",
-        "twoHome": "robustness-analysis/cdf-top-robust-strategies-robust-two-home.svg"
-      },
-      "cashEnd": {
-        "all": "robustness-analysis/cdf-top-robust-strategies-cashEnd-overall.svg",
-        "oneHome": "robustness-analysis/cdf-top-robust-strategies-cashEnd-one-home.svg",
-        "twoHome": "robustness-analysis/cdf-top-robust-strategies-cashEnd-two-home.svg"
-      },
-      "propertyValue": {
-        "all": "robustness-analysis/cdf-top-robust-strategies-propertyValue-overall.svg",
-        "oneHome": "robustness-analysis/cdf-top-robust-strategies-propertyValue-one-home.svg",
-        "twoHome": "robustness-analysis/cdf-top-robust-strategies-propertyValue-two-home.svg"
-      },
-      "bigFirstHouse": {
-        "all": "robustness-analysis/cdf-top-robust-strategies-bigFirstHouse-overall.svg",
-        "oneHome": "robustness-analysis/cdf-top-robust-strategies-bigFirstHouse-one-home.svg",
-        "twoHome": "robustness-analysis/cdf-top-robust-strategies-bigFirstHouse-two-home.svg"
-      },
-      "privateSchoolSuccess": {
-        "all": "robustness-analysis/cdf-top-robust-strategies-privateSchoolSuccess-overall.svg",
-        "oneHome": "robustness-analysis/cdf-top-robust-strategies-privateSchoolSuccess-one-home.svg",
-        "twoHome": "robustness-analysis/cdf-top-robust-strategies-privateSchoolSuccess-two-home.svg"
-      }
-    },
-    "heatmap": "robustness-analysis/heatmap-deposit-vs-mortgage.svg",
-    "sensitivity": "robustness-analysis/sensitivity-medium-weight-vs-private-school.svg",
-    "markdown": "robustness-analysis/report.md"
+    "markdown": "robustness-analysis/report.md",
+    "rendering": "Interactive charts are rendered from the strategy catalog in the app."
   }
 }
