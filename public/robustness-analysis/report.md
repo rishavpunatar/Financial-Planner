@@ -57,11 +57,6 @@ A robust starting region is first deposit GBP 250k to GBP 250k and first mortgag
 
 ## Charts
 
-- [Scatter: balanced robustness, all strategies](./scatter-net-worth-vs-regret-robust-overall.svg)
-- [Scatter: balanced robustness, one-home only](./scatter-net-worth-vs-regret-robust-one-home.svg)
-- [Scatter: balanced robustness, two-home only](./scatter-net-worth-vs-regret-robust-two-home.svg)
-- [CDF: balanced robustness, all strategies](./cdf-top-robust-strategies-robust-overall.svg)
-- [CDF: balanced robustness, one-home only](./cdf-top-robust-strategies-robust-one-home.svg)
-- [CDF: balanced robustness, two-home only](./cdf-top-robust-strategies-robust-two-home.svg)
-- [Heatmap: first deposit vs first mortgage](./heatmap-deposit-vs-mortgage.svg)
-- [Sensitivity: medium weight vs private-school probability](./sensitivity-medium-weight-vs-private-school.svg)
+The app renders the decision charts interactively from the full strategy catalog. Open the
+**Stress-test it** view to filter the path, change the objective, inspect every eligible setup,
+and compare the shortlisted winners.

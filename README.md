@@ -33,6 +33,8 @@ npm run build
 
 The automated suite covers deterministic model outcomes, mortgage payoff behaviour, savings-floor logic, negative amortisation, tax/income curves, optimizer payloads, robustness reports, scenario persistence and export summaries.
 
+The robustness report keeps its full strategy catalog as structured data. Decision charts are rendered interactively in the app rather than shipped as duplicate heavyweight static SVG exports.
+
 ## Deployment
 
 The app builds to a portable static bundle in `dist/client/` and uses relative asset paths, so it can be hosted on GitHub Pages, Cloudflare Pages, Netlify, Vercel or a conventional static web host. A minimal worker entry in `dist/server/` makes the same build deployable through OpenAI Sites.
